@@ -22,12 +22,19 @@ export interface WordTimestamp {
   confidence?: number;
 }
 
+
 export interface SegmentTimestamp {
   id: number;
   start: number;
   end: number;
   text: string;
   words?: WordTimestamp[];
+}
+
+export interface LyricsData {
+  text: string;
+  words?: WordTimestamp[];
+  segments?: SegmentTimestamp[];
 }
 
 export interface SyncedLyrics {

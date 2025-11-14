@@ -2,6 +2,7 @@
 import { BeatInfo } from '../types/visualizer';
 import { LyricsManager } from './LyricsManager';
 
+
 export class AudioManager {
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;

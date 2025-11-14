@@ -871,7 +871,7 @@ export const LivePreviewCanvas: React.FC = () => {
   };
 
   useEffect(() => {
-    // Connect lyrics manager to audio manager
+
     audioManagerRef.current.setLyricsManager(lyricsManagerRef.current);
   }, []);
 
