@@ -12,6 +12,7 @@ import { AudioEntryService } from "@/services/audioEntry.service";
 import mongoose from "mongoose";
 import { compress } from "@/utils/compress";
 
+
 const openAIService = new OpenAIService();
 
 export class LyricsController {
@@ -60,6 +61,11 @@ export class LyricsController {
         segments: compress(transcription.segments as SegmentTimestamp[]),
         audioHash: saveAudioFile.ipfsHash,
         audioUrl: saveAudioFile.url,
+        metadata: {
+          size: req.file.size ,
+          type: req.file.mimetype,
+          name: req.file.originalname,
+        },
       });
 
       const response: LyricsResponse = {

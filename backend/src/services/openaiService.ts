@@ -1,9 +1,18 @@
+import dotenv from "dotenv";
 import OpenAI from "openai";
 import fs from "fs";
-import { OpenAITranscriptionResponse, WordTimestamp, SegmentTimestamp , LyricsData} from "../types";
-import dotenv from "dotenv";
+import {
+  OpenAITranscriptionResponse,
+  WordTimestamp,
+  SegmentTimestamp,
+  LyricsData,
+} from "../types";
+import { validateEnv } from "@/utils/envValidator";
+
 
 dotenv.config();
+
+validateEnv();
 
 
 
@@ -12,7 +21,7 @@ export class OpenAIService {
 
   constructor() {
     this.openai = new OpenAI({
-      apiKey:"",
+      apiKey: `${process.env.OPENAI_API_KEY}`,
     });
   }
 

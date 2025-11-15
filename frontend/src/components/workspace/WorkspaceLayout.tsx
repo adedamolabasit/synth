@@ -5,6 +5,7 @@ import { LivePreviewCanvas } from './LivePreviewCanvas';
 import { IPManagementDashboard } from './IPManagementDashboard';
 import { ExportPanel } from './ExportPanel';
 
+
 interface WorkspaceLayoutProps {
   activeView: string;
 }

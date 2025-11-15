@@ -2,6 +2,12 @@ import mongoose, { Document } from "mongoose";
 import { IUser } from "./userEntry.model";
 import { WordTimestamp, SegmentTimestamp } from "@/types";
 
+export interface AudioMetadata {
+  size: number;
+  name: string;
+  type: string;
+}
+
 export interface IAudioEntry extends Document {
   user: mongoose.Types.ObjectId | IUser;
   walletAddress: string;
@@ -11,6 +17,7 @@ export interface IAudioEntry extends Document {
   segments: string;
   audioHash: string;
   audioUrl: string;
+  metadata: AudioMetadata;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,7 +61,13 @@ const AudioEntrySchema = new mongoose.Schema<IAudioEntry>(
       type: String,
       required: true,
     },
+    metadata: {
+      size: { type: Number, required: true },
+      name: { type: String, required: true },
+      type: { type: String, required: true },
+    },
   },
+
   { timestamps: true }
 );
 

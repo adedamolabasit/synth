@@ -1,6 +1,6 @@
-import { AudioEntry } from '@/model/audioEntry.model';
-import mongoose from 'mongoose';
-import { SegmentTimestamp, WordTimestamp } from '@/types';
+import { AudioEntry } from "@/model/audioEntry.model";
+import mongoose from "mongoose";
+import { SegmentTimestamp, WordTimestamp } from "@/types";
 
 export interface SaveAudioEntryData {
   userId: mongoose.Types.ObjectId;
@@ -11,6 +11,11 @@ export interface SaveAudioEntryData {
   segments: string;
   audioHash: string;
   audioUrl: string;
+  metadata: {
+    size: number;
+    name: string;
+    type: string;
+  };
 }
 
 export class AudioEntryService {
@@ -24,6 +29,7 @@ export class AudioEntryService {
       segments: data.segments,
       audioHash: data.audioHash,
       audioUrl: data.audioUrl,
+      metadata: data.metadata,
     });
 
     return await newEntry.save();
