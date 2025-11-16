@@ -334,7 +334,7 @@ export function AudioUploadPanel({
       setGenerationStatus("Connecting to AI service...");
 
       // Call your backend API endpoint
-      const response = await fetch("http://localhost:8000/api/v1/ai/generate-music", {
+      const response = await fetch("http://localhost:8000/api/v1/generate-music", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

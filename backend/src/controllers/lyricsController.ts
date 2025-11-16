@@ -12,7 +12,6 @@ import { AudioEntryService } from "@/services/audioEntry.service";
 import mongoose from "mongoose";
 import { compress } from "@/utils/compress";
 
-
 const openAIService = new OpenAIService();
 
 export class LyricsController {
@@ -62,7 +61,7 @@ export class LyricsController {
         audioHash: saveAudioFile.ipfsHash,
         audioUrl: saveAudioFile.url,
         metadata: {
-          size: req.file.size ,
+          size: req.file.size,
           type: req.file.mimetype,
           name: req.file.originalname,
         },
@@ -88,6 +87,18 @@ export class LyricsController {
 
       res.status(500).json(response);
     }
+  }
+
+  async getGenerateMusic(req: any, res: Response): Promise<void> {
+    const payload = req?.body;
+
+    const music = await openAIService.generateMusic(payload);
+
+    const tempFile = `./track-${Date.now()}.wav`;
+
+    fs.writeFileSync(tempFile, music);
+
+    res.json(tempFile);
   }
 
   async getAllAudio(_req: any, res: Response): Promise<void> {

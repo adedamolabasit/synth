@@ -9,12 +9,9 @@ import {
 } from "../types";
 import { validateEnv } from "@/utils/envValidator";
 
-
 dotenv.config();
 
 validateEnv();
-
-
 
 export class OpenAIService {
   private openai: OpenAI;
@@ -54,6 +51,51 @@ export class OpenAIService {
     } catch (error) {
       console.error("OpenAI transcription error:", error);
       throw new Error("Failed to transcribe audio with timestamps");
+    }
+  }
+
+  async generateMusic(requestData: any): Promise<Buffer> {
+    try {
+      const {
+        prompt,
+        duration,
+        genre,
+        mood,
+        instruments,
+        bpm,
+        style,
+        temperature,
+        top_p,
+        top_k,
+      } = requestData;
+
+      // Build final natural language prompt
+      const fullPrompt = `
+      Create a ${genre || ""} music track.
+      Mood: ${mood || ""}.
+      Instruments: ${instruments || ""}.
+      BPM: ${bpm || ""}.
+      Style: ${style || ""}.
+      Duration: ${duration}s.
+      Description: ${prompt}.
+      temperature: ${temperature} || 1,
+      top_p: ${top_p} || 1,
+      top_k: ${top_k} || 50,
+    `.trim();
+
+      const response = await this.openai.audio.speech.create({
+        model: "gpt-4o-mini-tts",
+        input: fullPrompt,
+        voice: "echo",
+      });
+
+      // Convert ArrayBuffer → Buffer
+      const audioBuffer = Buffer.from(await response.arrayBuffer());
+
+      return audioBuffer;
+    } catch (error) {
+      console.error("OpenAI music generation error:", error);
+      throw new Error("Failed to generate music");
     }
   }
 

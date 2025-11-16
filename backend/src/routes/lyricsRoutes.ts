@@ -33,6 +33,66 @@ router.post('/extract', upload.single('audio'), (req, res) =>
 
 /**
  * @swagger
+ * /generate-music:
+ *   post:
+ *     summary: Generate AI music from a prompt and optional parameters
+ *     description: Generates a music track (up to 60 seconds) using OpenAI Audio API.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               prompt:
+ *                 type: string
+ *                 example: "Create a calm ambient track with soft pads"
+ *               duration:
+ *                 type: number
+ *                 example: 60
+ *               genre:
+ *                 type: string
+ *                 example: "ambient"
+ *               mood:
+ *                 type: string
+ *                 example: "relaxed"
+ *               instruments:
+ *                 type: string
+ *                 example: "pads, soft bells"
+ *               bpm:
+ *                 type: number
+ *                 example: 85
+ *               style:
+ *                 type: string
+ *                 example: "lofi electronic"
+ *               temperature:
+ *                 type: number
+ *                 example: 1
+ *               top_p:
+ *                 type: number
+ *                 example: 1
+ *               top_k:
+ *                 type: number
+ *                 example: 50
+ *     responses:
+ *       200:
+ *         description: Music generated successfully (returns WAV audio buffer)
+ *         content:
+ *           audio/wav:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: Invalid input or request error
+ *       500:
+ *         description: Server error generating music
+ */
+router.post('/generate-music', (req, res) =>
+  lyricsController.getGenerateMusic(req, res)
+);
+
+/**
+ * @swagger
  * /audio:
  *   get:
  *     summary: Get all audio entries
