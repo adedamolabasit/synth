@@ -5,6 +5,14 @@ import {
   Waves,
   Box as BoxIcon,
   Sparkles,
+  Rainbow,
+  Atom,
+  Orbit,
+  Network as NetworkIcon,
+  Dna,
+  Flower,
+  Flame,
+  Shapes
 } from "lucide-react";
 import { Input } from "../../ui/Input";
 import { Card } from "../../ui/Card";
@@ -22,7 +30,20 @@ const typeIcons = {
   liquid: Waves,
   cyber: Grid3x3,
   geometric: BoxIcon,
+  wave: Rainbow,
+  // New ones
+  fractal: Flower,
+  quantum: Atom,
+  biological: Dna,
+  network: NetworkIcon,
+  cosmic: Orbit,
+  field: Shapes,
+  "4d": Flame,
+  warp: Waves,
+  molecular: Atom,
+  energy: Flame
 };
+
 
 type FilterType =
   | "all"

@@ -1,17 +1,34 @@
-// contexts/VisualizerContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { 
-  VisualizerParams, 
-  BeatInfo, 
-  VisualElement, 
+import {
+  VisualElement,
   Customization,
-  AudioData 
-} from "../../studio/types/visualizer";
+  AudioData,
+  VisualizerParams,
+} from "../../components/dashboard/workspace/studio/types/visualizer";
 
 interface Visualizer {
   id: string;
   name: string;
-  type: "bars" | "particles" | "waveform" | "3d" | "morphing" | "liquid" | "cyber" | "geometric";
+  type:
+    | "bars"
+    | "particles"
+    | "waveform"
+    | "3d"
+    | "morphing"
+    | "cyber"
+    | "liquid"
+    | "geometric"
+    | "wave"
+    | "biological"
+    | "fractal"
+    | "network"
+    | "quantum"
+    | "cosmic"
+    | "field"
+    | "4d"
+    | "warp"
+    | "molecular"
+    | "energy";
   thumbnail: string;
   rating: number;
   favorite: boolean;
@@ -20,11 +37,18 @@ interface Visualizer {
 
 interface VisualizerContextType {
   params: VisualizerParams;
-  setParams: (params: VisualizerParams | ((prev: VisualizerParams) => VisualizerParams)) => void;
+  setParams: (
+    params: VisualizerParams | ((prev: VisualizerParams) => VisualizerParams)
+  ) => void;
   visualElements: VisualElement[];
-  setVisualElements: (elements: VisualElement[] | ((prev: VisualElement[]) => VisualElement[])) => void;
+  setVisualElements: (
+    elements: VisualElement[] | ((prev: VisualElement[]) => VisualElement[])
+  ) => void;
   updateElement: (id: string, updates: Partial<VisualElement>) => void;
-  updateElementCustomization: (id: string, updates: Partial<Customization>) => void;
+  updateElementCustomization: (
+    id: string,
+    updates: Partial<Customization>
+  ) => void;
   selectedElement: string | null;
   setSelectedElement: (id: string | null) => void;
   audioData: AudioData;
@@ -38,7 +62,9 @@ interface VisualizerContextType {
   setCurrentVisualizer: (visualizerType: string) => void;
 }
 
-const VisualizerContext = createContext<VisualizerContextType | undefined>(undefined);
+const VisualizerContext = createContext<VisualizerContextType | undefined>(
+  undefined
+);
 
 // Default configurations for each element type
 export const defaultCustomizations = {
@@ -165,7 +191,6 @@ const defaultVisualElements: VisualElement[] = [
   },
 ];
 
-// Default visualizers data
 const defaultVisualizers: Visualizer[] = [
   {
     id: "1",
@@ -248,16 +273,286 @@ const defaultVisualizers: Visualizer[] = [
     favorite: false,
     visualizerType: "spectrum",
   },
+  {
+    id: "10",
+    name: "DNA Double Helix",
+    type: "biological",
+    thumbnail: "🧬",
+    rating: 4.9,
+    favorite: true,
+    visualizerType: "dnaHelix",
+  },
+  {
+    id: "11",
+    name: "Crystal Lattice",
+    type: "geometric",
+    thumbnail: "💎",
+    rating: 4.8,
+    favorite: false,
+    visualizerType: "crystalLattice",
+  },
+  {
+    id: "12",
+    name: "Plasma Energy",
+    type: "particles",
+    thumbnail: "⚡",
+    rating: 4.7,
+    favorite: true,
+    visualizerType: "plasmaField",
+  },
+  {
+    id: "13",
+    name: "Fractal Tree",
+    type: "fractal",
+    thumbnail: "🌳",
+    rating: 4.8,
+    favorite: false,
+    visualizerType: "fractalTree",
+  },
+  {
+    id: "14",
+    name: "Kaleidoscope",
+    type: "geometric",
+    thumbnail: "🔆",
+    rating: 4.9,
+    favorite: true,
+    visualizerType: "kaleidoscope",
+  },
+  {
+    id: "15",
+    name: "Neural Network",
+    type: "network",
+    thumbnail: "🧠",
+    rating: 4.8,
+    favorite: false,
+    visualizerType: "neuralNetwork",
+  },
+  {
+    id: "16",
+    name: "Quantum Field",
+    type: "quantum",
+    thumbnail: "⚛️",
+    rating: 4.9,
+    favorite: true,
+    visualizerType: "quantumField",
+  },
+  {
+    id: "17",
+    name: "Solar Flare",
+    type: "cosmic",
+    thumbnail: "☀️",
+    rating: 4.7,
+    favorite: false,
+    visualizerType: "solarFlare",
+  },
+  {
+    id: "18",
+    name: "Aurora Borealis",
+    type: "wave",
+    thumbnail: "🌈",
+    rating: 4.9,
+    favorite: true,
+    visualizerType: "auroraWaves",
+  },
+  {
+    id: "19",
+    name: "Sacred Geometry",
+    type: "geometric",
+    thumbnail: "🕉️",
+    rating: 4.8,
+    favorite: false,
+    visualizerType: "sacredGeometry",
+  },
+  {
+    id: "20",
+    name: "Nebula Cloud",
+    type: "cosmic",
+    thumbnail: "☁️",
+    rating: 4.7,
+    favorite: true,
+    visualizerType: "nebulaCloud",
+  },
+  {
+    id: "21",
+    name: "Mandala Bloom",
+    type: "geometric",
+    thumbnail: "🌸",
+    rating: 4.9,
+    favorite: false,
+    visualizerType: "mandala",
+  },
+  {
+    id: "22",
+    name: "Spiral Arms",
+    type: "cosmic",
+    thumbnail: "🌀",
+    rating: 4.8,
+    favorite: true,
+    visualizerType: "spiralArms",
+  },
+  {
+    id: "23",
+    name: "Hexagonal Grid",
+    type: "geometric",
+    thumbnail: "⬡",
+    rating: 4.7,
+    favorite: false,
+    visualizerType: "hexagonalGrid",
+  },
+  {
+    id: "24",
+    name: "Voronoi Cells",
+    type: "geometric",
+    thumbnail: "🔶",
+    rating: 4.8,
+    favorite: true,
+    visualizerType: "voronoiCells",
+  },
+  {
+    id: "25",
+    name: "Toroidal Field",
+    type: "field",
+    thumbnail: "🍩",
+    rating: 4.9,
+    favorite: false,
+    visualizerType: "toroidalField",
+  },
+  {
+    id: "26",
+    name: "Cosmic Web",
+    type: "network",
+    thumbnail: "🕸️",
+    rating: 4.7,
+    favorite: true,
+    visualizerType: "cosmicWeb",
+  },
+  {
+    id: "27",
+    name: "Crystal Cave",
+    type: "geometric",
+    thumbnail: "💠",
+    rating: 4.8,
+    favorite: false,
+    visualizerType: "crystalCave",
+  },
+  {
+    id: "28",
+    name: "Fire Rings",
+    type: "energy",
+    thumbnail: "🔥",
+    rating: 4.9,
+    favorite: true,
+    visualizerType: "fireRings",
+  },
+  {
+    id: "29",
+    name: "EM Field",
+    type: "field",
+    thumbnail: "🧲",
+    rating: 4.8,
+    favorite: false,
+    visualizerType: "electromagneticField",
+  },
+  {
+    id: "30",
+    name: "Möbius Strip",
+    type: "geometric",
+    thumbnail: "♾️",
+    rating: 4.7,
+    favorite: true,
+    visualizerType: "mobiusStrip",
+  },
+  {
+    id: "31",
+    name: "Fibonacci Spiral",
+    type: "fractal",
+    thumbnail: "🌀",
+    rating: 4.9,
+    favorite: false,
+    visualizerType: "fibonacciSpiral",
+  },
+  {
+    id: "32",
+    name: "Tesseract 4D",
+    type: "4d",
+    thumbnail: "📐",
+    rating: 4.8,
+    favorite: true,
+    visualizerType: "tesseract",
+  },
+  {
+    id: "33",
+    name: "DNA Origami",
+    type: "biological",
+    thumbnail: "🧬",
+    rating: 4.7,
+    favorite: false,
+    visualizerType: "dnaOrigami",
+  },
+  {
+    id: "34",
+    name: "Supernova",
+    type: "cosmic",
+    thumbnail: "💥",
+    rating: 4.9,
+    favorite: true,
+    visualizerType: "supernova",
+  },
+  {
+    id: "35",
+    name: "Warp Tunnel",
+    type: "warp",
+    thumbnail: "🚀",
+    rating: 4.8,
+    favorite: false,
+    visualizerType: "warpTunnel",
+  },
+  {
+    id: "36",
+    name: "Molecular Bonds",
+    type: "molecular",
+    thumbnail: "⚗️",
+    rating: 4.7,
+    favorite: true,
+    visualizerType: "moleculeBonds",
+  },
+  {
+    id: "37",
+    name: "Lightning Storm",
+    type: "energy",
+    thumbnail: "⚡",
+    rating: 4.9,
+    favorite: false,
+    visualizerType: "lightningStorm",
+  },
+  {
+    id: "38",
+    name: "Quantum Foam",
+    type: "quantum",
+    thumbnail: "🫧",
+    rating: 4.8,
+    favorite: true,
+    visualizerType: "quantumFoam",
+  },
+  {
+    id: "39",
+    name: "Celestial Orbit",
+    type: "cosmic",
+    thumbnail: "🪐",
+    rating: 4.9,
+    favorite: false,
+    visualizerType: "celestialOrbit",
+  },
 ];
 
 // Default audio data
 const defaultAudioData: AudioData = {
   frequencyData: new Uint8Array(1024),
   timeData: new Float32Array(2048),
-  beatInfo: { 
-    isBeat: false, 
-    strength: 0, 
-    bandStrengths: { bass: 0, mid: 0, treble: 0 } 
+  beatInfo: {
+    isBeat: false,
+    strength: 0,
+    bandStrengths: { bass: 0, mid: 0, treble: 0 },
   },
   audioLevel: 0,
 };
@@ -290,7 +585,9 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
     reactionSpeed: 50,
   });
 
-  const [visualElements, setVisualElements] = useState<VisualElement[]>(defaultVisualElements);
+  const [visualElements, setVisualElements] = useState<VisualElement[]>(
+    defaultVisualElements
+  );
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [audioData, setAudioData] = useState<AudioData>(defaultAudioData);
   const [showVisualizerLibrary, setShowVisualizerLibrary] = useState(false);
@@ -302,7 +599,10 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
     );
   };
 
-  const updateElementCustomization = (id: string, updates: Partial<Customization>) => {
+  const updateElementCustomization = (
+    id: string,
+    updates: Partial<Customization>
+  ) => {
     setVisualElements((prev) =>
       prev.map((el) =>
         el.id === id
@@ -320,7 +620,8 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
     newParams: VisualizerParams | ((prev: VisualizerParams) => VisualizerParams)
   ) => {
     setParams((prev) => {
-      const updatedParams = typeof newParams === "function" ? newParams(prev) : newParams;
+      const updatedParams =
+        typeof newParams === "function" ? newParams(prev) : newParams;
       // Sync currentVisualizer with visualizerType
       if (updatedParams.visualizerType !== prev.visualizerType) {
         setCurrentVisualizer(updatedParams.visualizerType);
