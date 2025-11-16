@@ -11,8 +11,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { Button } from "../ui/Button";
-import { Slider } from "../ui/Slider";
+import { Button } from "../../ui/Button";
+import { Slider } from "../../ui/Slider";
 import * as THREE from "three";
 
 
@@ -246,7 +246,6 @@ export const LivePreviewCanvas = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const animationIdRef = useRef<number>(0);
   const visualizerObjectsRef = useRef<THREE.Object3D[]>([]);
-  const audioDataRef = useRef<Uint8Array>(new Uint8Array(1024));
   const frequencyDataRef = useRef<Uint8Array>(new Uint8Array(1024));
   const beatHistoryRef = useRef<number[]>([]);
   const timeDataRef = useRef<Float32Array>(new Float32Array(2048));
@@ -539,8 +538,6 @@ export const LivePreviewCanvas = () => {
     const positions = new Float32Array(particles * 3);
     const colors = new Float32Array(particles * 3);
     const sizes = new Float32Array(particles);
-
-    const colorValues = AdvancedAIVisualizerGenerator.getColorValues(params.colorScheme);
 
     for (let i = 0; i < particles; i++) {
       const i3 = i * 3;
@@ -868,6 +865,7 @@ export const LivePreviewCanvas = () => {
   };
 
   const animateCrystal = (frequencyData: Uint8Array, time: number): void => {
+    console.log(time)
     visualizerObjectsRef.current.forEach((crystal, i) => {
       const dataIndex = Math.floor((i / visualizerObjectsRef.current.length) * frequencyData.length);
       const frequencyValue = frequencyData[dataIndex] / 255;

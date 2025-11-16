@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Sidebar } from './components/layout/Sidebar';
-import { StatusBar } from './components/layout/StatusBar';
-import { WorkspaceLayout } from './components/workspace/WorkspaceLayout';
+import { Sidebar } from './app/layouts/Sidebar';
+import { StatusBar } from './app/layouts/StatusBar';
+
+import { WorkspaceLayout } from './pages/dashboard/WorkspaceLayout';
 
 function App() {
   const [activeView, setActiveView] = useState('workspace');

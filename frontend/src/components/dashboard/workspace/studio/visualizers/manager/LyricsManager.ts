@@ -1,5 +1,5 @@
 // src/studio/audio/LyricsManager.ts
-import { LyricsData, LyricsState, LyricsDisplayConfig, WordTimestamp, SegmentTimestamp } from '../types/visualizer';
+import { LyricsData, LyricsState, LyricsDisplayConfig, WordTimestamp, SegmentTimestamp } from '../../types/visualizer';
 
 export class LyricsManager {
   private lyricsData: LyricsData | null = null;

@@ -1,9 +1,4 @@
-// export const formatTime = (seconds: number): string => {
-//   const mins = Math.floor(seconds / 60);
-//   const secs = Math.floor(seconds % 60);
-//   return `${mins}:${secs.toString().padStart(2, '0')}`;
-// };
-import { AudioFile } from "../studio/types/audio";
+import { AudioFile } from "../../components/dashboard/workspace/studio/types/audio";
 
 export const simulateAudioData = (): Uint8Array => {
   const simulatedData = new Uint8Array(1024);
@@ -21,10 +16,6 @@ export const simulateAudioData = (): Uint8Array => {
   return simulatedData;
 };
 
-
-
-
-// Utility function to decode base64 gzipped data
 export const decodeGzippedBase64 = async (base64Data: string): Promise<string> => {
   try {
     const binaryString = atob(base64Data);
@@ -49,7 +40,6 @@ export const decodeGzippedBase64 = async (base64Data: string): Promise<string> =
   }
 };
 
-// Format time in seconds to MM:SS
 export const formatTime = (seconds: number): string => {
   if (!seconds || isNaN(seconds)) return "0:00";
   

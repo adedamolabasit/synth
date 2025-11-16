@@ -1,5 +1,5 @@
 // src/studio/audio/AudioManager.ts
-import { BeatInfo } from '../types/visualizer';
+import { BeatInfo } from '../../types/visualizer';
 import { LyricsManager } from './LyricsManager';
 
 

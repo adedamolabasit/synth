@@ -1,8 +1,8 @@
 import React from "react";
 import { X, Eye, EyeOff, Palette, Zap } from "lucide-react";
-import { useVisualizer } from "../../../components/contexts/VisualizerContext";
-import { Button } from "../../../components/ui/Button";
-import { Slider } from "../../../components/ui/Slider";
+import { useVisualizer } from "../../../../../../app/provider/VisualizerContext";
+import { Button } from "../../../../../ui/Button";
+import { Slider } from "../../../../../ui/Slider";
 
 interface CustomizationField {
   key: string;

@@ -6,12 +6,12 @@ import {
   Box as BoxIcon,
   Sparkles,
 } from "lucide-react";
-import { Input } from "../ui/Input";
-import { Card } from "../ui/Card";
-import { Badge } from "../ui/Badge";
+import { Input } from "../../ui/Input";
+import { Card } from "../../ui/Card";
+import { Badge } from "../../ui/Badge";
 import { useState } from "react";
-import { useVisualizer } from "../contexts/VisualizerContext";
-import { VisualizerParams } from "../../studio/types/visualizer";
+import { useVisualizer } from "../../../app/provider/VisualizerContext";
+import { VisualizerParams } from "./studio/types/visualizer";
 
 const typeIcons = {
   bars: Grid3x3,
@@ -35,10 +35,6 @@ type FilterType =
   | "cyber"
   | "geometric";
 
-interface VisualizerLibraryProps {
-  onVisualizerSelect?: (visualizerType: string) => void;
-  currentVisualizer?: string;
-}
 
 export function VisualizerLibrary() {
   const {
@@ -102,7 +98,7 @@ export function VisualizerLibrary() {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white flex items-center gap-2">
           <Sparkles className="text-cyan-400" size={20} />
-          Visualizer Library
+          Template
         </h2>
         {currentVisualizer && (
           <Badge variant="success" size="sm">

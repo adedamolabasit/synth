@@ -1,7 +1,7 @@
 import { Download, FileVideo, Shield, Share2, Settings as SettingsIcon } from 'lucide-react';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
+import { Card } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import { Badge } from '../../ui/Badge';
 
 export function ExportPanel() {
   return (

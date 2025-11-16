@@ -2,42 +2,29 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Play,
   Pause,
-  Download,
   Wand2,
   Trash2,
   Volume2,
   Upload,
   Music,
-  Zap,
-  Sparkles,
 } from "lucide-react";
-import { BeatInfo } from "../../studio/types/visualizer";
-import { Button } from "../ui/Button";
-import { Slider } from "../ui/Slider";
+import { BeatInfo } from "./studio/types/visualizer";
+import { Button } from "../../ui/Button";
 import * as THREE from "three";
-import { VisualizerParams } from "../../studio/types/visualizer";
-import { AudioManager } from "../../studio/audio/AudioManager";
-import { VisualizerManager } from "../../studio/visualizers/manager/VisualizerManager";
-import { useVisualizer } from "../contexts/VisualizerContext";
-import { ElementCustomizationPanel } from "../../studio/visualizers/Elements/ElementCustomizationPanel";
-import { VisualElementSelector } from "../../studio/visualizers/Elements/VisualElementSelector";
-import { SlidersPanel } from "../ui/SlidersPanel";
-import { ControlsPanel } from "../ui/ControlsPanel";
-import { LyricsManager } from "../../studio/audio/LyricsManager";
-import { LyricsDisplay } from "../ui/LyricsDisplay";
+import { AudioManager } from "./studio/visualizers/manager/AudioManager";
+import { VisualizerManager } from "./studio/visualizers/manager/VisualizerManager";
+import { useVisualizer } from "../../../app/provider/VisualizerContext";
+import { ElementCustomizationPanel } from "./studio/visualizers/Elements/ElementCustomizationPanel";
+import { VisualElementSelector } from "./studio/visualizers/Elements/VisualElementSelector";
+import { SlidersPanel } from "./SlidersPanel";
+import { ControlsPanel } from "./ControlsPanel";
+import { LyricsManager } from "./studio/visualizers/manager/LyricsManager";
+import { LyricsDisplay } from "./LyricsDisplay";
+
 
 export const LivePreviewCanvas: React.FC = () => {
-  const {
-    params,
-    setParams,
-    visualElements,
-    selectedElement,
-    setSelectedElement,
-    audioData,
-    setAudioData,
-    showVisualizerLibrary,
-    setShowVisualizerLibrary,
-  } = useVisualizer();
+  const { params, setParams, visualElements, audioData, setAudioData } =
+    useVisualizer();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [uploadedAudio, setUploadedAudio] = useState<File | null>(null);
@@ -48,7 +35,7 @@ export const LivePreviewCanvas: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [beatDetected, setBeatDetected] = useState(false);
-  const [lyricsData, setLyricsData] = useState<any>(null);
+  // const [lyricsData, setLyricsData] = useState<any>(null);
 
   const audioElementRef = useRef<HTMLAudioElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -78,12 +65,10 @@ export const LivePreviewCanvas: React.FC = () => {
   const pointLightsRef = useRef<THREE.PointLight[]>([]);
   const backgroundRef = useRef<THREE.Color | THREE.Texture | null>(null);
 
-  // Create ambient elements function
   const createAmbientElements = useCallback(
     (scene: THREE.Scene) => {
       if (!sceneRef.current) return;
 
-      // Remove existing ambient objects
       ambientObjectsRef.current.forEach((obj) => {
         scene.remove(obj);
       });
@@ -211,11 +196,10 @@ export const LivePreviewCanvas: React.FC = () => {
             object = new THREE.Mesh(defaultGeometry, defaultMaterial);
         }
 
-        object.position.set(...element.position);
-        object.rotation.set(...element.rotation);
-        object.scale.set(...element.scale);
+        object.position.set(...(element.position as [number, number, number]));
+        object.rotation.set(...(element.rotation as [number, number, number]));
+        object.scale.set(...(element.scale as [number, number, number]));
 
-        // Store data in userData without React state
         object.userData = {
           elementId: element.id,
           type: "ambient",
@@ -242,7 +226,6 @@ export const LivePreviewCanvas: React.FC = () => {
     [visualElements]
   );
 
-  // Animation function for ambient elements
   const animateAmbientElements = useCallback(
     (time: number, beatInfo: BeatInfo) => {
       const bass = beatInfo.bandStrengths.bass || 0;
@@ -281,7 +264,6 @@ export const LivePreviewCanvas: React.FC = () => {
         const elapsedTime = time - (data.startTime || 0);
         const speed = (data.speed || 1) * audioIntensity;
 
-        // Store current transformations
         const newPosition = { x: 0, y: 0, z: 0 };
         const newRotation = {
           x: object.rotation.x,
@@ -294,7 +276,6 @@ export const LivePreviewCanvas: React.FC = () => {
           z: object.scale.z,
         };
 
-        // Reset to start position first
         newPosition.x = data.startPosition.x;
         newPosition.y = data.startPosition.y;
         newPosition.z = data.startPosition.z;
@@ -331,7 +312,6 @@ export const LivePreviewCanvas: React.FC = () => {
               data.startPosition.y +
               Math.sin(elapsedTime * speed * 3) * 2 * audioIntensity;
 
-            // Wing flapping for birds
             if (object.children.length > 0) {
               object.children.forEach((child, index) => {
                 if (index > 0) {
@@ -363,19 +343,16 @@ export const LivePreviewCanvas: React.FC = () => {
             break;
 
           default:
-            // Default floating motion
             newPosition.y =
               data.startPosition.y +
               Math.sin(elapsedTime * speed) * (data.amplitude || 2);
             break;
         }
 
-        // Apply the new transformations directly to THREE.js objects
         object.position.set(newPosition.x, newPosition.y, newPosition.z);
         object.rotation.set(newRotation.x, newRotation.y, newRotation.z);
         object.scale.set(newScale.x, newScale.y, newScale.z);
 
-        // Random slight rotation for all types
         object.rotation.z += 0.01 * speed;
       });
     },
@@ -409,7 +386,6 @@ export const LivePreviewCanvas: React.FC = () => {
             )
           : timeData;
 
-      // Throttle audio data updates
       if (currentTime - lastAnimationTimeRef.current > 0.016) {
         setAudioData({
           frequencyData,
@@ -479,7 +455,6 @@ export const LivePreviewCanvas: React.FC = () => {
         setTimeout(() => setBeatDetected(false), 100);
       }
 
-      // Animate main visualizer
       visualizerManagerRef.current.animateVisualizer(
         visualizerObjectsRef.current,
         frequencyData,
@@ -488,7 +463,6 @@ export const LivePreviewCanvas: React.FC = () => {
         beatInfo
       );
 
-      // Animate ambient elements
       animateAmbientElements(currentTime, beatInfo);
 
       // Camera movement
@@ -510,7 +484,6 @@ export const LivePreviewCanvas: React.FC = () => {
     [params, visualElements, animateAmbientElements]
   );
 
-  // Setup useEffect
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -582,7 +555,6 @@ export const LivePreviewCanvas: React.FC = () => {
     };
   }, []);
 
-  // Animation control useEffect
   useEffect(() => {
     if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
 
@@ -612,7 +584,6 @@ export const LivePreviewCanvas: React.FC = () => {
     };
   }, [isPlaying, animateScene]);
 
-  // Visual elements update useEffect
   useEffect(() => {
     if (sceneRef.current) {
       updateBackground(sceneRef.current);
@@ -621,7 +592,6 @@ export const LivePreviewCanvas: React.FC = () => {
     }
   }, [visualElements, createAmbientElements]);
 
-  // Audio progress useEffect
   useEffect(() => {
     const manager = audioManagerRef.current;
     const handleProgressUpdate = (
@@ -639,7 +609,6 @@ export const LivePreviewCanvas: React.FC = () => {
     };
   }, []);
 
-  // Visualizer params update useEffect
   useEffect(() => {
     createVisualizer();
   }, [
@@ -707,7 +676,6 @@ export const LivePreviewCanvas: React.FC = () => {
             customization.intensity || 1
           );
 
-          // Alternative: Use type assertion
           const position = (customization.position || [5, 5, 5]) as [
             number,
             number,
@@ -783,10 +751,8 @@ export const LivePreviewCanvas: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        setLyricsData(data);
         lyricsManagerRef.current.loadLyrics(data);
 
-        // Also load into audio manager
         audioManagerRef.current.loadLyricsData(data);
       } else {
         console.error("Lyrics extraction failed:", data.error);
@@ -871,7 +837,6 @@ export const LivePreviewCanvas: React.FC = () => {
   };
 
   useEffect(() => {
-
     audioManagerRef.current.setLyricsManager(lyricsManagerRef.current);
   }, []);
 
@@ -890,14 +855,12 @@ export const LivePreviewCanvas: React.FC = () => {
         <ElementCustomizationPanel />
         <VisualElementSelector />
 
-
-          <div className="mt-92">
-   <LyricsDisplay
-          lyricsManager={lyricsManagerRef.current}
-          className="pointer-events-none"
-        />
-          </div>
-     
+        <div className="mt-92">
+          <LyricsDisplay
+            lyricsManager={lyricsManagerRef.current}
+            className="pointer-events-none"
+          />
+        </div>
 
         {beatDetected && (
           <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
@@ -1032,7 +995,7 @@ export const LivePreviewCanvas: React.FC = () => {
           onParamsChange={setParams}
           onDemoAudio={handleDemoAudio}
           canvasRef={canvasRef}
-          audioManager={audioManagerRef.current} // Pass the AudioManager instance
+          audioManager={audioManagerRef.current}
         />
       </div>
     </div>

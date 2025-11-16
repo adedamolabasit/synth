@@ -1,7 +1,7 @@
 import { Box, Link as LinkIcon, Users, DollarSign, Shield, Plus } from 'lucide-react';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
+import { Card } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import { Badge } from '../../ui/Badge';
 
 interface IPAsset {
   id: string;

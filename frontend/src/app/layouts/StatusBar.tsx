@@ -1,5 +1,5 @@
 import { Wifi, Database, Cloud, Clock } from 'lucide-react';
-import { Badge } from '../ui/Badge';
+import { Badge } from '../../components/ui/Badge';
 
 interface StatusBarProps {
   ipConnected: boolean;

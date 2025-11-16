@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import {
   Upload,
   Music,
@@ -6,7 +7,6 @@ import {
   FileAudio,
   ChevronLeft,
   ChevronRight,
-  Trash2,
   Play,
   Pause,
   X,
@@ -20,92 +20,17 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import { Card } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { Badge } from "../ui/Badge";
-
-interface AudioFile {
-  _id: string;
-  name: string;
-  size: number;
-  url: string;
-  type: string;
-  uploadedAt: Date;
-  transcript?: string;
-  lyrics?: string;
-  audioHash?: string;
-  metadata?: {
-    size: number;
-    name: string;
-    type: string;
-  };
-  createdAt: string;
-  audioUrl?: string;
-  words?: string;
-  segments?: string;
-}
-
-interface AIGenerationParams {
-  prompt: string;
-  duration: number;
-  genre: string;
-  mood: string;
-  instruments: string[];
-  bpm: number;
-  style: string;
-  temperature?: number;
-  topP?: number;
-  topK?: number;
-}
-
-interface AIGenerationResponse {
-  success: boolean;
-  audio?: AudioFile;
-  error?: string;
-  jobId?: string;
-  status?: string;
-}
-
-interface AudioUploadPanelProps {
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
-  position?: "left" | "right";
-}
-
-// Utility function to decode base64 gzipped data
-const decodeGzippedBase64 = async (base64Data: string): Promise<string> => {
-  try {
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    
-    const decompressedStream = new Response(bytes).body?.pipeThrough(
-      new DecompressionStream('gzip')
-    );
-    
-    if (decompressedStream) {
-      const decompressedResponse = new Response(decompressedStream);
-      return await decompressedResponse.text();
-    }
-    
-    return "Unable to decompress data";
-  } catch (error) {
-    console.error('Error decoding data:', error);
-    return "Error decoding content";
-  }
-};
-
-// Format time in seconds to MM:SS
-const formatTime = (seconds: number): string => {
-  if (!seconds || isNaN(seconds)) return "0:00";
-  
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
+import { Card } from "../../ui/Card";
+import { Button } from "../../ui/Button";
+import { Badge } from "../../ui/Badge";
+import { moods, genres, instrumentOptions, styles } from "./config";
+import {
+  AudioFile,
+  AIGenerationParams,
+  AIGenerationResponse,
+  AudioUploadPanelProps,
+} from "./types";
+import { decodeGzippedBase64, formatTime } from "../../../shared/utils";
 
 export function AudioUploadPanel({
   isCollapsed = false,
@@ -125,7 +50,7 @@ export function AudioUploadPanel({
   const [decodedLyrics, setDecodedLyrics] = useState<string>("");
   const [isDecoding, setIsDecoding] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<string>("");
-  
+
   // Audio playback state
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -151,32 +76,6 @@ export function AudioUploadPanel({
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
-  // Genre options
-  const genres = [
-    "electronic", "rock", "pop", "hip-hop", "jazz", "classical", 
-    "ambient", "lofi", "dance", "r&b", "country", "reggae",
-  ];
-
-  // Mood options
-  const moods = [
-    "energetic", "calm", "happy", "melancholic", "dark", "uplifting",
-    "romantic", "mysterious", "epic", "dreamy", "aggressive", "peaceful",
-  ];
-
-  // Instrument options
-  const instrumentOptions = [
-    "piano", "guitar", "drums", "bass", "synth", "strings",
-    "violin", "cello", "trumpet", "saxophone", "flute", "vocals",
-    "harp", "trumpet", "trombone", "clarinet", "oboe", "organ",
-  ];
-
-  // Style options
-  const styles = [
-    "modern", "vintage", "futuristic", "acoustic", "orchestral",
-    "minimal", "complex", "experimental", "traditional", "cinematic",
-    "electronic", "organic", "digital", "analog",
-  ];
-
   // Audio event handlers
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -201,7 +100,7 @@ export function AudioUploadPanel({
   };
 
   const handleAudioError = (e: any) => {
-    console.error('Audio error:', e);
+    console.error("Audio error:", e);
     setIsLoading(false);
     setIsPlaying(false);
   };
@@ -220,10 +119,13 @@ export function AudioUploadPanel({
         if (audioRef.current) {
           audioRef.current.src = getAudioSource(targetAudio);
           audioRef.current.load();
-          audioRef.current.play().then(() => {
-            setIsPlaying(true);
-            setIsLoading(false);
-          }).catch(console.error);
+          audioRef.current
+            .play()
+            .then(() => {
+              setIsPlaying(true);
+              setIsLoading(false);
+            })
+            .catch(console.error);
         }
       }, 0);
       return;
@@ -237,7 +139,7 @@ export function AudioUploadPanel({
         await audioRef.current.play();
         setIsPlaying(true);
       } catch (error) {
-        console.error('Play failed:', error);
+        console.error("Play failed:", error);
       }
     }
   };
@@ -279,11 +181,11 @@ export function AudioUploadPanel({
 
   const toggleMute = () => {
     if (!audioRef.current) return;
-    
+
     const newMuted = !isMuted;
     setIsMuted(newMuted);
     audioRef.current.muted = newMuted;
-    
+
     if (newMuted) {
       setVolume(0);
     } else {
@@ -293,12 +195,12 @@ export function AudioUploadPanel({
 
   const changePlaybackRate = () => {
     if (!audioRef.current) return;
-    
+
     const rates = [0.5, 0.75, 1, 1.25, 1.5, 2];
     const currentIndex = rates.indexOf(playbackRate);
     const nextIndex = (currentIndex + 1) % rates.length;
     const newRate = rates[nextIndex];
-    
+
     setPlaybackRate(newRate);
     audioRef.current.playbackRate = newRate;
   };
@@ -334,34 +236,39 @@ export function AudioUploadPanel({
       setGenerationStatus("Connecting to AI service...");
 
       // Call your backend API endpoint
-      const response = await fetch("http://localhost:8000/api/v1/generate-music", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      });
+      const response = await fetch(
+        "http://localhost:8000/api/v1/generate-music",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
 
       setGenerationStatus("Processing your request...");
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
       }
 
       const result: AIGenerationResponse = await response.json();
-      
+
       if (result.success && result.audio) {
         setGenerationStatus("Generation completed successfully!");
-        
+
         // Add the generated audio to the library
         const generatedAudio: AudioFile = {
           ...result.audio,
           uploadedAt: new Date(result.audio.createdAt || new Date()),
         };
 
-        setAudioFiles(prev => [generatedAudio, ...prev]);
+        setAudioFiles((prev) => [generatedAudio, ...prev]);
         setCurrentAudio(generatedAudio);
         setActiveTab("library");
         setShowAIModal(false);
@@ -384,15 +291,15 @@ export function AudioUploadPanel({
         setTimeout(() => {
           setGenerationStatus("");
         }, 3000);
-
       } else {
         throw new Error(result.error || "Generation failed");
       }
-
     } catch (error) {
       console.error("AI generation failed:", error);
-      setGenerationStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      
+      setGenerationStatus(
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+
       // Keep the error message visible for a while
       setTimeout(() => {
         setGenerationStatus("");
@@ -439,6 +346,7 @@ export function AudioUploadPanel({
   };
 
   const handleFiles = async (files: File[]) => {
+    console.log(files);
     setIsAnalyzing(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsAnalyzing(false);
@@ -448,19 +356,19 @@ export function AudioUploadPanel({
   const handleViewDetails = async (audioFile: AudioFile) => {
     setSelectedAudio(audioFile);
     setIsDecoding(true);
-    
+
     try {
       if (audioFile.transcript) {
         const transcript = await decodeGzippedBase64(audioFile.transcript);
         setDecodedTranscript(transcript);
       }
-      
+
       if (audioFile.lyrics) {
         const lyrics = await decodeGzippedBase64(audioFile.lyrics);
         setDecodedLyrics(lyrics);
       }
     } catch (error) {
-      console.error('Error decoding data:', error);
+      console.error("Error decoding data:", error);
       setDecodedTranscript("Error decoding transcript");
       setDecodedLyrics("Error decoding lyrics");
     } finally {
@@ -469,7 +377,7 @@ export function AudioUploadPanel({
   };
 
   const handleDownload = (audioFile: AudioFile) => {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = audioFile.audioUrl || audioFile.url;
     link.download = audioFile.name;
     link.click();
@@ -481,12 +389,12 @@ export function AudioUploadPanel({
   };
 
   const formatDate = (dateString: string | Date) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -513,10 +421,12 @@ export function AudioUploadPanel({
       console.log("Fetched audio data:", data);
 
       if (data.success && Array.isArray(data.audio)) {
-        const fetchedAudioFiles: AudioFile[] = data.audio.map((audio: AudioFile) => ({
-          ...audio,
-          uploadedAt: new Date(audio.createdAt),
-        }));
+        const fetchedAudioFiles: AudioFile[] = data.audio.map(
+          (audio: AudioFile) => ({
+            ...audio,
+            uploadedAt: new Date(audio.createdAt),
+          })
+        );
         setAudioFiles(fetchedAudioFiles);
       }
     } catch (err) {
@@ -543,18 +453,18 @@ export function AudioUploadPanel({
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('loadstart', handleLoadStart);
-    audio.addEventListener('ended', handleAudioEnded);
-    audio.addEventListener('error', handleAudioError);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("loadstart", handleLoadStart);
+    audio.addEventListener("ended", handleAudioEnded);
+    audio.addEventListener("error", handleAudioError);
 
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('ended', handleAudioEnded);
-      audio.removeEventListener('error', handleAudioError);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("loadstart", handleLoadStart);
+      audio.removeEventListener("ended", handleAudioEnded);
+      audio.removeEventListener("error", handleAudioError);
     };
   }, []);
 
@@ -597,12 +507,8 @@ export function AudioUploadPanel({
         multiple
         className="hidden"
       />
-      
-      <audio
-        ref={audioRef}
-        className="hidden"
-        preload="metadata"
-      />
+
+      <audio ref={audioRef} className="hidden" preload="metadata" />
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -744,7 +650,9 @@ export function AudioUploadPanel({
                       </h4>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span className="text-xs text-slate-400">
-                          {formatFileSize(audioFile.metadata?.size || audioFile.size)}
+                          {formatFileSize(
+                            audioFile.metadata?.size || audioFile.size
+                          )}
                         </span>
                         <span className="text-xs text-slate-400">•</span>
                         <span className="text-xs text-slate-400">
@@ -809,7 +717,7 @@ export function AudioUploadPanel({
               <h4 className="text-sm font-semibold text-slate-300">
                 Now Playing
               </h4>
-              
+
               {/* Track Info */}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
@@ -827,14 +735,18 @@ export function AudioUploadPanel({
 
               {/* Progress Bar */}
               <div className="space-y-1">
-                <div 
+                <div
                   ref={progressBarRef}
                   className="w-full h-2 bg-slate-700 rounded-full cursor-pointer hover:h-3 transition-all"
                   onClick={handleSeek}
                 >
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
-                    style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                    style={{
+                      width: `${
+                        duration ? (currentTime / duration) * 100 : 0
+                      }%`,
+                    }}
                   />
                 </div>
                 <div className="flex justify-between text-xs text-slate-400">
@@ -860,11 +772,11 @@ export function AudioUploadPanel({
                       <Volume2 size={16} />
                     )}
                   </Button>
-                  <div 
+                  <div
                     className="w-20 h-1 bg-slate-700 rounded-full cursor-pointer hover:h-2 transition-all"
                     onClick={handleVolumeChange}
                   >
-                    <div 
+                    <div
                       className="h-full bg-slate-400 rounded-full transition-all"
                       style={{ width: `${isMuted ? 0 : volume * 100}%` }}
                     />
@@ -881,7 +793,7 @@ export function AudioUploadPanel({
                   >
                     <SkipBack size={16} />
                   </Button>
-                  
+
                   <Button
                     variant="primary"
                     size="sm"
@@ -1205,21 +1117,28 @@ export function AudioUploadPanel({
 
                 {/* Generation Status */}
                 {(isGenerating || generationStatus) && (
-                  <div className={`p-4 rounded-lg border ${
-                    generationStatus.includes('Error') 
-                      ? 'bg-red-500/10 border-red-500/20' 
-                      : 'bg-cyan-500/10 border-cyan-500/20'
-                  }`}>
+                  <div
+                    className={`p-4 rounded-lg border ${
+                      generationStatus.includes("Error")
+                        ? "bg-red-500/10 border-red-500/20"
+                        : "bg-cyan-500/10 border-cyan-500/20"
+                    }`}
+                  >
                     <div className="flex items-center gap-3">
                       {isGenerating && (
-                        <Loader2 className="text-cyan-400 animate-spin" size={20} />
+                        <Loader2
+                          className="text-cyan-400 animate-spin"
+                          size={20}
+                        />
                       )}
                       <div>
-                        <p className={`font-medium ${
-                          generationStatus.includes('Error') 
-                            ? 'text-red-400' 
-                            : 'text-cyan-400'
-                        }`}>
+                        <p
+                          className={`font-medium ${
+                            generationStatus.includes("Error")
+                              ? "text-red-400"
+                              : "text-cyan-400"
+                          }`}
+                        >
                           {generationStatus}
                         </p>
                         {isGenerating && (
@@ -1265,28 +1184,42 @@ export function AudioUploadPanel({
               <div className="space-y-6">
                 {/* Basic Info */}
                 <div>
-                  <h4 className="text-lg font-semibold text-white mb-4">File Information</h4>
+                  <h4 className="text-lg font-semibold text-white mb-4">
+                    File Information
+                  </h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-slate-400">Name</p>
-                      <p className="text-white">{selectedAudio.metadata?.name || selectedAudio.name}</p>
+                      <p className="text-white">
+                        {selectedAudio.metadata?.name || selectedAudio.name}
+                      </p>
                     </div>
                     <div>
                       <p className="text-slate-400">Size</p>
-                      <p className="text-white">{formatFileSize(selectedAudio.metadata?.size || selectedAudio.size)}</p>
+                      <p className="text-white">
+                        {formatFileSize(
+                          selectedAudio.metadata?.size || selectedAudio.size
+                        )}
+                      </p>
                     </div>
                     <div>
                       <p className="text-slate-400">Type</p>
-                      <p className="text-white">{selectedAudio.metadata?.type || selectedAudio.type}</p>
+                      <p className="text-white">
+                        {selectedAudio.metadata?.type || selectedAudio.type}
+                      </p>
                     </div>
                     <div>
                       <p className="text-slate-400">Uploaded</p>
-                      <p className="text-white">{formatDate(selectedAudio.uploadedAt)}</p>
+                      <p className="text-white">
+                        {formatDate(selectedAudio.uploadedAt)}
+                      </p>
                     </div>
                     {selectedAudio.audioHash && (
                       <div className="col-span-2">
                         <p className="text-slate-400">IPFS Hash</p>
-                        <p className="text-white font-mono text-xs break-all">{selectedAudio.audioHash}</p>
+                        <p className="text-white font-mono text-xs break-all">
+                          {selectedAudio.audioHash}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -1342,9 +1275,17 @@ export function AudioUploadPanel({
                     variant="secondary"
                     onClick={() => handlePlayPause(selectedAudio)}
                     className="flex-1"
-                    icon={currentAudio?._id === selectedAudio._id && isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                    icon={
+                      currentAudio?._id === selectedAudio._id && isPlaying ? (
+                        <Pause size={16} />
+                      ) : (
+                        <Play size={16} />
+                      )
+                    }
                   >
-                    {currentAudio?._id === selectedAudio._id && isPlaying ? "Pause" : "Play"}
+                    {currentAudio?._id === selectedAudio._id && isPlaying
+                      ? "Pause"
+                      : "Play"}
                   </Button>
                   <Button
                     variant="primary"

@@ -1,7 +1,7 @@
 // SlidersPanel.tsx
 import React from "react";
-import { VisualizerParams } from "../../studio/types/visualizer";
-import { Slider } from "./Slider";
+import { VisualizerParams } from "./studio/types/visualizer";
+import { Slider } from "../../ui/Slider";
 
 interface SlidersPanelProps {
   params: VisualizerParams;

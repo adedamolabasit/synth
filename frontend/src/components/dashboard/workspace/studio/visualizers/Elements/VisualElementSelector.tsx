@@ -1,9 +1,8 @@
 // components/VisualElementSelector.tsx
 import React from "react";
 import { Settings, Plus, Trash2, Sparkles, Zap } from "lucide-react";
-import { useVisualizer } from "../../../components/contexts/VisualizerContext";
-import { defaultCustomizations } from "../../../components/contexts/VisualizerContext";
-import { Button } from "../../../components/ui/Button";
+import { useVisualizer, defaultCustomizations } from "../../../../../../app/provider/VisualizerContext";
+import { Button } from "../../../../../ui/Button";
 import { VisualElement } from "../../types/visualizer";
 
 export const VisualElementSelector: React.FC = () => {
