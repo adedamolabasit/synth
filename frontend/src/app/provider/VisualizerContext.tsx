@@ -82,12 +82,17 @@ export const defaultCustomizations = {
     intensity: 1,
     opacity: 0.8,
   },
-  background: {
+   background: {
+    backgroundType: "color",
     color: "#0a0a0a",
-    gradient: true,
-    gradientStart: "#0a0a0a",
-    gradientEnd: "#1a1a2e",
-    opacity: 1,
+    gradient: false,
+    gradientStart: "#000000",
+    gradientEnd: "#ffffff",
+    image: null,
+    imageFile: null,
+    imageScale: 1,
+    imageOffsetX: 0,
+    imageOffsetY: 0,
   },
   particle: {
     color: "#00ff88",

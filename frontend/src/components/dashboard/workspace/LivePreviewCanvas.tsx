@@ -619,39 +619,74 @@ export const LivePreviewCanvas: React.FC = () => {
     params.particleCount,
   ]);
 
-  const updateBackground = (scene: THREE.Scene) => {
-    const backgroundElement = visualElements.find(
-      (el) => el.id === "background"
-    );
-    if (!backgroundElement || !backgroundElement.visible) {
-      scene.background = new THREE.Color(0x0a0a0a);
-      return;
-    }
+const updateBackground = (scene: THREE.Scene) => {
+  const backgroundElement = visualElements.find(
+    (el) => el.id === "background"
+  );
+  if (!backgroundElement || !backgroundElement.visible) {
+    scene.background = new THREE.Color(0x0a0a0a);
+    return;
+  }
 
-    const customization = backgroundElement.customization as any;
-    if (
-      customization.gradient &&
-      customization.gradientStart &&
-      customization.gradientEnd
-    ) {
-      const canvas = document.createElement("canvas");
-      canvas.width = 256;
-      canvas.height = 256;
-      const context = canvas.getContext("2d")!;
-      const gradient = context.createLinearGradient(0, 0, 256, 256);
-      gradient.addColorStop(0, customization.gradientStart);
-      gradient.addColorStop(1, customization.gradientEnd);
-      context.fillStyle = gradient;
-      context.fillRect(0, 0, 256, 256);
+  const customization = backgroundElement.customization as any;
+  const backgroundType = customization.backgroundType || 
+    (customization.image ? "image" : 
+     customization.gradient ? "gradient" : "color");
 
-      const texture = new THREE.CanvasTexture(canvas);
-      scene.background = texture;
-      backgroundRef.current = texture;
-    } else {
+  switch (backgroundType) {
+    case "image":
+      if (customization.image) {
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load(customization.image, (texture) => {
+          // Apply image scaling and offset
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.repeat.set(
+            customization.imageScale || 1,
+            customization.imageScale || 1
+          );
+          texture.offset.set(
+            customization.imageOffsetX || 0,
+            customization.imageOffsetY || 0
+          );
+          
+          scene.background = texture;
+          backgroundRef.current = texture;
+        });
+      } else {
+        scene.background = new THREE.Color(customization.color || 0x0a0a0a);
+        backgroundRef.current = scene.background;
+      }
+      break;
+
+    case "gradient":
+      if (customization.gradient && customization.gradientStart && customization.gradientEnd) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 256;
+        canvas.height = 256;
+        const context = canvas.getContext("2d")!;
+        const gradient = context.createLinearGradient(0, 0, 256, 256);
+        gradient.addColorStop(0, customization.gradientStart);
+        gradient.addColorStop(1, customization.gradientEnd);
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 256, 256);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        scene.background = texture;
+        backgroundRef.current = texture;
+      } else {
+        scene.background = new THREE.Color(customization.color || 0x0a0a0a);
+        backgroundRef.current = scene.background;
+      }
+      break;
+
+    case "color":
+    default:
       scene.background = new THREE.Color(customization.color || 0x0a0a0a);
       backgroundRef.current = scene.background;
-    }
-  };
+      break;
+  }
+};
 
   const createLightsFromElements = (scene: THREE.Scene) => {
     if (ambientLightRef.current) scene.remove(ambientLightRef.current);

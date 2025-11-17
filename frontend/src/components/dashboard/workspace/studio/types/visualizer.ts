@@ -95,6 +95,13 @@ export interface BackgroundCustomization {
   gradientStart?: string;
   gradientEnd?: string;
   opacity: number;
+  // New image upload fields
+  backgroundType?: 'color' | 'gradient' | 'image';
+  image?: string | null; // URL or base64 string for the uploaded image
+  imageFile?: string | null; // Original filename
+  imageScale?: number;
+  imageOffsetX?: number;
+  imageOffsetY?: number;
 }
 
 export interface ShapeCustomization extends BaseCustomization {
