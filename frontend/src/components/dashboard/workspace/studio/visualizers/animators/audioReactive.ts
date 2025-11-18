@@ -8,39 +8,16 @@ export const animateAudioReactive = (
   params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
-  objects.forEach((obj) => {
-    if (!(obj instanceof THREE.Mesh) || obj.userData.ring === undefined) return;
+  const mesh = objects[0] as THREE.Mesh;
 
-    const ring = obj.userData.ring;
-    const segments = obj.userData.segments;
-    const bassLevel = beatInfo?.bandStrengths?.bass || 0;
+  const bass = (beatInfo?.bandStrengths?.bass || 0) * 0.01;
+  const mid = (beatInfo?.bandStrengths?.mid || 0) * 0.01;
+  const treble = (beatInfo?.bandStrengths?.treble || 0) * 0.01;
 
-    const scale = 1 + (beatInfo?.bandStrengths?.mid || 0) * params.intensity * 0.01;
-    obj.scale.set(scale, scale, scale);
+  const mat = mesh.material as THREE.ShaderMaterial;
 
-    const pulse = 1 + Math.sin(time * 4 + ring) * bassLevel * 0.2;
-    obj.scale.multiplyScalar(pulse);
-
-    if (obj.material instanceof THREE.MeshPhongMaterial) {
-      const hue =
-        (time * 0.1 + ring * 0.1 + (beatInfo?.bandStrengths?.treble || 0) * 0.5) % 1;
-      obj.material.color.setHSL(hue, 0.8, 0.6);
-    }
-
-    const geometry = obj.geometry as THREE.TorusGeometry;
-    const positions = geometry.attributes.position.array as Float32Array;
-
-    for (let i = 0; i < segments; i++) {
-      const dataIndex = Math.floor((i / segments) * frequencyData.length);
-      const frequencyValue = frequencyData[dataIndex] / 255;
-
-      const vertexIndex = i * 3;
-      if (positions[vertexIndex + 1] !== undefined) {
-        const wave = Math.sin(time * 2 + i * 0.5) * frequencyValue * 0.1;
-        positions[vertexIndex + 1] += wave;
-      }
-    }
-
-    geometry.attributes.position.needsUpdate = true;
-  });
+  mat.uniforms.uTime.value = time;
+  mat.uniforms.uBass.value = bass * params.intensity;
+  mat.uniforms.uMid.value = mid * params.intensity;
+  mat.uniforms.uTreble.value = treble * params.intensity;
 };

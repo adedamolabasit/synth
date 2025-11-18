@@ -1,17 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-  Play,
-  Pause,
-  Wand2,
-  Trash2,
-  Volume2,
-  Upload,
-  Music,
-} from "lucide-react";
+import { Play, Pause, Wand2, Trash2, Volume2, Music } from "lucide-react";
 import { BeatInfo } from "./studio/types/visualizer";
 import { Button } from "../../ui/Button";
 import * as THREE from "three";
-import { AudioManager } from "./studio/visualizers/manager/AudioManager";
 import { VisualizerManager } from "./studio/visualizers/manager/VisualizerManager";
 import { useVisualizer } from "../../../app/provider/VisualizerContext";
 import { ElementCustomizationPanel } from "./studio/visualizers/Elements/ElementCustomizationPanel";
@@ -20,24 +11,32 @@ import { SlidersPanel } from "./SlidersPanel";
 import { ControlsPanel } from "./ControlsPanel";
 import { LyricsManager } from "./studio/visualizers/manager/LyricsManager";
 import { LyricsDisplay } from "./LyricsDisplay";
-
+import { useAudio } from "../../../app/provider/AudioContext";
 
 export const LivePreviewCanvas: React.FC = () => {
-  const { params, setParams, visualElements, audioData, setAudioData } =
-    useVisualizer();
+  const {
+    currentAudio,
+    isPlaying,
+    isLoading,
+    currentTime,
+    duration,
+    pauseAudio,
+    resumeAudio,
+    seekTo,
+    frequencyData,
+    timeData,
+    beatInfo,
+    audioLevel,
+  } = useAudio();
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [uploadedAudio, setUploadedAudio] = useState<File | null>(null);
+  const { params, setParams, visualElements, setAudioData } = useVisualizer();
+
   const [audioName, setAudioName] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
   const [audioError, setAudioError] = useState<string>("");
   const [hasDefaultAudio, setHasDefaultAudio] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [beatDetected, setBeatDetected] = useState(false);
-  // const [lyricsData, setLyricsData] = useState<any>(null);
 
-  const audioElementRef = useRef<HTMLAudioElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -47,16 +46,10 @@ export const LivePreviewCanvas: React.FC = () => {
   );
 
   const lyricsManagerRef = useRef<LyricsManager>(new LyricsManager());
-  const audioManagerRef = useRef<AudioManager>(new AudioManager());
   const animationIdRef = useRef<number>(0);
   const visualizerObjectsRef = useRef<THREE.Object3D[]>([]);
   const ambientObjectsRef = useRef<THREE.Object3D[]>([]);
-  const beatInfoRef = useRef<BeatInfo>({
-    isBeat: false,
-    strength: 0,
-    bandStrengths: {},
-  });
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const isAnimatingRef = useRef(false);
   const lastAnimationTimeRef = useRef(0);
 
@@ -65,10 +58,47 @@ export const LivePreviewCanvas: React.FC = () => {
   const pointLightsRef = useRef<THREE.PointLight[]>([]);
   const backgroundRef = useRef<THREE.Color | THREE.Texture | null>(null);
 
+  // Update progress when currentTime changes
+  useEffect(() => {
+    if (duration > 0) {
+      setProgress((currentTime / duration) * 100);
+    }
+  }, [currentTime, duration]);
+
+  // Update audio name when currentAudio changes
+  useEffect(() => {
+    if (currentAudio) {
+      setAudioName(currentAudio.metadata?.name || currentAudio.name);
+      setHasDefaultAudio(false);
+    } else if (hasDefaultAudio) {
+      setAudioName("Default Demo Audio");
+    } else {
+      setAudioName("");
+    }
+  }, [currentAudio, hasDefaultAudio]);
+
+  // Sync audio data with visualizer context
+  useEffect(() => {
+    const convertedTimeData =
+      timeData instanceof Uint8Array
+        ? new Float32Array(timeData.length).map(
+            (_, i) => (timeData[i] - 128) / 128
+          )
+        : timeData;
+
+    setAudioData({
+      frequencyData,
+      timeData: convertedTimeData,
+      beatInfo,
+      audioLevel,
+    });
+  }, [frequencyData, timeData, beatInfo, audioLevel, setAudioData]);
+
   const createAmbientElements = useCallback(
     (scene: THREE.Scene) => {
       if (!sceneRef.current) return;
 
+      // Clear existing ambient objects
       ambientObjectsRef.current.forEach((obj) => {
         scene.remove(obj);
       });
@@ -372,30 +402,9 @@ export const LivePreviewCanvas: React.FC = () => {
 
       animationIdRef.current = requestAnimationFrame(animateScene);
 
-      const frequencyData = audioManagerRef.current.getFrequencyData();
-      const timeData = audioManagerRef.current.getTimeDomainData();
       const currentTime = time * 0.001;
 
-      const beatInfo = audioManagerRef.current.detectBeat(frequencyData);
-      beatInfoRef.current = beatInfo;
-
-      const convertedTimeData =
-        timeData instanceof Uint8Array
-          ? new Float32Array(timeData.length).map(
-              (_, i) => (timeData[i] - 128) / 128
-            )
-          : timeData;
-
-      if (currentTime - lastAnimationTimeRef.current > 0.016) {
-        setAudioData({
-          frequencyData,
-          timeData: convertedTimeData,
-          beatInfo,
-          audioLevel: beatInfo.strength * 100,
-        });
-        lastAnimationTimeRef.current = currentTime;
-      }
-
+      // Use beat info from AudioContext
       const bass = beatInfo.bandStrengths.bass || 0;
       const mid = beatInfo.bandStrengths.mid || 0;
       const treble = beatInfo.bandStrengths.treble || 0;
@@ -455,6 +464,7 @@ export const LivePreviewCanvas: React.FC = () => {
         setTimeout(() => setBeatDetected(false), 100);
       }
 
+      // Use frequency data from AudioContext
       visualizerManagerRef.current.animateVisualizer(
         visualizerObjectsRef.current,
         frequencyData,
@@ -481,214 +491,88 @@ export const LivePreviewCanvas: React.FC = () => {
 
       rendererRef.current.render(sceneRef.current, cameraRef.current);
     },
-    [params, visualElements, animateAmbientElements]
+    [params, visualElements, animateAmbientElements, frequencyData, beatInfo]
   );
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      canvasRef.current.clientWidth / canvasRef.current.clientHeight,
-      0.1,
-      1000
+  const updateBackground = (scene: THREE.Scene) => {
+    const backgroundElement = visualElements.find(
+      (el) => el.id === "background"
     );
-    camera.position.set(0, 0, 20);
+    if (!backgroundElement || !backgroundElement.visible) {
+      scene.background = new THREE.Color(0x0a0a0a);
+      return;
+    }
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      antialias: true,
-      alpha: true,
-    });
+    const customization = backgroundElement.customization as any;
+    const backgroundType =
+      customization.backgroundType ||
+      (customization.image
+        ? "image"
+        : customization.gradient
+        ? "gradient"
+        : "color");
 
-    renderer.setSize(
-      canvasRef.current.clientWidth,
-      canvasRef.current.clientHeight
-    );
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    switch (backgroundType) {
+      case "image":
+        if (customization.image) {
+          const textureLoader = new THREE.TextureLoader();
+          textureLoader.load(customization.image, (texture) => {
+            // Apply image scaling and offset
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(
+              customization.imageScale || 1,
+              customization.imageScale || 1
+            );
+            texture.offset.set(
+              customization.imageOffsetX || 0,
+              customization.imageOffsetY || 0
+            );
 
-    sceneRef.current = scene;
-    cameraRef.current = camera;
-    rendererRef.current = renderer;
-
-    updateBackground(scene);
-    createLightsFromElements(scene);
-    createAmbientElements(scene);
-    createVisualizer();
-
-    const handleResize = () => {
-      if (!canvasRef.current || !cameraRef.current || !rendererRef.current)
-        return;
-      cameraRef.current.aspect =
-        canvasRef.current.clientWidth / canvasRef.current.clientHeight;
-      cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(
-        canvasRef.current.clientWidth,
-        canvasRef.current.clientHeight
-      );
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    const loadDefaultAudio = async () => {
-      try {
-        await audioManagerRef.current.initialize();
-        const success = await audioManagerRef.current.loadDefaultAudio();
-        if (success) {
-          setHasDefaultAudio(true);
+            scene.background = texture;
+            backgroundRef.current = texture;
+          });
+        } else {
+          scene.background = new THREE.Color(customization.color || 0x0a0a0a);
+          backgroundRef.current = scene.background;
         }
-      } catch (error) {
-        console.error("Failed to load default audio:", error);
-      }
-    };
+        break;
 
-    loadDefaultAudio();
+      case "gradient":
+        if (
+          customization.gradient &&
+          customization.gradientStart &&
+          customization.gradientEnd
+        ) {
+          const canvas = document.createElement("canvas");
+          canvas.width = 256;
+          canvas.height = 256;
+          const context = canvas.getContext("2d")!;
+          const gradient = context.createLinearGradient(0, 0, 256, 256);
+          gradient.addColorStop(0, customization.gradientStart);
+          gradient.addColorStop(1, customization.gradientEnd);
+          context.fillStyle = gradient;
+          context.fillRect(0, 0, 256, 256);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      isAnimatingRef.current = false;
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-      }
-      audioManagerRef.current.cleanup();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
-
-    const startAnimation = () => {
-      if (isAnimatingRef.current) return;
-      isAnimatingRef.current = true;
-      lastAnimationTimeRef.current = 0;
-      animationIdRef.current = requestAnimationFrame(animateScene);
-    };
-
-    const stopAnimation = () => {
-      isAnimatingRef.current = false;
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-        animationIdRef.current = 0;
-      }
-    };
-
-    if (isPlaying) {
-      startAnimation();
-    } else {
-      stopAnimation();
-    }
-
-    return () => {
-      stopAnimation();
-    };
-  }, [isPlaying, animateScene]);
-
-  useEffect(() => {
-    if (sceneRef.current) {
-      updateBackground(sceneRef.current);
-      createLightsFromElements(sceneRef.current);
-      createAmbientElements(sceneRef.current);
-    }
-  }, [visualElements, createAmbientElements]);
-
-  useEffect(() => {
-    const manager = audioManagerRef.current;
-    const handleProgressUpdate = (
-      currentTime: number,
-      totalDuration: number
-    ) => {
-      setProgress((currentTime / totalDuration) * 100);
-      setDuration(totalDuration);
-      setIsPlaying(manager.isPlaying());
-    };
-
-    manager.onTimeUpdate(handleProgressUpdate);
-    return () => {
-      manager.offTimeUpdate(handleProgressUpdate);
-    };
-  }, []);
-
-  useEffect(() => {
-    createVisualizer();
-  }, [
-    params.visualizerType,
-    params.complexity,
-    params.wireframe,
-    params.objectSize,
-    params.particleCount,
-  ]);
-
-const updateBackground = (scene: THREE.Scene) => {
-  const backgroundElement = visualElements.find(
-    (el) => el.id === "background"
-  );
-  if (!backgroundElement || !backgroundElement.visible) {
-    scene.background = new THREE.Color(0x0a0a0a);
-    return;
-  }
-
-  const customization = backgroundElement.customization as any;
-  const backgroundType = customization.backgroundType || 
-    (customization.image ? "image" : 
-     customization.gradient ? "gradient" : "color");
-
-  switch (backgroundType) {
-    case "image":
-      if (customization.image) {
-        const textureLoader = new THREE.TextureLoader();
-        textureLoader.load(customization.image, (texture) => {
-          // Apply image scaling and offset
-          texture.wrapS = THREE.RepeatWrapping;
-          texture.wrapT = THREE.RepeatWrapping;
-          texture.repeat.set(
-            customization.imageScale || 1,
-            customization.imageScale || 1
-          );
-          texture.offset.set(
-            customization.imageOffsetX || 0,
-            customization.imageOffsetY || 0
-          );
-          
+          const texture = new THREE.CanvasTexture(canvas);
           scene.background = texture;
           backgroundRef.current = texture;
-        });
-      } else {
+        } else {
+          scene.background = new THREE.Color(customization.color || 0x0a0a0a);
+          backgroundRef.current = scene.background;
+        }
+        break;
+
+      case "color":
+      default:
         scene.background = new THREE.Color(customization.color || 0x0a0a0a);
         backgroundRef.current = scene.background;
-      }
-      break;
-
-    case "gradient":
-      if (customization.gradient && customization.gradientStart && customization.gradientEnd) {
-        const canvas = document.createElement("canvas");
-        canvas.width = 256;
-        canvas.height = 256;
-        const context = canvas.getContext("2d")!;
-        const gradient = context.createLinearGradient(0, 0, 256, 256);
-        gradient.addColorStop(0, customization.gradientStart);
-        gradient.addColorStop(1, customization.gradientEnd);
-        context.fillStyle = gradient;
-        context.fillRect(0, 0, 256, 256);
-
-        const texture = new THREE.CanvasTexture(canvas);
-        scene.background = texture;
-        backgroundRef.current = texture;
-      } else {
-        scene.background = new THREE.Color(customization.color || 0x0a0a0a);
-        backgroundRef.current = scene.background;
-      }
-      break;
-
-    case "color":
-    default:
-      scene.background = new THREE.Color(customization.color || 0x0a0a0a);
-      backgroundRef.current = scene.background;
-      break;
-  }
-};
+        break;
+    }
+  };
 
   const createLightsFromElements = (scene: THREE.Scene) => {
+    // Remove existing lights
     if (ambientLightRef.current) scene.remove(ambientLightRef.current);
     if (directionalLightRef.current) scene.remove(directionalLightRef.current);
     pointLightsRef.current.forEach((light) => scene.remove(light));
@@ -742,11 +626,13 @@ const updateBackground = (scene: THREE.Scene) => {
   const createVisualizer = () => {
     if (!sceneRef.current) return;
 
+    // Clear existing visualizer objects
     visualizerObjectsRef.current.forEach((obj) => {
       sceneRef.current!.remove(obj);
     });
     visualizerObjectsRef.current = [];
 
+    // Create new visualizer objects
     const objects = visualizerManagerRef.current.createVisualizer(
       sceneRef.current,
       params
@@ -754,108 +640,136 @@ const updateBackground = (scene: THREE.Scene) => {
     visualizerObjectsRef.current = objects;
   };
 
+  // Initialize Three.js scene
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      canvasRef.current.clientWidth / canvasRef.current.clientHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 0, 20);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvasRef.current,
+      antialias: true,
+      alpha: true,
+    });
+
+    renderer.setSize(
+      canvasRef.current.clientWidth,
+      canvasRef.current.clientHeight
+    );
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    sceneRef.current = scene;
+    cameraRef.current = camera;
+    rendererRef.current = renderer;
+
+    // Initialize scene elements
+    updateBackground(scene);
+    createLightsFromElements(scene);
+    createAmbientElements(scene);
+    createVisualizer();
+
+    const handleResize = () => {
+      if (!canvasRef.current || !cameraRef.current || !rendererRef.current)
+        return;
+      cameraRef.current.aspect =
+        canvasRef.current.clientWidth / canvasRef.current.clientHeight;
+      cameraRef.current.updateProjectionMatrix();
+      rendererRef.current.setSize(
+        canvasRef.current.clientWidth,
+        canvasRef.current.clientHeight
+      );
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      isAnimatingRef.current = false;
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+    };
+  }, []);
+
+  // Start/stop animation based on playback state
+  useEffect(() => {
+    if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
+
+    const startAnimation = () => {
+      if (isAnimatingRef.current) return;
+      isAnimatingRef.current = true;
+      lastAnimationTimeRef.current = 0;
+      animationIdRef.current = requestAnimationFrame(animateScene);
+    };
+
+    const stopAnimation = () => {
+      isAnimatingRef.current = false;
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+        animationIdRef.current = 0;
+      }
+    };
+
+    if (isPlaying) {
+      startAnimation();
+    } else {
+      stopAnimation();
+    }
+
+    return () => {
+      stopAnimation();
+    };
+  }, [isPlaying, animateScene]);
+
+  // Update scene when visual elements change
+  useEffect(() => {
+    if (sceneRef.current) {
+      updateBackground(sceneRef.current);
+      createLightsFromElements(sceneRef.current);
+      createAmbientElements(sceneRef.current);
+    }
+  }, [visualElements, createAmbientElements]);
+
+  // Recreate visualizer when params change
+  useEffect(() => {
+    createVisualizer();
+  }, [
+    params.visualizerType,
+    params.complexity,
+    params.wireframe,
+    params.objectSize,
+    params.particleCount,
+  ]);
+
   const togglePlayback = async () => {
-    const manager = audioManagerRef.current;
-    if (!manager) return;
-
-    try {
-      if (manager.isPlaying()) {
-        manager.pause();
-        setIsPlaying(false);
-      } else {
-        await manager.play();
-        setIsPlaying(true);
-        setAudioError("");
-      }
-    } catch (error) {
-      console.error("Playback error:", error);
-      setAudioError("Failed to play audio");
-    }
-  };
-
-  const extractLyricsFromAudio = async (audioFile: File) => {
-    try {
-      const formData = new FormData();
-      formData.append("audio", audioFile);
-
-      const response = await fetch("http://localhost:8000/api/lyrics/extract", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        lyricsManagerRef.current.loadLyrics(data);
-
-        audioManagerRef.current.loadLyricsData(data);
-      } else {
-        console.error("Lyrics extraction failed:", data.error);
-      }
-    } catch (error) {
-      console.error("Error extracting lyrics:", error);
-    }
-  };
-
-  const handleAudioUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("audio/")) {
-      setAudioError("Please select a valid audio file");
+    if (!currentAudio && !hasDefaultAudio) {
+      await handleDemoAudio();
       return;
     }
 
-    setIsLoading(true);
-    setAudioError("");
-
-    try {
-      await audioManagerRef.current.initialize();
-      const success = await audioManagerRef.current.loadAudioFile(file);
-      if (success) {
-        setUploadedAudio(file);
-        setAudioName(file.name);
-        setHasDefaultAudio(false);
-
-        await extractLyricsFromAudio(file);
-      } else {
-        throw new Error("Failed to load audio file");
+    if (isPlaying) {
+      pauseAudio();
+    } else {
+      if (currentAudio) {
+        await resumeAudio();
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      setAudioError("Error uploading audio file");
-    } finally {
-      setIsLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
-  };
-
-  const handleClearAudio = () => {
-    setUploadedAudio(null);
-    setAudioName("");
-    setAudioError("");
-    audioManagerRef.current.cleanup();
-    setIsPlaying(false);
-
-    audioManagerRef.current = new AudioManager();
-    const loadDefault = async () => {
-      await audioManagerRef.current.initialize();
-      await audioManagerRef.current.loadDefaultAudio();
-      setHasDefaultAudio(true);
-    };
-    loadDefault();
   };
 
   const handleDemoAudio = async () => {
     try {
       if (!hasDefaultAudio) {
-        await audioManagerRef.current.loadDefaultAudio();
+        // You might want to load a demo audio file through the AudioContext
         setHasDefaultAudio(true);
+        setAudioName("Default Demo Audio");
       }
-      setUploadedAudio(null);
-      setAudioName("Default Demo Audio");
       setAudioError("");
     } catch (error) {
       console.error("Demo audio failed:", error);
@@ -864,26 +778,39 @@ const updateBackground = (scene: THREE.Scene) => {
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioManagerRef.current) return;
+    if (!duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const newTime = (clickX / rect.width) * duration;
-    audioManagerRef.current.seekTo(newTime);
+    seekTo(newTime);
+  };
+
+  const handleClearAudio = () => {
+    pauseAudio();
+    setAudioName("");
+    setAudioError("");
+    setHasDefaultAudio(false);
   };
 
   useEffect(() => {
-    audioManagerRef.current.setLyricsManager(lyricsManagerRef.current);
+    // Initialize lyrics manager
+    lyricsManagerRef.current = new LyricsManager();
   }, []);
 
-  const canPlayAudio = uploadedAudio || hasDefaultAudio;
+  useEffect(() => {
+    console.log("Audio Data in LivePreview:", {
+      hasFrequencyData: !!frequencyData && frequencyData.length > 0,
+      frequencyDataLength: frequencyData?.length,
+      beatInfo,
+      audioLevel,
+      isPlaying,
+    });
+  }, [frequencyData, beatInfo, audioLevel, isPlaying]);
+
+  const canPlayAudio = currentAudio || hasDefaultAudio;
 
   return (
-    <div className="h-full  w-full flex flex-col bg-slate-900/50">
-      <audio
-        ref={audioElementRef}
-        style={{ display: "none" }}
-        crossOrigin="anonymous"
-      />
+    <div className="h-full w-full flex flex-col bg-slate-900/50">
       <div className="flex-1 relative group">
         <canvas ref={canvasRef} className="w-full h-full" />
 
@@ -905,31 +832,11 @@ const updateBackground = (scene: THREE.Scene) => {
 
         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 backdrop-blur-xl border border-slate-600 rounded-2xl px-6 py-3">
           <div className="flex items-center gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="audio/*"
-              onChange={handleAudioUpload}
-              className="hidden"
-              id="audio-upload"
-            />
-            <label htmlFor="audio-upload" className="cursor-pointer">
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                variant="secondary"
-                size="sm"
-                icon={<Upload size={16} />}
-                className="px-4"
-                disabled={isLoading}
-              >
-                {isLoading ? "Loading..." : "Upload"}
-              </Button>
-            </label>
-            {(audioName || hasDefaultAudio) && (
+            {audioName && (
               <div className="flex items-center gap-2">
                 <Music size={14} className="text-slate-300" />
                 <span className="text-sm text-slate-300 max-w-32 truncate">
-                  {audioName || "Default Audio"}
+                  {audioName}
                 </span>
                 <Button
                   variant="ghost"
@@ -958,7 +865,7 @@ const updateBackground = (scene: THREE.Scene) => {
             <div className="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 transition-all duration-100"
-                style={{ width: `${audioData.audioLevel}%` }}
+                style={{ width: `${audioLevel}%` }}
               />
             </div>
           </div>
@@ -975,7 +882,7 @@ const updateBackground = (scene: THREE.Scene) => {
             />
           </div>
           <div className="flex justify-between text-xs text-gray-400 mt-1">
-            <span>{Math.floor((progress / 100) * duration)}s</span>
+            <span>{Math.floor(currentTime)}s</span>
             <span>{Math.floor(duration)}s</span>
           </div>
         </div>
@@ -986,52 +893,41 @@ const updateBackground = (scene: THREE.Scene) => {
           </div>
         )}
 
-        {!uploadedAudio && !hasDefaultAudio && (
+        {!currentAudio && !hasDefaultAudio && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
             <div className="bg-slate-800/90 backdrop-blur-xl border border-slate-600 rounded-2xl p-8 max-w-md">
-              <Upload size={48} className="mx-auto mb-4 text-slate-400" />
+              <Music size={48} className="mx-auto mb-4 text-slate-400" />
               <h3 className="text-lg font-semibold text-white mb-2">
-                Upload Audio to Visualize
+                Select Audio to Visualize
               </h3>
               <p className="text-slate-300 mb-4">
-                Upload an MP3, WAV, or other audio file to see it come to life
-                with dynamic visualizations.
+                Choose an audio file from the Audio Manager panel to see it come
+                to life with dynamic visualizations.
               </p>
-              <label htmlFor="audio-upload">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  icon={<Upload size={20} />}
-                  className="w-full"
-                >
-                  Choose Audio File
-                </Button>
-              </label>
-              <div className="mt-4">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={<Wand2 size={16} />}
-                  onClick={handleDemoAudio}
-                  className="w-full"
-                >
-                  Try Demo Audio
-                </Button>
-              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Wand2 size={16} />}
+                onClick={handleDemoAudio}
+                className="w-full"
+              >
+                Try Demo Audio
+              </Button>
             </div>
           </div>
         )}
       </div>
 
       <div className="border-t border-slate-800/50 bg-slate-900/90 backdrop-blur-xl p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <ControlsPanel
+            params={params}
+            onParamsChange={setParams}
+            onDemoAudio={handleDemoAudio}
+            canvasRef={canvasRef}
+          />
+        </div>
         <SlidersPanel params={params} onParamsChange={setParams} />
-        <ControlsPanel
-          params={params}
-          onParamsChange={setParams}
-          onDemoAudio={handleDemoAudio}
-          canvasRef={canvasRef}
-          audioManager={audioManagerRef.current}
-        />
       </div>
     </div>
   );

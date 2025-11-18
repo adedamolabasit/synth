@@ -3,16 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../ui/Button';
 import { Wand2, Download, Circle, Square, Volume2, VolumeX } from 'lucide-react';
 import { SceneRecorder } from '../../../shared/utils/sceneRecorder';
-import { AudioManager } from './studio/visualizers/manager/AudioManager';
 import { VisualizerParams } from './studio/types/visualizer';
-
+import { useAudio } from '../../../app/provider/AudioContext';
 
 interface Props {
   params: VisualizerParams;
   onParamsChange: (u: (p: VisualizerParams) => VisualizerParams) => void;
   onDemoAudio: () => void;
   canvasRef: React.RefObject<HTMLCanvasElement>;
-  audioManager: AudioManager;
 }
 
 export const ControlsPanel: React.FC<Props> = ({
@@ -20,15 +18,11 @@ export const ControlsPanel: React.FC<Props> = ({
   onParamsChange,
   onDemoAudio,
   canvasRef,
-  audioManager,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [includeAudio, setIncludeAudio] = useState(true);
   const recorderRef = React.useRef<SceneRecorder | null>(new SceneRecorder());
-
-  useEffect(() => {
-    // nothing special
-  }, [audioManager]);
+  const { getAudioManager, isPlaying, currentAudio } = useAudio();
 
   const handleRecord = async () => {
     if (!canvasRef.current) {
@@ -38,15 +32,17 @@ export const ControlsPanel: React.FC<Props> = ({
 
     if (!isRecording) {
       try {
-        // Get the processed audio stream from audioManager
         let audioStream: MediaStream | undefined;
+        
         if (includeAudio) {
+          // Get audio stream from AudioManager
+          const audioManager = getAudioManager();
           const stream = audioManager.getProcessedAudioStream();
           if (stream && stream.getAudioTracks().length > 0) {
             audioStream = stream;
-            console.log('Using processed audio stream for recording');
+            console.log('Using AudioManager processed audio stream for recording');
           } else {
-            console.warn('audioManager has no processed stream or no tracks - recording will be silent');
+            console.warn('No audio stream available - recording will be silent');
           }
         }
 
@@ -61,11 +57,11 @@ export const ControlsPanel: React.FC<Props> = ({
         const blob = await recorderRef.current!.stopRecording();
         setIsRecording(false);
 
-        // download
+        // Download the recording
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `visualizer-${Date.now()}.webm`;
+        a.download = `visualizer-${currentAudio?.name || 'recording'}-${Date.now()}.webm`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -79,25 +75,69 @@ export const ControlsPanel: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <label className="flex items-center gap-2">
-        <input type="checkbox" checked={includeAudio} onChange={(e) => setIncludeAudio(e.target.checked)} />
-        <span>Record audio</span>
-      </label>
+    <div className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-lg">
+      <div className="flex items-center gap-2">
+        <input 
+          type="checkbox" 
+          id="includeAudio"
+          checked={includeAudio} 
+          onChange={(e) => setIncludeAudio(e.target.checked)} 
+          className="w-4 h-4 text-cyan-500 bg-slate-700 border-slate-600 rounded focus:ring-cyan-500 focus:ring-2"
+        />
+        <label htmlFor="includeAudio" className="text-sm text-slate-300 cursor-pointer">
+          Include Audio
+        </label>
+      </div>
 
-      <Button onClick={onDemoAudio} variant="secondary" size="sm" icon={<Wand2 size={16} />}>Demo</Button>
+      <Button 
+        onClick={onDemoAudio} 
+        variant="secondary" 
+        size="sm" 
+        icon={<Wand2 size={16} />}
+        disabled={isRecording}
+      >
+        Demo Audio
+      </Button>
 
       <Button
         variant={isRecording ? 'danger' : 'primary'}
         onClick={handleRecord}
         icon={isRecording ? <Square size={16} /> : <Circle size={16} />}
+        disabled={!currentAudio && !isRecording}
       >
-        {isRecording ? 'Stop' : 'Record'}
+        {isRecording ? 'Stop Recording' : 'Start Recording'}
       </Button>
 
-      <Button variant="secondary" size="sm" icon={<Download size={16} />} onClick={() => console.log('Export')}>
-        Export
+      <Button 
+        variant="secondary" 
+        size="sm" 
+        icon={<Download size={16} />} 
+        onClick={() => {
+          // Export current visualizer settings
+          const settings = JSON.stringify(params, null, 2);
+          const blob = new Blob([settings], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `visualizer-settings-${Date.now()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }}
+      >
+        Export Settings
       </Button>
+
+      {/* Audio Status Indicator */}
+      <div className="flex items-center gap-2 ml-2 px-3 py-1 bg-slate-700/50 rounded-full">
+        {isPlaying ? (
+          <Volume2 size={14} className="text-green-400" />
+        ) : (
+          <VolumeX size={14} className="text-slate-400" />
+        )}
+        <span className="text-xs text-slate-300 max-w-32 truncate">
+          {currentAudio ? currentAudio.name : 'No Audio'}
+        </span>
+      </div>
     </div>
   );
 };

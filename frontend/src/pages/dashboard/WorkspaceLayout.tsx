@@ -11,161 +11,65 @@ interface WorkspaceLayoutProps {
 }
 
 export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
-  const [rightPanelWidth, setRightPanelWidth] = useState(330);
-  const [isMobile, setIsMobile] = useState(false);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(320);
+  const [rightPanelWidth, setRightPanelWidth] = useState(320);
 
-  const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
-  const [isRightCollapsed, setIsRightCollapsed] = useState(false);
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
-
-  if (activeView === "audio") {
+  if (activeView === 'audio') {
     return (
-      <div className="flex-1 overflow-hidden bg-slate-900">
+      <div className="flex-1 overflow-hidden">
         <AudioUploadPanel />
       </div>
     );
   }
 
-  if (activeView === "visualizers") {
+  if (activeView === 'visualizers') {
     return (
-      <div className="flex-1 overflow-hidden bg-slate-900">
+      <div className="flex-1 overflow-hidden">
         <VisualizerLibrary />
       </div>
     );
   }
 
-  if (activeView === "ip") {
+  if (activeView === 'ip') {
     return (
-      <div className="flex-1 overflow-hidden bg-slate-900">
+      <div className="flex-1 overflow-hidden">
         <IPManagementDashboard />
       </div>
     );
   }
 
-  if (activeView === "export") {
+  if (activeView === 'export') {
     return (
-      <div className="flex-1 overflow-hidden bg-slate-900">
+      <div className="flex-1 overflow-hidden">
         <ExportPanel />
       </div>
     );
   }
 
-  if (activeView === "settings") {
+  if (activeView === 'settings') {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-900">
+      <div className="flex-1 flex items-center justify-center">
         <p className="text-slate-400">Settings panel coming soon</p>
       </div>
     );
   }
 
-  if (isMobile) {
-    return (
-      <div className="flex-1 flex flex-col overflow-hidden bg-slate-900">
-        <div className="flex border-b border-slate-700">
-          <button className="flex-1 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 border-r border-slate-700">
-            Audio
-          </button>
-          <button
-            className="flex-1 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
-            onClick={() => setRightPanelWidth(rightPanelWidth > 0 ? 0 : 320)}
-          >
-            Visualizers
-          </button>
-        </div>
-
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 min-h-[200px]">
-            <LivePreviewCanvas />
-          </div>
-
-          {rightPanelWidth > 0 && (
-            <div
-              className="border-t border-slate-700"
-              style={{ height: "40vh" }}
-            >
-              <VisualizerLibrary />
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 flex overflow-hidden bg-slate-900">
-      {!isLeftCollapsed && (
-        <div
-          className="w-1 bg-slate-700/30 hover:bg-blue-500/50 cursor-col-resize transition-colors duration-200"
-          onMouseDown={(e) => {
-            e.preventDefault();
-
-            const handleMouseUp = () => {
-              document.removeEventListener("mouseup", handleMouseUp);
-            };
-
-            document.addEventListener("mouseup", handleMouseUp);
-          }}
-        />
-      )}
-
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex-1 relative">
-          <LivePreviewCanvas />
-        </div>
+    <div className="flex-1 flex overflow-hidden">
+      <div
+        className="bg-slate-900/50 border-r border-slate-800/50 overflow-y-auto"
+        style={{ width: `${leftPanelWidth}px` }}
+      >
+        <AudioUploadPanel />
       </div>
 
-      {!isRightCollapsed && (
-        <div
-          className="w-1 bg-slate-700/30 hover:bg-blue-500/50 cursor-col-resize transition-colors duration-200"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            const startX = e.clientX;
-            const startWidth = rightPanelWidth;
-
-            const handleMouseMove = (moveEvent: MouseEvent) => {
-              const delta = startX - moveEvent.clientX;
-              const newWidth = Math.max(280, Math.min(600, startWidth + delta));
-              setRightPanelWidth(newWidth);
-            };
-
-            const handleMouseUp = () => {
-              document.removeEventListener("mousemove", handleMouseMove);
-              document.removeEventListener("mouseup", handleMouseUp);
-            };
-
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("mouseup", handleMouseUp);
-          }}
-        />
-      )}
+      <div className="flex-1 flex flex-col">
+        <LivePreviewCanvas />
+      </div>
 
       <div
-        className={`bg-slate-900/80 border-l border-slate-700/50 overflow-y-auto transition-all duration-300 ease-in-out ${
-          isRightCollapsed ? "w-16" : ""
-        }`}
-        style={{
-          width: isRightCollapsed ? "64px" : `${rightPanelWidth}px`,
-          minWidth: isRightCollapsed ? "64px" : "280px",
-          maxWidth: isRightCollapsed ? "64px" : "calc(100vw - 400px)",
-        }}
+        className="bg-slate-900/50 border-l border-slate-800/50 overflow-y-auto"
+        style={{ width: `${rightPanelWidth}px` }}
       >
         <VisualizerLibrary />
       </div>

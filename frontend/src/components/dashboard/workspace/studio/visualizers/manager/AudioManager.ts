@@ -26,6 +26,43 @@ export class AudioManager {
     treble: [6000, 20000],
   };
 
+  // Add this method to your existing AudioManager class
+async loadAudioFromUrl(url: string): Promise<boolean> {
+  if (!this.isInitialized) {
+    await this.initialize();
+  }
+  
+  this.pause();
+  this.isDefaultAudioPlaying = false;
+
+  if (!this.audioElement) {
+    this.audioElement = new Audio();
+    this.audioElement.crossOrigin = 'anonymous';
+    if (this.audioContext && this.destinationNode && !this.source) {
+      this.source = this.audioContext.createMediaElementSource(this.audioElement);
+      this.source.connect(this.analyser!);
+      this.analyser!.connect(this.destinationNode);
+      this.analyser!.connect(this.audioContext.destination);
+    }
+  }
+
+  return new Promise((resolve) => {
+    this.audioElement!.src = url;
+    this.audioElement!.ontimeupdate = () => this.notifyProgressCallbacks();
+    this.audioElement!.onended = () => {
+      this.isDefaultAudioPlaying = false;
+      this.notifyProgressCallbacks();
+    };
+    this.audioElement!.oncanplaythrough = () => {
+      resolve(true);
+    };
+    this.audioElement!.onerror = (e) => {
+      console.error('Error loading audio from URL:', e);
+      resolve(false);
+    };
+  });
+}
+
   async initialize() {
     if (this.isInitialized) return;
     try {
