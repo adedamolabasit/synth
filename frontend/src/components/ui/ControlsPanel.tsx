@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Wand2, Download, Circle, Square, Volume2, VolumeX } from 'lucide-react';
 import { SceneRecorder } from '../../shared/utils/sceneRecorder';
-import { AudioManager } from '../dashboard/workspace/studio/visualizers/manager/AudioManager';
-import { VisualizerParams } from '../dashboard/workspace/studio/types/visualizer';
+import { AudioManager } from '../../studio/visualizers/manager/AudioManager';
+import { VisualizerParams } from '../../studio/types/visualizer';
 import { Button } from './Button';
 
 interface Props {

@@ -18,8 +18,8 @@ import { Input } from "../../ui/Input";
 import { Card } from "../../ui/Card";
 import { Badge } from "../../ui/Badge";
 import { useState } from "react";
-import { useVisualizer } from "../../../app/provider/VisualizerContext";
-import { VisualizerParams } from "./studio/types/visualizer";
+import { useVisualizer } from "../../../provider/VisualizerContext";
+import { VisualizerParams } from "../../../shared/types/visualizer.types";
 
 const typeIcons = {
   bars: Grid3x3,

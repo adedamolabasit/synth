@@ -1,4 +1,4 @@
-import { AudioFile } from "../../components/dashboard/workspace/studio/types/audio";
+import { AudioFile } from "../types/audio.types";
 
 export const simulateAudioData = (): Uint8Array => {
   const simulatedData = new Uint8Array(1024);
@@ -14,6 +14,47 @@ export const simulateAudioData = (): Uint8Array => {
   }
   
   return simulatedData;
+};
+
+
+// utils/lyricsDecoder.ts
+export const decodeLyricsData = async (encodedLyrics: string): Promise<any> => {
+  try {
+    // Decode base64
+    const binaryString = atob(encodedLyrics);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Decompress gzip
+    const ds = new DecompressionStream('gzip');
+    const writer = ds.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    
+    const decompressed = await new Response(ds.readable).arrayBuffer();
+    const decodedString = new TextDecoder().decode(decompressed);
+
+    console.log(decodedString,"decode")
+    
+    return JSON.parse(decodedString);
+  } catch (error) {
+    console.error('Failed to decode lyrics:', error);
+    return null;
+  }
+};
+
+// Fallback for older browsers
+export const decodeLyricsDataFallback = (encodedLyrics: string): any => {
+  try {
+    // Simple base64 decode (if data isn't actually gzipped)
+    const decodedString = atob(encodedLyrics);
+    return JSON.parse(decodedString);
+  } catch (error) {
+    console.error('Failed to decode lyrics with fallback:', error);
+    return null;
+  }
 };
 
 export const decodeGzippedBase64 = async (base64Data: string): Promise<string> => {

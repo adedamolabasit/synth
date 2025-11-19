@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Play, Pause, Wand2, Trash2, Volume2, Music } from "lucide-react";
-import { BeatInfo } from "./studio/types/visualizer";
+import { BeatInfo } from "../../../shared/types/visualizer.types";
 import { Button } from "../../ui/Button";
 import * as THREE from "three";
-import { VisualizerManager } from "./studio/visualizers/manager/VisualizerManager";
-import { useVisualizer } from "../../../app/provider/VisualizerContext";
-import { ElementCustomizationPanel } from "./studio/visualizers/Elements/ElementCustomizationPanel";
-import { VisualElementSelector } from "./studio/visualizers/Elements/VisualElementSelector";
+import { VisualizerManager } from "../../../studio/visualizers/manager/VisualizerManager";
+import { useVisualizer } from "../../../provider/VisualizerContext";
+import { ElementCustomizationPanel } from "../../../studio/visualizers/Elements/ElementCustomizationPanel";
+import { VisualElementSelector } from "../../../studio/visualizers/Elements/VisualElementSelector";
 import { SlidersPanel } from "./SlidersPanel";
 import { ControlsPanel } from "./ControlsPanel";
-import { LyricsManager } from "./studio/visualizers/manager/LyricsManager";
+import { LyricsManager } from "../../../studio/visualizers/manager/LyricsManager";
 import { LyricsDisplay } from "./LyricsDisplay";
-import { useAudio } from "../../../app/provider/AudioContext";
+import { useAudio } from "../../../provider/AudioContext";
+import { decodeLyricsData } from "../../../shared/utils";
 
 export const LivePreviewCanvas: React.FC = () => {
   const {
@@ -792,20 +793,50 @@ export const LivePreviewCanvas: React.FC = () => {
     setHasDefaultAudio(false);
   };
 
-  useEffect(() => {
-    // Initialize lyrics manager
-    lyricsManagerRef.current = new LyricsManager();
-  }, []);
+useEffect(() => {
+  const loadLyrics = async () => {
+    if (currentAudio?.lyrics) {
+      try {
+        
+        // Try to decode the lyrics
+        let lyricsData = {
+          text:  await decodeLyricsData(currentAudio.lyrics),
+          timestamps: await decodeLyricsData(currentAudio.words),
+          segments: await decodeLyricsData(currentAudio.segments)
+        }
+        
+       
+        
+        // If that fails, try fallback
+        // if (!lyricsData) {
+        //   lyricsData = decodeLyricsDataFallback(currentAudio.lyrics);
+        // }
+        
+        if (lyricsData) {
+          lyricsManagerRef.current.loadLyrics(lyricsData);
+        } else {
+          console.warn('Failed to decode lyrics data');
+        }
+      } catch (error) {
+        console.error('Error loading lyrics:', error);
+      }
+    } else {
+      console.log('No lyrics data available for this audio');
+      lyricsManagerRef.current.reset();
+    }
+  };
 
-  useEffect(() => {
-    console.log("Audio Data in LivePreview:", {
-      hasFrequencyData: !!frequencyData && frequencyData.length > 0,
-      frequencyDataLength: frequencyData?.length,
-      beatInfo,
-      audioLevel,
-      isPlaying,
-    });
-  }, [frequencyData, beatInfo, audioLevel, isPlaying]);
+  loadLyrics();
+}, [currentAudio]);
+
+useEffect(() => {
+  if (isPlaying && currentTime > 0) {
+    lyricsManagerRef.current.update(currentTime);
+    
+  }
+}, [currentTime, isPlaying]);
+
+
 
   const canPlayAudio = currentAudio || hasDefaultAudio;
 

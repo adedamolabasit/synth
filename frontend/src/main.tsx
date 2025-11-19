@@ -2,8 +2,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { VisualizerProvider } from "./app/provider/VisualizerContext.tsx";
-import { AudioProvider } from "./app/provider/AudioContext.tsx";
+import { VisualizerProvider } from "./provider/VisualizerContext.tsx";
+import { AudioProvider } from "./provider/AudioContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

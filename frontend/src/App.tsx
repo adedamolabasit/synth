@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Sidebar } from './app/layouts/Sidebar';
-import { StatusBar } from './app/layouts/StatusBar';
+import { Sidebar } from './layouts/Sidebar';
+import { StatusBar } from './layouts/StatusBar';
 
 import { WorkspaceLayout } from './pages/dashboard/WorkspaceLayout';
 

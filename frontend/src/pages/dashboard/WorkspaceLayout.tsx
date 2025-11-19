@@ -5,7 +5,6 @@ import { LivePreviewCanvas } from "../../components/dashboard/workspace/LivePrev
 import { IPManagementDashboard } from "../../components/dashboard/ipAssets/IPManagementDashboard";
 import { ExportPanel } from "../../components/dashboard/exports/ExportPanel";
 
-
 interface WorkspaceLayoutProps {
   activeView: string;
 }
@@ -14,7 +13,18 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
   const [leftPanelWidth, setLeftPanelWidth] = useState(320);
   const [rightPanelWidth, setRightPanelWidth] = useState(320);
 
-  if (activeView === 'audio') {
+  // Detect screen size for responsive behavior
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 768);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  /* ---------------------- Simple views (full-screen panels) ---------------------- */
+  if (activeView === "audio") {
     return (
       <div className="flex-1 overflow-hidden">
         <AudioUploadPanel />
@@ -22,7 +32,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
-  if (activeView === 'visualizers') {
+  if (activeView === "visualizers") {
     return (
       <div className="flex-1 overflow-hidden">
         <VisualizerLibrary />
@@ -30,7 +40,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
-  if (activeView === 'ip') {
+  if (activeView === "ip") {
     return (
       <div className="flex-1 overflow-hidden">
         <IPManagementDashboard />
@@ -38,7 +48,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
-  if (activeView === 'export') {
+  if (activeView === "export") {
     return (
       <div className="flex-1 overflow-hidden">
         <ExportPanel />
@@ -46,7 +56,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
-  if (activeView === 'settings') {
+  if (activeView === "settings") {
     return (
       <div className="flex-1 flex items-center justify-center">
         <p className="text-slate-400">Settings panel coming soon</p>
@@ -54,25 +64,45 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
+  /* ---------------------- Default View: FULL WORKSPACE ---------------------- */
+
   return (
     <div className="flex-1 flex overflow-hidden">
-      <div
-        className="bg-slate-900/50 border-r border-slate-800/50 overflow-y-auto"
-        style={{ width: `${leftPanelWidth}px` }}
-      >
-        <AudioUploadPanel />
-      </div>
 
-      <div className="flex-1 flex flex-col">
+      {/* LEFT PANEL */}
+      {!isMobile && (
+        <div
+          className="
+            bg-slate-900/50 
+            border-r border-slate-800/50 
+            overflow-y-auto
+            hidden md:block
+          "
+          style={{ width: `${leftPanelWidth}px` }}
+        >
+          <AudioUploadPanel />
+        </div>
+      )}
+
+      {/* CENTER CANVAS */}
+      <div className="flex-1 flex flex-col bg-slate-950/40 overflow-hidden">
         <LivePreviewCanvas />
       </div>
 
-      <div
-        className="bg-slate-900/50 border-l border-slate-800/50 overflow-y-auto"
-        style={{ width: `${rightPanelWidth}px` }}
-      >
-        <VisualizerLibrary />
-      </div>
+      {/* RIGHT PANEL */}
+      {!isMobile && (
+        <div
+          className="
+            bg-slate-900/50 
+            border-l border-slate-800/50 
+            overflow-y-auto
+            hidden md:block
+          "
+          style={{ width: `${rightPanelWidth}px` }}
+        >
+          <VisualizerLibrary />
+        </div>
+      )}
     </div>
   );
 }

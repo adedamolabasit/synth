@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../ui/Button';
 import { Wand2, Download, Circle, Square, Volume2, VolumeX } from 'lucide-react';
 import { SceneRecorder } from '../../../shared/utils/sceneRecorder';
-import { VisualizerParams } from './studio/types/visualizer';
-import { useAudio } from '../../../app/provider/AudioContext';
+import { VisualizerParams } from '../../../shared/types/visualizer.types';
+import { useAudio } from '../../../provider/AudioContext';
 
 interface Props {
   params: VisualizerParams;

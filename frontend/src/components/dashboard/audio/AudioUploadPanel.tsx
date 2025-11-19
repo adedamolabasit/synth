@@ -19,9 +19,12 @@ import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
 import { Badge } from "../../ui/Badge";
 import { MusicPlayerPanel } from "./MusicPlayerPanel";
-import { AudioFile, AudioUploadPanelProps } from "./types";
+import {
+  AudioFile,
+  AudioUploadPanelProps,
+} from "../../../shared/types/audio.types";
 import { decodeGzippedBase64, formatTime } from "../../../shared/utils";
-import { useAudio } from "../../../app/provider/AudioContext";
+import { useAudio } from "../../../provider/AudioContext";
 
 export function AudioUploadPanel({
   isCollapsed = false,
@@ -109,18 +112,21 @@ export function AudioUploadPanel({
     console.log("Files to upload:", files);
     setIsAnalyzing(true);
     setFetchError("");
-    
+
     try {
       // Create FormData for file upload
       const formData = new FormData();
-      files.forEach(file => {
+      files.forEach((file) => {
         formData.append("audio", file);
       });
 
-      const response = await fetch("http://localhost:8000/api/v1/audio/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "http://localhost:8000/api/v1/audio/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.status}`);
@@ -193,7 +199,7 @@ export function AudioUploadPanel({
   const fetchAudioLibrary = async () => {
     setIsAnalyzing(true);
     setFetchError("");
-    
+
     try {
       const response = await fetch("http://localhost:8000/api/v1/audio", {
         method: "GET",
@@ -210,34 +216,34 @@ export function AudioUploadPanel({
       console.log("Fetched audio data:", data);
 
       if (data.success && Array.isArray(data.audio)) {
-        const fetchedAudioFiles: AudioFile[] = data.audio.map(
-          (audio: any) => ({
-            ...audio,
-            uploadedAt: new Date(audio.createdAt || audio.uploadedAt),
-            // Ensure all required fields are present
-            _id: audio._id || audio.id,
-            name: audio.name || audio.metadata?.name || "Unknown",
-            url: audio.url || audio.audioUrl,
-            audioUrl: audio.audioUrl || audio.url,
-            metadata: audio.metadata || {
-              name: audio.name,
-              size: audio.size,
-              type: audio.type,
-            },
-            size: audio.size || audio.metadata?.size,
-            type: audio.type || audio.metadata?.type,
-            transcript: audio.transcript,
-            lyrics: audio.lyrics,
-            audioHash: audio.audioHash,
-          })
-        );
+        const fetchedAudioFiles: AudioFile[] = data.audio.map((audio: any) => ({
+          ...audio,
+          uploadedAt: new Date(audio.createdAt || audio.uploadedAt),
+          // Ensure all required fields are present
+          _id: audio._id || audio.id,
+          name: audio.name || audio.metadata?.name || "Unknown",
+          url: audio.url || audio.audioUrl,
+          audioUrl: audio.audioUrl || audio.url,
+          metadata: audio.metadata || {
+            name: audio.name,
+            size: audio.size,
+            type: audio.type,
+          },
+          size: audio.size || audio.metadata?.size,
+          type: audio.type || audio.metadata?.type,
+          transcript: audio.transcript,
+          lyrics: audio.lyrics,
+          audioHash: audio.audioHash,
+        }));
         setAudioFiles(fetchedAudioFiles);
       } else {
         throw new Error("Invalid response format");
       }
     } catch (err) {
       console.error("Error fetching audio files:", err);
-      setFetchError(err instanceof Error ? err.message : "Failed to load audio library");
+      setFetchError(
+        err instanceof Error ? err.message : "Failed to load audio library"
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -306,7 +312,7 @@ export function AudioUploadPanel({
             Audio Manager
           </h2>
         </div>
-        
+
         {/* Refresh button for library */}
         {activeTab === "library" && (
           <Button
@@ -314,7 +320,12 @@ export function AudioUploadPanel({
             size="sm"
             onClick={fetchAudioLibrary}
             disabled={isAnalyzing}
-            icon={<Loader2 size={16} className={isAnalyzing ? "animate-spin" : ""} />}
+            icon={
+              <Loader2
+                size={16}
+                className={isAnalyzing ? "animate-spin" : ""}
+              />
+            }
           >
             Refresh
           </Button>
@@ -436,10 +447,15 @@ export function AudioUploadPanel({
                       variant="ghost"
                       size="sm"
                       className="w-8 h-8 p-0 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30"
-                      disabled={isLoading && currentAudio?._id === audioFile._id}
+                      disabled={
+                        isLoading && currentAudio?._id === audioFile._id
+                      }
                     >
                       {isLoading && currentAudio?._id === audioFile._id ? (
-                        <Loader2 className="text-cyan-400 animate-spin" size={16} />
+                        <Loader2
+                          className="text-cyan-400 animate-spin"
+                          size={16}
+                        />
                       ) : currentAudio?._id === audioFile._id && isPlaying ? (
                         <Pause className="text-cyan-400" size={16} />
                       ) : (
@@ -525,10 +541,10 @@ export function AudioUploadPanel({
               duration={duration}
               volume={volume}
               isMuted={isMuted}
-              playbackRate={playbackRate}
+              // playbackRate={playbackRate}
               onSeek={seekTo}
               onVolumeChange={setVolume}
-              onPlaybackRateChange={setPlaybackRate}
+              // onPlaybackRateChange={setPlaybackRate}
               onToggleMute={toggleMute}
             />
           )}
@@ -656,7 +672,8 @@ export function AudioUploadPanel({
                     icon={
                       isLoading && currentAudio?._id === selectedAudio._id ? (
                         <Loader2 size={16} className="animate-spin" />
-                      ) : currentAudio?._id === selectedAudio._id && isPlaying ? (
+                      ) : currentAudio?._id === selectedAudio._id &&
+                        isPlaying ? (
                         <Pause size={16} />
                       ) : (
                         <Play size={16} />

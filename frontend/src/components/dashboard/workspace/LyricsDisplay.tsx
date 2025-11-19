@@ -1,7 +1,8 @@
 // src/components/lyrics/LyricsDisplay.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { LyricsManager } from './studio/visualizers/manager/LyricsManager';
-import { LyricsState, LyricsDisplayConfig } from './studio/types/visualizer';
+import { LyricsManager } from '../../../studio/visualizers/manager/LyricsManager';
+import { LyricsState, LyricsDisplayConfig } from '../../../shared/types/visualizer.types';
+
 
 interface LyricsDisplayProps {
   lyricsManager: LyricsManager;

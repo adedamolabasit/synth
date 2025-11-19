@@ -1,33 +1,40 @@
 import { useState, useRef, useEffect } from "react";
 import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
-import { AudioFile } from "./types";
-import { 
-  FileAudio, 
-  Volume2, 
-  VolumeX, 
-  SkipBack, 
-  SkipForward, 
-  Play, 
-  Pause, 
-  Loader2 
+import { AudioFile } from "../../../shared/types/audio.types";
+import {
+  FileAudio,
+  Volume2,
+  VolumeX,
+  SkipBack,
+  SkipForward,
+  Play,
+  Pause,
+  Loader2,
 } from "lucide-react";
 import { formatTime } from "../../../shared/utils";
 
-interface MusicPlayerProps {
+export interface MusicPlayerProps {
   currentAudio: AudioFile | null;
-  onPlayPause: (audioFile?: AudioFile) => void;
+  onPlayPause: () => Promise<void>;
   isPlaying: boolean;
-  isLoading?: boolean;
-  setIsPlaying: (playing: boolean) => void;
+  isLoading: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isMuted: boolean;
+  onVolumeChange: (value: number) => void;
+  onSeek: (value: number) => void;
+  onToggleMute: () => void;
+  // setIsPlaying: (playing: boolean) => void;
 }
 
-export function MusicPlayerPanel({ 
-  currentAudio, 
-  onPlayPause, 
-  isPlaying, 
+export function MusicPlayerPanel({
+  currentAudio,
+  onPlayPause,
+  isPlaying,
   isLoading = false,
-  setIsPlaying
+  // setIsPlaying,
 }: MusicPlayerProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -52,7 +59,7 @@ export function MusicPlayerPanel({
   };
 
   const handleAudioEnded = () => {
-    setIsPlaying(false);
+    // setIsPlaying(false);
     setCurrentTime(0);
   };
 
@@ -140,16 +147,16 @@ export function MusicPlayerPanel({
       audio.src = getAudioSource(currentAudio);
       audio.load();
       setCurrentTime(0);
-      
+
       // Set up event listeners for the new audio element
       const handleLoad = () => {
         setDuration(audio.duration);
       };
-      
-      audio.addEventListener('loadedmetadata', handleLoad);
-      
+
+      audio.addEventListener("loadedmetadata", handleLoad);
+
       return () => {
-        audio.removeEventListener('loadedmetadata', handleLoad);
+        audio.removeEventListener("loadedmetadata", handleLoad);
       };
     }
   }, [currentAudio]);
@@ -176,35 +183,34 @@ export function MusicPlayerPanel({
   }
 
   // Sync external play/pause state with internal audio element
-useEffect(() => {
-  const audio = audioRef.current;
-  if (!audio) return;
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
-  if (isPlaying) {
-    audio.play().catch((err) => console.error("Playback failed:", err));
-  } else {
-    audio.pause();
-  }
-}, [isPlaying]);
+    if (isPlaying) {
+      audio.play().catch((err) => console.error("Playback failed:", err));
+    } else {
+      audio.pause();
+    }
+  }, [isPlaying]);
 
+  useEffect(() => {
+    if (!audioRef.current || !currentAudio) return;
 
-useEffect(() => {
-  if (!audioRef.current || !currentAudio) return;
-  
-  const audio = audioRef.current;
-  audio.src = getAudioSource(currentAudio);
-  audio.load();
+    const audio = audioRef.current;
+    audio.src = getAudioSource(currentAudio);
+    audio.load();
 
-  if (isPlaying) {
-    audio.play().catch(console.error);
-  }
-}, [currentAudio]);
+    if (isPlaying) {
+      audio.play().catch(console.error);
+    }
+  }, [currentAudio]);
 
   return (
     <>
       {/* Hidden audio element */}
       <audio ref={audioRef} className="hidden" preload="metadata" />
-      
+
       <Card className="p-4 bg-slate-800/50 border-slate-700 space-y-3">
         <h4 className="text-sm font-semibold text-slate-300">Now Playing</h4>
 
