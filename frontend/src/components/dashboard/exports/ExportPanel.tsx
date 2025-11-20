@@ -1,9 +1,124 @@
-import { Download, FileVideo, Shield, Share2, Settings as SettingsIcon } from 'lucide-react';
+import { Download, FileVideo, Shield, Share2, Upload, X } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { Badge } from '../../ui/Badge';
+import { useState, useRef } from 'react';
 
 export function ExportPanel() {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadResult, setUploadResult] = useState<{ success: boolean; videoUrl?: string; error?: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = [
+        'video/mp4',
+        'video/mpeg',
+        'video/avi',
+        'video/mov',
+        'video/wmv',
+        'video/webm'
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        setUploadResult({
+          success: false,
+          error: 'Invalid file type. Please upload MP4, MPEG, AVI, MOV, WMV, or WebM files.'
+        });
+        return;
+      }
+
+      // Validate file size (100MB)
+      if (file.size > 100 * 1024 * 1024) {
+        setUploadResult({
+          success: false,
+          error: 'File too large. Maximum size is 100MB.'
+        });
+        return;
+      }
+
+      setSelectedFile(file);
+      setUploadResult(null);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadResult(null);
+
+    const formData = new FormData();
+    formData.append('video', selectedFile);
+
+    try {
+      // Simulate progress for demo (replace with actual progress tracking)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      const response = await fetch('http://localhost:8000/api/video/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      const result = await response.json();
+
+      if (result.success) {
+        setUploadResult({
+          success: true,
+          videoUrl: result.videoUrl
+        });
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        setUploadResult({
+          success: false,
+          error: result.error || 'Upload failed'
+        });
+      }
+    } catch (error) {
+      setUploadResult({
+        success: false,
+        error: 'Network error. Please try again.'
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setUploadResult(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
     <div className="h-full flex flex-col gap-4 p-4 overflow-y-auto">
       <div className="flex items-center justify-between">
@@ -13,72 +128,115 @@ export function ExportPanel() {
         </h2>
       </div>
 
+      {/* Video Upload Card */}
       <Card className="p-4">
         <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
           <FileVideo size={16} className="text-blue-400" />
-          Video Settings
+          Video Upload
         </h3>
 
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm text-slate-400 mb-2 block">Resolution</label>
-            <div className="grid grid-cols-3 gap-2">
-              {['1080p', '4K', '8K'].map((res) => (
-                <button
-                  key={res}
-                  className={`
-                    px-4 py-2 rounded-lg text-sm font-medium transition-all
-                    ${res === '1080p'
-                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                      : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                    }
-                  `}
-                >
-                  {res}
-                </button>
-              ))}
+        <div className="space-y-4">
+          {/* File Upload Area */}
+          {!selectedFile ? (
+            <div className="border-2 border-dashed border-slate-600/50 rounded-lg p-6 text-center hover:border-cyan-500/50 transition-colors">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept="video/mp4,video/mpeg,video/avi,video/mov,video/wmv,video/webm"
+                className="hidden"
+              />
+              <FileVideo className="mx-auto text-slate-400 mb-3" size={32} />
+              <p className="text-slate-300 text-sm mb-2">
+                Drag and drop your video file here, or click to browse
+              </p>
+              <p className="text-slate-500 text-xs">
+                Supported formats: MP4, MPEG, AVI, MOV, WMV, WebM • Max 100MB
+              </p>
+              <Button
+                variant="secondary"
+                className="mt-3"
+                onClick={() => fileInputRef.current?.click()}
+                icon={<Upload size={16} />}
+              >
+                Select Video File
+              </Button>
             </div>
-          </div>
+          ) : (
+            /* Selected File Preview */
+            <div className="border border-slate-600/50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <FileVideo className="text-cyan-400" size={20} />
+                  <div>
+                    <p className="text-slate-200 text-sm font-medium truncate max-w-[200px]">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-slate-400 text-xs">
+                      {formatFileSize(selectedFile.size)} • {selectedFile.type.split('/')[1].toUpperCase()}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemoveFile}
+                  icon={<X size={16} />}
+                >
+                  Remove
+                </Button>
+              </div>
 
-          <div>
-            <label className="text-sm text-slate-400 mb-2 block">Frame Rate</label>
-            <div className="grid grid-cols-4 gap-2">
-              {['24fps', '30fps', '60fps', '120fps'].map((fps) => (
-                <button
-                  key={fps}
-                  className={`
-                    px-3 py-2 rounded-lg text-sm font-medium transition-all
-                    ${fps === '60fps'
-                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                      : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                    }
-                  `}
-                >
-                  {fps}
-                </button>
-              ))}
-            </div>
-          </div>
+              {/* Upload Progress */}
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="w-full bg-slate-700/50 rounded-full h-2">
+                    <div
+                      className="bg-cyan-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-slate-400 text-xs text-center">
+                    Uploading... {uploadProgress}%
+                  </p>
+                </div>
+              )}
 
-          <div>
-            <label className="text-sm text-slate-400 mb-2 block">Format</label>
-            <div className="grid grid-cols-3 gap-2">
-              {['MP4', 'MOV', 'WebM'].map((format) => (
-                <button
-                  key={format}
-                  className={`
-                    px-4 py-2 rounded-lg text-sm font-medium transition-all
-                    ${format === 'MP4'
-                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                      : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                    }
-                  `}
+              {/* Upload Button */}
+              {!isUploading && (
+                <Button
+                  variant="primary"
+                  className="w-full"
+                  onClick={handleUpload}
+                  icon={<Upload size={16} />}
                 >
-                  {format}
-                </button>
-              ))}
+                  Upload Video
+                </Button>
+              )}
             </div>
-          </div>
+          )}
+
+          {/* Upload Result */}
+          {uploadResult && (
+            <div className={`p-3 rounded-lg text-sm ${
+              uploadResult.success 
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+            }`}>
+              {uploadResult.success ? (
+                <div>
+                  <p className="font-medium">Upload Successful!</p>
+                  {uploadResult.videoUrl && (
+                    <p className="text-xs mt-1 opacity-90">
+                      Video is being processed and will be available shortly.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p>{uploadResult.error}</p>
+              )}
+            </div>
+          )}
         </div>
       </Card>
 

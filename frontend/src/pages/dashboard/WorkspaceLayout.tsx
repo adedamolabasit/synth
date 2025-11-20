@@ -4,6 +4,8 @@ import { VisualizerLibrary } from "../../components/dashboard/workspace/Visualiz
 import { LivePreviewCanvas } from "../../components/dashboard/workspace/LivePreviewCanvas";
 import { IPManagementDashboard } from "../../components/dashboard/ipAssets/IPManagementDashboard";
 import { ExportPanel } from "../../components/dashboard/exports/ExportPanel";
+import { VideoGallery } from "../../components/dashboard/video/VideoGallery";
+
 
 interface WorkspaceLayoutProps {
   activeView: string;
@@ -35,7 +37,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
   if (activeView === "visualizers") {
     return (
       <div className="flex-1 overflow-hidden">
-        <VisualizerLibrary />
+        <VideoGallery />
       </div>
     );
   }

@@ -1,0 +1,80 @@
+import { VideoEntry } from "@/model/videoEntry.model";
+import mongoose from "mongoose";
+
+export interface SaveVideoEntryData {
+  userId: mongoose.Types.ObjectId;
+  walletAddress: string;
+  videoHash: string;
+  videoUrl: string;
+  thumbnailHash?: string;
+  thumbnailUrl?: string;
+  metadata: {
+    size: number;
+    name: string;
+    type: string;
+    duration?: number;
+    resolution?: string;
+  };
+}
+
+export class VideoEntryService {
+  static async saveVideoEntry(data: SaveVideoEntryData) {
+    try {
+      const newEntry = new VideoEntry({
+        user: data.userId,
+        walletAddress: data.walletAddress,
+        videoHash: data.videoHash,
+        videoUrl: data.videoUrl,
+        thumbnailHash: data.thumbnailHash,
+        thumbnailUrl: data.thumbnailUrl,
+        metadata: data.metadata,
+      });
+
+      const savedEntry = await newEntry.save();
+      return savedEntry;
+    } catch (error) {
+      console.error('Error saving video entry:', error);
+      throw error;
+    }
+  }
+
+  static async getAllVideos() {
+    try {
+      const videos = await VideoEntry.find().sort({ createdAt: -1 });
+      return videos;
+    } catch (error) {
+      console.error('Error getting all videos:', error);
+      throw error;
+    }
+  }
+
+  static async getVideosByWallet(walletAddress: string) {
+    try {
+      const videos = await VideoEntry.find({ walletAddress }).sort({ createdAt: -1 });
+      return videos;
+    } catch (error) {
+      console.error('Error getting videos by wallet:', error);
+      throw error;
+    }
+  }
+
+  static async getVideoById(id: string) {
+    try {
+      const video = await VideoEntry.findById(id);
+      return video;
+    } catch (error) {
+      console.error('Error getting video by ID:', error);
+      throw error;
+    }
+  }
+
+  static async deleteVideo(id: string) {
+    try {
+      const video = await VideoEntry.findByIdAndDelete(id);
+      return video;
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      throw error;
+    }
+  }
+}

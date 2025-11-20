@@ -10,6 +10,7 @@ import config from "./config/config";
 import helmet from "helmet";
 import morgan from "morgan";
 import lyricsRoutes from "./routes/lyricsRoutes";
+import videoRoutes from "./routes/videoRoutes"
 
 const app = express();
 const lyricsController = new LyricsController();
@@ -55,6 +56,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Routes
 app.use("/api/v1", lyricsRoutes);
+app.use("/api/video", videoRoutes);
 setupSwagger(app);
 
 // Health check
