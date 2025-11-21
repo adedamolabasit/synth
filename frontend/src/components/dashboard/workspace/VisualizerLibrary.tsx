@@ -198,7 +198,7 @@ export function VisualizerLibrary() {
       {/* Filter Chips (Optional - for better UX) */}
      
 
-      <div className="flex-1 overflow-y-auto mt-6 px-2 py-2">
+      <div className="flex-1 overflow-y-auto mt-6 mx-2">
         {filteredVisualizers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-slate-400">
             <Search size={32} className="mb-2" />

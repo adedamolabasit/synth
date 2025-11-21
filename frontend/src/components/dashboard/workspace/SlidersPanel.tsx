@@ -28,13 +28,13 @@ export const SlidersPanel: React.FC<SlidersPanelProps> = ({
           onParamsChange((p: VisualizerParams) => ({ ...p, speed: v }))
         }
       />
-      <Slider
+      {/* <Slider
         label="Rotation"
         value={params.rotationSpeed}
         onChange={(v: number) =>
           onParamsChange((p: VisualizerParams) => ({ ...p, rotationSpeed: v }))
         }
-      />
+      /> */}
       <Slider
         label="Complexity"
         value={params.complexity}

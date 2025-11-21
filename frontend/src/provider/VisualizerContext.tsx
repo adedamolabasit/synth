@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { VisualElement, Customization, AudioData, VisualizerParams } from "../shared/types/visualizer.types";
+import {
+  VisualElement,
+  Customization,
+  AudioData,
+  VisualizerParams,
+} from "../shared/types/visualizer.types";
 
 interface Visualizer {
   id: string;
@@ -75,7 +80,7 @@ export const defaultCustomizations = {
     intensity: 1,
     opacity: 0.8,
   },
-   background: {
+  background: {
     backgroundType: "color",
     color: "#0a0a0a",
     gradient: false,
@@ -465,7 +470,6 @@ const defaultVisualizers: Visualizer[] = [
   },
 ];
 
-
 // Default audio data
 const defaultAudioData: AudioData = {
   frequencyData: new Uint8Array(1024),
@@ -485,8 +489,8 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
     visualizerType: "audioReactive",
     colorScheme: "cyberpunk",
     intensity: 75,
-    speed: 50,
-    rotationSpeed: 25,
+    speed: 100,
+    rotationSpeed: 0,
     particleCount: 3000,
     bloom: true,
     wireframe: false,

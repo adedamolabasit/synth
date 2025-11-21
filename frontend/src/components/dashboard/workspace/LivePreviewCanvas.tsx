@@ -13,6 +13,7 @@ import { LyricsManager } from "../../../studio/visualizers/manager/LyricsManager
 import { LyricsDisplay } from "./LyricsDisplay";
 import { useAudio } from "../../../provider/AudioContext";
 import { decodeLyricsData } from "../../../shared/utils";
+import { LyricsRenderer } from "../../../studio/visualizers/manager/LyricsRenderer";
 
 export const LivePreviewCanvas: React.FC = () => {
   const {
@@ -45,7 +46,7 @@ export const LivePreviewCanvas: React.FC = () => {
   const visualizerManagerRef = useRef<VisualizerManager>(
     new VisualizerManager()
   );
-
+  const lyricsRendererRef = useRef<LyricsRenderer | null>(null);
   const lyricsManagerRef = useRef<LyricsManager>(new LyricsManager());
   const animationIdRef = useRef<number>(0);
   const visualizerObjectsRef = useRef<THREE.Object3D[]>([]);
@@ -699,6 +700,21 @@ export const LivePreviewCanvas: React.FC = () => {
     };
   }, []);
 
+  // useEffect(() => {
+  //   if (sceneRef.current && lyricsManagerRef.current) {
+  //     console.log("🎵 Initializing LyricsRenderer...");
+  //     lyricsRendererRef.current = new LyricsRenderer(
+  //       sceneRef.current,
+  //       lyricsManagerRef.current
+  //     );
+  //     console.log("✅ LyricsRenderer initialized");
+  //   }
+
+  //   return () => {
+  //     console.log("🧹 Cleaning up LyricsRenderer...");
+  //     lyricsRendererRef.current?.dispose();
+  //   };
+  // }, []);
   // Start/stop animation based on playback state
   useEffect(() => {
     if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
@@ -730,13 +746,23 @@ export const LivePreviewCanvas: React.FC = () => {
   }, [isPlaying, animateScene]);
 
   // Update scene when visual elements change
-  useEffect(() => {
-    if (sceneRef.current) {
-      updateBackground(sceneRef.current);
-      createLightsFromElements(sceneRef.current);
-      createAmbientElements(sceneRef.current);
-    }
-  }, [visualElements, createAmbientElements]);
+// In LivePreviewCanvas.tsx - update the LyricsRenderer initialization
+useEffect(() => {
+  if (sceneRef.current && lyricsManagerRef.current && rendererRef.current) {
+    console.log('🎵 Initializing LyricsRenderer...');
+    lyricsRendererRef.current = new LyricsRenderer(
+      sceneRef.current, 
+      lyricsManagerRef.current,
+      rendererRef.current // Pass the renderer
+    );
+    console.log('✅ LyricsRenderer initialized with overlay');
+  }
+
+  return () => {
+    console.log('🧹 Cleaning up LyricsRenderer...');
+    lyricsRendererRef.current?.dispose();
+  };
+}, []);
 
   // Recreate visualizer when params change
   useEffect(() => {
@@ -793,67 +819,123 @@ export const LivePreviewCanvas: React.FC = () => {
     setHasDefaultAudio(false);
   };
 
-useEffect(() => {
-  const loadLyrics = async () => {
-    if (currentAudio?.lyrics) {
-      try {
-        
-        // Try to decode the lyrics
-        let lyricsData = {
-          text:  await decodeLyricsData(currentAudio.lyrics),
-          timestamps: await decodeLyricsData(currentAudio.words as string),
-          segments: await decodeLyricsData(currentAudio.segments as string)
+  useEffect(() => {
+    const loadLyrics = async () => {
+      if (currentAudio?.lyrics) {
+        try {
+          // Try to decode the lyrics
+          let lyricsData = {
+            text: await decodeLyricsData(currentAudio.lyrics),
+            timestamps: await decodeLyricsData(currentAudio.words as string),
+            segments: await decodeLyricsData(currentAudio.segments as string),
+          };
+
+          // If that fails, try fallback
+          // if (!lyricsData) {
+          //   lyricsData = decodeLyricsDataFallback(currentAudio.lyrics);
+          // }
+
+          if (lyricsData) {
+            lyricsManagerRef.current.loadLyrics(lyricsData);
+          } else {
+            console.warn("Failed to decode lyrics data");
+          }
+        } catch (error) {
+          console.error("Error loading lyrics:", error);
         }
-        
-       
-        
-        // If that fails, try fallback
-        // if (!lyricsData) {
-        //   lyricsData = decodeLyricsDataFallback(currentAudio.lyrics);
-        // }
-        
-        if (lyricsData) {
-          lyricsManagerRef.current.loadLyrics(lyricsData);
-        } else {
-          console.warn('Failed to decode lyrics data');
+      } else {
+        console.log("No lyrics data available for this audio");
+        lyricsManagerRef.current.reset();
+      }
+    };
+
+    loadLyrics();
+  }, [currentAudio]);
+
+  useEffect(() => {
+    if (isPlaying && currentTime > 0) {
+      lyricsManagerRef.current.update(currentTime);
+    }
+  }, [currentTime, isPlaying]);
+
+  const debugScene = () => {
+    if (sceneRef.current) {
+      console.log("🔍 SCENE INSPECTION:");
+      console.log("Total children:", sceneRef.current.children.length);
+      sceneRef.current.children.forEach((child, index) => {
+        console.log(`  ${index}: ${child.name || child.type}`, child.position);
+        if (child.children && child.children.length > 0) {
+          child.children.forEach((grandchild, gIndex) => {
+            console.log(
+              `    ${gIndex}: ${grandchild.name || grandchild.type}`,
+              grandchild.position
+            );
+          });
         }
-      } catch (error) {
-        console.error('Error loading lyrics:', error);
+      });
+
+      const lyrics = sceneRef.current.getObjectByName("lyrics-group");
+      console.log("Lyrics group found:", !!lyrics);
+      if (lyrics) {
+        console.log("Lyrics children:", lyrics.children.length);
       }
     } else {
-      console.log('No lyrics data available for this audio');
-      lyricsManagerRef.current.reset();
+      console.log("❌ No scene reference");
     }
   };
-
-  loadLyrics();
-}, [currentAudio]);
-
-useEffect(() => {
-  if (isPlaying && currentTime > 0) {
-    lyricsManagerRef.current.update(currentTime);
-    
-  }
-}, [currentTime, isPlaying]);
-
-
 
   const canPlayAudio = currentAudio || hasDefaultAudio;
 
   return (
     <div className="h-full w-full flex flex-col bg-slate-900/50">
       <div className="flex-1 relative group">
+        {/* // In your LivePreviewCanvas JSX, add this test button: */}
+       <div className="absolute top-4 right-4 z-50 flex flex-col gap-2">
+  <Button
+    variant="secondary"
+    size="sm"
+    onClick={() => {
+      // Test with manual lyrics
+      const testLyrics = {
+        segments: [
+          {
+            text: "TEST: Hello World! This is 3D text!",
+            start: 0,
+            end: 10,
+            words: []
+          }
+        ]
+      };
+      lyricsManagerRef.current.loadLyrics(testLyrics as any);
+      lyricsManagerRef.current.update(1); // Force update at time 1
+      console.log('🧪 Manual lyrics test triggered');
+      
+      // Also debug the scene
+      setTimeout(debugScene, 100);
+    }}
+  >
+    Test 3D Lyrics
+  </Button>
+  
+  <Button
+    variant="secondary"
+    size="sm"
+    onClick={debugScene}
+  >
+    Debug Scene
+  </Button>
+</div>
         <canvas ref={canvasRef} className="w-full h-full" />
 
         <ElementCustomizationPanel />
         <VisualElementSelector />
 
-        <div className="mt-92">
+        {/* <div className="mt-92">
           <LyricsDisplay
             lyricsManager={lyricsManagerRef.current}
             className="pointer-events-none"
           />
-        </div>
+        </div> */}
 
         {beatDetected && (
           <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
