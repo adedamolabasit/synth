@@ -9,34 +9,50 @@ export const animateSacredGeometry = (
   beatInfo?: BeatInfo
 ): void => {
   const scaledTime = time * 0.001;
-  
-  objects.forEach((obj, index) => {
-    if (obj instanceof THREE.Mesh) {
-      if (obj.userData.isVertex) {
-        const vertexIndex = obj.userData.index || 0;
-        const dataIndex = Math.floor((vertexIndex / 9) * frequencyData.length);
-        const audioValue = frequencyData[dataIndex] / 255;
 
-        const scale = 1 + audioValue * 0.8;
-        obj.scale.set(scale, scale, scale);
+  const bass = (beatInfo?.bandStrengths?.bass ?? 0) * 0.01;
+  const mid = (beatInfo?.bandStrengths?.mid ?? 0) * 0.01;
+  const treble = (beatInfo?.bandStrengths?.treble ?? 0) * 0.01;
 
-        if (obj.material instanceof THREE.MeshPhongMaterial) {
-          obj.material.emissiveIntensity = 0.5 + audioValue * 0.5;
-        }
-      } else {
-        const layer = obj.userData.layer || 0;
-        const angle = obj.userData.angle || 0;
-        const dataIndex = Math.floor((layer / 5) * frequencyData.length);
-        const audioValue = frequencyData[dataIndex] / 255;
+  objects.forEach((obj) => {
+    if (!(obj instanceof THREE.Mesh)) return;
 
-        obj.rotation.x = scaledTime * (layer + 1) * 0.3;
-        obj.rotation.y = scaledTime * (layer + 1) * 0.2;
+    if (obj.userData.type === "vertex") {
+      // --- Bounce vertices with bass ---
+      const index = obj.userData.index;
+      const dataIndex = Math.floor((index / 9) * frequencyData.length);
+      const audioValue = frequencyData[dataIndex] / 255;
 
-        if (obj.material instanceof THREE.MeshPhongMaterial) {
-          const hue = (layer / 5 + scaledTime * 0.05) % 1;
-          obj.material.color.setHSL(hue, 1, 0.5 + audioValue * 0.3);
-          obj.material.opacity = 0.6 + audioValue * 0.3;
-        }
+      obj.position.y = obj.userData.baseY + bass * 3 * audioValue;
+      obj.scale.setScalar(1 + bass * 0.8 * audioValue);
+
+      if (obj.material instanceof THREE.MeshPhongMaterial) {
+        obj.material.emissiveIntensity = 0.5 + bass * audioValue;
+        obj.material.emissive.setHSL(audioValue * 0.1, 1, 0.5);
+      }
+
+    } else if (obj.userData.type === "ring") {
+      // --- Rotate and pulse rings ---
+      const layer = obj.userData.layer;
+      const index = obj.userData.index;
+      const baseRadius = obj.userData.baseRadius;
+      const dataIndex = Math.floor((layer / 5) * frequencyData.length);
+      const audioValue = frequencyData[dataIndex] / 255;
+
+      const angleOffset = scaledTime * 0.5 * (layer + 1) + index * 0.1;
+      const radius = baseRadius + mid * 1.5 * audioValue;
+
+      obj.position.x = Math.cos(obj.userData.angle + angleOffset) * radius;
+      obj.position.z = Math.sin(obj.userData.angle + angleOffset) * radius;
+      obj.position.y = Math.sin(scaledTime * 2 + layer) * 0.5 * audioValue;
+
+      obj.rotation.x = scaledTime * 0.3 * (layer + 1);
+      obj.rotation.y = scaledTime * 0.2 * (layer + 1);
+
+      if (obj.material instanceof THREE.MeshPhongMaterial) {
+        const hue = (layer / 5 + scaledTime * 0.05 + treble * 0.2) % 1;
+        obj.material.color.setHSL(hue, 1, 0.5 + audioValue * 0.3);
+        obj.material.opacity = 0.6 + audioValue * 0.4;
       }
     }
   });
