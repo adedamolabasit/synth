@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../../shared/types/visualizer.types";
-
+import type { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateLiquid = (
   objects: THREE.Object3D[],
@@ -9,113 +8,85 @@ export const animateLiquid = (
   params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
+  const avgFrequency = Array.from(frequencyData).reduce((a, b) => a + b, 0) / frequencyData.length;
+
   objects.forEach((obj) => {
-    if (obj.userData.type === "liquid") {
-      if (
-        obj instanceof THREE.Mesh &&
-        obj.geometry instanceof THREE.PlaneGeometry
-      ) {
-        const geometry = obj.geometry;
-        const positions = geometry.attributes.position.array as Float32Array;
-        const originalVertices = obj.userData.originalVertices as Float32Array;
-        const resolution = obj.userData.resolution;
+    // --- Liquid plane ---
+    if (obj.userData.type === "liquid" && obj instanceof THREE.Mesh && obj.geometry instanceof THREE.PlaneGeometry) {
+      const geometry = obj.geometry;
+      const positions = geometry.attributes.position.array as Float32Array;
+      const originalVertices = obj.userData.originalVertices as Float32Array;
 
-        for (let i = 0; i < positions.length; i += 3) {
-          const vertexIndex = i / 3;
-          const x = originalVertices[i];
-          const z = originalVertices[i + 2];
+      for (let i = 0; i < positions.length; i += 3) {
+        const vertexIndex = i / 3;
+        const x = originalVertices[i];
+        const z = originalVertices[i + 2];
 
-          let waveHeight = 0;
+        let waveHeight = 0;
+        obj.userData.waveCenters.forEach((center: any) => {
+          const dist = Math.sqrt((x - center.x) ** 2 + (z - center.y) ** 2);
+          waveHeight += Math.sin(dist * 2 - (time + center.time) * center.frequency) * center.amplitude * (1 + Math.sin(time * 0.5) * 0.4);
+        });
 
-          // Multiple harmonic wave sources
-          obj.userData.waveCenters.forEach((center: any) => {
-            const distance = Math.sqrt(
-              (x - center.x) ** 2 + (z - center.y) ** 2
-            );
-            waveHeight +=
-              Math.sin(distance * 2 - (time + center.time) * center.frequency) *
-              center.amplitude *
-              (1 + Math.sin(time * 0.5) * 0.3);
-          });
-
-          const dataIndex = Math.floor(
-            (vertexIndex / positions.length) * frequencyData.length
-          );
-          const audioInfluence =
-            (frequencyData[dataIndex] / 255) * params.fluidity * 0.015;
-
-          const dampening = 0.95;
-          positions[i + 1] =
-            originalVertices[i + 1] +
-            waveHeight * 0.6 +
-            audioInfluence * 2.5 +
-            Math.sin(time * 0.3 + vertexIndex * 0.01) * 0.1;
+        if (beatInfo?.isBeat && Math.random() < 0.08) {
+          const dx = x - (Math.random() * 10 - 5);
+          const dz = z - (Math.random() * 10 - 5);
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          waveHeight += Math.exp(-dist * 2) * 1.5;
         }
 
-        geometry.attributes.position.needsUpdate = true;
+        const audioInfluence = (frequencyData[Math.floor((vertexIndex / positions.length) * frequencyData.length)] / 255) * params.fluidity * 0.02;
+        positions[i + 1] = originalVertices[i + 1] + waveHeight + audioInfluence * 2 + Math.sin(time * 0.3 + vertexIndex * 0.01) * 0.12;
       }
-    } else if (obj.userData.type === "liquidParticles") {
-      if (
-        obj instanceof THREE.Points &&
-        obj.geometry instanceof THREE.BufferGeometry
-      ) {
-        const geometry = obj.geometry;
-        const positions = geometry.attributes.position.array as Float32Array;
-        const velocities = geometry.userData.velocities as Float32Array;
-        const colors = geometry.attributes.color.array as Float32Array;
+      geometry.attributes.position.needsUpdate = true;
 
-        for (let i = 0; i < positions.length; i += 3) {
-          const i3 = i;
-
-          // Apply velocity
-          positions[i3] += velocities[i3];
-          positions[i3 + 1] += velocities[i3 + 1];
-          positions[i3 + 2] += velocities[i3 + 2];
-
-          const dataIndex = Math.floor(
-            (i / positions.length) * frequencyData.length
-          );
-          const audioForce = (frequencyData[dataIndex] / 255) * 0.02;
-
-          positions[i3] += Math.sin(time + i * 0.01) * audioForce;
-          positions[i3 + 2] += Math.cos(time + i * 0.01) * audioForce;
-
-          // Floating motion
-          positions[i3 + 1] += Math.sin(time * 0.5 + i * 0.01) * 0.008;
-
-          // Wrap around
-          if (positions[i3] > 5.5) positions[i3] = -5.5;
-          if (positions[i3] < -5.5) positions[i3] = 5.5;
-          if (positions[i3 + 1] > 3.5) positions[i3 + 1] = -0.5;
-          if (positions[i3 + 2] > 5.5) positions[i3 + 2] = -5.5;
-          if (positions[i3 + 2] < -5.5) positions[i3 + 2] = 5.5;
-        }
-
-        geometry.attributes.position.needsUpdate = true;
+      if (obj.material instanceof THREE.MeshStandardMaterial) {
+        obj.material.emissiveIntensity = 0.2 + avgFrequency * 0.6;
+        obj.material.color.setHSL(0.55 + Math.sin(time) * 0.05, 0.75, 0.45 + avgFrequency * 0.2);
       }
-    } else if (obj.userData.type === "floatingOrb") {
+    }
+
+    // --- Particles ---
+    if (obj.userData.type === "liquidParticles" && obj instanceof THREE.Points) {
+      const geometry = obj.geometry;
+      const positions = geometry.attributes.position.array as Float32Array;
+      const velocities = geometry.userData.velocities as Float32Array;
+
+      for (let i = 0; i < positions.length; i += 3) {
+        const audioForce = (frequencyData[Math.floor((i / positions.length) * frequencyData.length)] / 255) * 0.03;
+        positions[i] += velocities[i] + Math.sin(time + i * 0.01) * audioForce;
+        positions[i + 1] += velocities[i + 1] + Math.cos(time + i * 0.02) * audioForce * 0.5;
+        positions[i + 2] += velocities[i + 2] + Math.sin(time * 0.5 + i * 0.01) * audioForce;
+
+        // Wrap around
+        if (positions[i] > 5.5) positions[i] = -5.5;
+        if (positions[i] < -5.5) positions[i] = 5.5;
+        if (positions[i + 1] > 3.5) positions[i + 1] = -0.5;
+        if (positions[i + 2] > 5.5) positions[i + 2] = -5.5;
+        if (positions[i + 2] < -5.5) positions[i + 2] = 5.5;
+      }
+      geometry.attributes.position.needsUpdate = true;
+    }
+
+    // --- Floating orbs ---
+    if (obj.userData.type === "floatingOrb") {
       const { speed, orbitRadius, bobOffset } = obj.userData;
-      obj.userData.orbitAngle += speed * 0.002;
-
-      const baseX = Math.cos(obj.userData.orbitAngle) * orbitRadius;
-      const baseZ = Math.sin(obj.userData.orbitAngle) * orbitRadius;
-      const bobY = Math.sin(time * 0.8 + bobOffset) * 0.5;
-
-      obj.position.x = baseX;
-      obj.position.y = 1.5 + bobY;
-      obj.position.z = baseZ;
-
-      obj.rotation.x += 0.002;
-      obj.rotation.y += 0.003;
-
-      const avgFrequency =
-        Array.from(frequencyData).reduce((a, b) => a + b, 0) /
-        frequencyData.length;
-      const scale = 1 + (avgFrequency / 255) * 0.3;
+      obj.userData.orbitAngle += speed * 0.003;
+      obj.position.set(
+        Math.cos(obj.userData.orbitAngle) * orbitRadius,
+        1.5 + Math.sin(time * 0.8 + bobOffset) * 0.6,
+        Math.sin(obj.userData.orbitAngle) * orbitRadius
+      );
+      obj.rotation.x += 0.005;
+      obj.rotation.y += 0.006;
+      const scale = 1 + avgFrequency * 0.4;
       obj.scale.set(scale, scale, scale);
-    } else if (obj.userData.type === "gridLine") {
+    }
+
+    // --- Grid lines ---
+    if (obj.userData.type === "gridLine") {
       const mat = (obj as THREE.Line).material as THREE.LineBasicMaterial;
-      mat.opacity = 0.2 + Math.sin(time * 0.5) * 0.15;
+      mat.opacity = 0.2 + Math.sin(time * 0.5) * 0.2 + avgFrequency * 0.1;
     }
   });
 };

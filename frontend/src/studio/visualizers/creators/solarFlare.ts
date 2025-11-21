@@ -1,15 +1,18 @@
 import * as THREE from "three";
 import { VisualizerParams } from "../../types/visualizer";
 
-export const createSolarFlareVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
+export const createSolarFlareVisualizer = (
+  scene: THREE.Scene,
+  params: VisualizerParams
+): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
-  const flareCount = Math.floor(12 * params.complexity);
+  const flareCount = Math.floor(12 + params.complexity * 20);
 
-  // Central sun
+  // --- Central Sun ---
   const sunGeometry = new THREE.SphereGeometry(1, 32, 32);
   const sunMaterial = new THREE.MeshPhongMaterial({
-    color: 0xffaa00,
-    emissive: 0xff6600,
+    color: 0xffcc33,
+    emissive: 0xff5500,
     emissiveIntensity: 1,
   });
   const sun = new THREE.Mesh(sunGeometry, sunMaterial);
@@ -17,25 +20,41 @@ export const createSolarFlareVisualizer = (scene: THREE.Scene, params: Visualize
   scene.add(sun);
   objects.push(sun);
 
-  // Flares
+  // --- Dynamic Flares ---
   for (let i = 0; i < flareCount; i++) {
-    const angle = (i / flareCount) * Math.PI * 2;
-    const flareGeometry = new THREE.ConeGeometry(0.2, 3, 8);
+    const angle = Math.random() * Math.PI * 2;
+    const flareGeometry = new THREE.ConeGeometry(
+      0.1 + Math.random() * 0.1,
+      1 + Math.random() * 2,
+      6
+    );
+
     const flareMaterial = new THREE.MeshPhongMaterial({
-      color: 0xff8800,
+      color: new THREE.Color().setHSL(Math.random() * 0.1 + 0.05, 1, 0.5),
       transparent: true,
-      opacity: 0.8,
-      emissive: 0xff4400,
+      opacity: 0.7,
+      emissive: new THREE.Color(0xff5500),
+      emissiveIntensity: 0.8,
+      side: THREE.DoubleSide,
     });
 
     const flare = new THREE.Mesh(flareGeometry, flareMaterial);
-    flare.position.set(Math.cos(angle) * 1.2, Math.sin(angle) * 1.2, 0);
-    flare.lookAt(
-      Math.cos(angle) * 4,
-      Math.sin(angle) * 4,
-      0
+
+    const radius = 1 + Math.random() * 0.5;
+    flare.position.set(
+      Math.cos(angle) * radius,
+      Math.sin(angle) * radius,
+      (Math.random() - 0.5) * 0.5
     );
-    flare.userData = { angle, index: i };
+
+    flare.userData = {
+      angle,
+      radius,
+      speed: 0.2 + Math.random() * 0.5,
+      twist: Math.random() * 2 - 1,
+      index: i,
+    };
+
     scene.add(flare);
     objects.push(flare);
   }

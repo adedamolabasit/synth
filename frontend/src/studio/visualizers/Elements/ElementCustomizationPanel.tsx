@@ -303,7 +303,7 @@ export const ElementCustomizationPanel: React.FC = () => {
   };
 
   return (
-    <div className="absolute top-4 right-4 w-80 bg-slate-800/95 backdrop-blur-xl border border-slate-600 rounded-2xl shadow-2xl z-50">
+    <div className="absolute hidden group-hover:block top-4 right-4 w-80 bg-slate-800/95 backdrop-blur-xl border border-slate-600 rounded-2xl shadow-2xl z-50">
       <div className="flex items-center justify-between p-4 border-b border-slate-700">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-700 rounded-lg">

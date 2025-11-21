@@ -12,7 +12,8 @@ import {
   Dna,
   Flower,
   Flame,
-  Shapes
+  Shapes,
+  Filter
 } from "lucide-react";
 import { Input } from "../../ui/Input";
 import { Card } from "../../ui/Card";
@@ -44,7 +45,6 @@ const typeIcons = {
   energy: Flame
 };
 
-
 type FilterType =
   | "all"
   | "bars"
@@ -56,7 +56,6 @@ type FilterType =
   | "cyber"
   | "geometric";
 
-
 export function VisualizerLibrary() {
   const {
     visualizers,
@@ -66,6 +65,7 @@ export function VisualizerLibrary() {
   } = useVisualizer();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<FilterType>("all");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   const onVisualizerSelect = (
     visualizerType: VisualizerParams["visualizerType"]
@@ -114,6 +114,11 @@ export function VisualizerLibrary() {
     return labels[type];
   };
 
+  const getTypeIcon = (type: FilterType) => {
+    if (type === "all") return Filter;
+    return typeIcons[type] || Grid3x3;
+  };
+
   return (
     <div className="h-full flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
@@ -128,33 +133,72 @@ export function VisualizerLibrary() {
         )}
       </div>
 
-      <Input
-        placeholder="Search visualizers..."
-        icon={<Search size={16} />}
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-
-      <div className="flex gap-2 flex-wrap">
-        {filterTypes.map((type) => (
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <Input
+            placeholder="Search visualizers..."
+            icon={<Search size={16} />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        
+        {/* Filter Icon Button */}
+        <div className="relative">
           <button
-            key={type}
-            onClick={() => setSelectedType(type)}
+            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
             className={`
-              px-3 py-1.5 rounded-lg text-sm font-medium transition-all border
+              h-10 px-3 rounded-lg border transition-all flex items-center justify-center
               ${
-                type === selectedType
+                selectedType !== "all"
                   ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
                   : "bg-slate-800/50 text-slate-400 border-slate-600 hover:text-slate-200 hover:bg-slate-800"
               }
             `}
           >
-            {getTypeLabel(type)}
+            <Filter size={16} />
+            {selectedType !== "all" && (
+              <span className="ml-2 text-xs font-medium">
+                {getTypeLabel(selectedType)}
+              </span>
+            )}
           </button>
-        ))}
+
+          {/* Filter Dropdown */}
+          {showFilterDropdown && (
+            <div className="absolute top-12 right-0 z-10 bg-slate-800 border border-slate-600 rounded-lg shadow-lg py-2 min-w-[140px]">
+              {filterTypes.map((type) => {
+                const Icon = getTypeIcon(type);
+                return (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      setSelectedType(type);
+                      setShowFilterDropdown(false);
+                    }}
+                    className={`
+                      w-full px-3 py-2 text-sm text-left transition-all flex items-center gap-2
+                      ${
+                        type === selectedType
+                          ? "bg-cyan-500/20 text-cyan-400"
+                          : "text-slate-300 hover:bg-slate-700/50"
+                      }
+                    `}
+                  >
+                    <Icon size={14} />
+                    {getTypeLabel(type)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Filter Chips (Optional - for better UX) */}
+     
+
+      <div className="flex-1 overflow-y-auto mt-6 px-2 py-2">
         {filteredVisualizers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-slate-400">
             <Search size={32} className="mb-2" />
@@ -180,12 +224,12 @@ export function VisualizerLibrary() {
                   <div className="aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg mb-2 flex items-center justify-center text-3xl relative overflow-hidden group">
                     {viz.thumbnail}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {viz.favorite && (
+                    {/* {viz.favorite && (
                       <Star
                         size={14}
                         className="absolute top-2 right-2 fill-amber-400 text-amber-400"
                       />
-                    )}
+                    )} */}
                     {isActive && (
                       <div className="absolute top-2 left-2 bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded-full">
                         Active
@@ -201,11 +245,11 @@ export function VisualizerLibrary() {
                       {viz.type}
                     </Badge>
                     <span className="text-xs text-slate-400 flex items-center gap-1">
-                      <Star
+                      {/* <Star
                         size={10}
                         className="fill-amber-400 text-amber-400"
-                      />
-                      {viz.rating}
+                      /> */}
+                      {/* {viz.rating} */}
                     </span>
                   </div>
                 </Card>

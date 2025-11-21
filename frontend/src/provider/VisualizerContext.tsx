@@ -25,8 +25,6 @@ interface Visualizer {
     | "molecular"
     | "energy";
   thumbnail: string;
-  rating: number;
-  favorite: boolean;
   visualizerType: string;
 }
 
@@ -197,8 +195,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Frequency Bars",
     type: "bars",
     thumbnail: "🎵",
-    rating: 4.8,
-    favorite: true,
     visualizerType: "audioReactive",
   },
   {
@@ -206,8 +202,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Particle Flow",
     type: "particles",
     thumbnail: "✨",
-    rating: 4.9,
-    favorite: false,
     visualizerType: "particleWave",
   },
   {
@@ -215,8 +209,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Wave Ripple",
     type: "waveform",
     thumbnail: "🌊",
-    rating: 4.7,
-    favorite: true,
     visualizerType: "waveform3D",
   },
   {
@@ -224,8 +216,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Spiral Galaxy",
     type: "3d",
     thumbnail: "🌌",
-    rating: 4.6,
-    favorite: false,
     visualizerType: "morphing",
   },
   {
@@ -233,8 +223,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Neon Grid",
     type: "cyber",
     thumbnail: "⚡",
-    rating: 4.5,
-    favorite: false,
     visualizerType: "cyberGrid",
   },
   {
@@ -242,8 +230,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Audio Sphere",
     type: "3d",
     thumbnail: "🔮",
-    rating: 4.8,
-    favorite: true,
     visualizerType: "biomorphic",
   },
   {
@@ -251,8 +237,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Liquid Motion",
     type: "liquid",
     thumbnail: "💧",
-    rating: 4.7,
-    favorite: false,
     visualizerType: "liquid",
   },
   {
@@ -260,8 +244,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Geometric Patterns",
     type: "geometric",
     thumbnail: "🔷",
-    rating: 4.6,
-    favorite: true,
     visualizerType: "geometric",
   },
   {
@@ -269,8 +251,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Spectrum Analyzer",
     type: "bars",
     thumbnail: "📊",
-    rating: 4.9,
-    favorite: false,
     visualizerType: "spectrum",
   },
   {
@@ -278,8 +258,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "DNA Double Helix",
     type: "biological",
     thumbnail: "🧬",
-    rating: 4.9,
-    favorite: true,
     visualizerType: "dnaHelix",
   },
   {
@@ -287,8 +265,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Crystal Lattice",
     type: "geometric",
     thumbnail: "💎",
-    rating: 4.8,
-    favorite: false,
     visualizerType: "crystalLattice",
   },
   {
@@ -296,8 +272,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Plasma Energy",
     type: "particles",
     thumbnail: "⚡",
-    rating: 4.7,
-    favorite: true,
     visualizerType: "plasmaField",
   },
   {
@@ -305,8 +279,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Fractal Tree",
     type: "fractal",
     thumbnail: "🌳",
-    rating: 4.8,
-    favorite: false,
     visualizerType: "fractalTree",
   },
   {
@@ -314,8 +286,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Kaleidoscope",
     type: "geometric",
     thumbnail: "🔆",
-    rating: 4.9,
-    favorite: true,
     visualizerType: "kaleidoscope",
   },
   {
@@ -323,8 +293,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Neural Network",
     type: "network",
     thumbnail: "🧠",
-    rating: 4.8,
-    favorite: false,
     visualizerType: "neuralNetwork",
   },
   {
@@ -332,8 +300,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Quantum Field",
     type: "quantum",
     thumbnail: "⚛️",
-    rating: 4.9,
-    favorite: true,
     visualizerType: "quantumField",
   },
   {
@@ -341,8 +307,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Solar Flare",
     type: "cosmic",
     thumbnail: "☀️",
-    rating: 4.7,
-    favorite: false,
     visualizerType: "solarFlare",
   },
   {
@@ -350,8 +314,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Aurora Borealis",
     type: "wave",
     thumbnail: "🌈",
-    rating: 4.9,
-    favorite: true,
     visualizerType: "auroraWaves",
   },
   {
@@ -359,8 +321,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Sacred Geometry",
     type: "geometric",
     thumbnail: "🕉️",
-    rating: 4.8,
-    favorite: false,
     visualizerType: "sacredGeometry",
   },
   {
@@ -368,8 +328,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Nebula Cloud",
     type: "cosmic",
     thumbnail: "☁️",
-    rating: 4.7,
-    favorite: true,
     visualizerType: "nebulaCloud",
   },
   {
@@ -377,8 +335,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Mandala Bloom",
     type: "geometric",
     thumbnail: "🌸",
-    rating: 4.9,
-    favorite: false,
     visualizerType: "mandala",
   },
   {
@@ -386,8 +342,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Spiral Arms",
     type: "cosmic",
     thumbnail: "🌀",
-    rating: 4.8,
-    favorite: true,
     visualizerType: "spiralArms",
   },
   {
@@ -395,8 +349,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Hexagonal Grid",
     type: "geometric",
     thumbnail: "⬡",
-    rating: 4.7,
-    favorite: false,
     visualizerType: "hexagonalGrid",
   },
   {
@@ -404,8 +356,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Voronoi Cells",
     type: "geometric",
     thumbnail: "🔶",
-    rating: 4.8,
-    favorite: true,
     visualizerType: "voronoiCells",
   },
   {
@@ -413,8 +363,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Toroidal Field",
     type: "field",
     thumbnail: "🍩",
-    rating: 4.9,
-    favorite: false,
     visualizerType: "toroidalField",
   },
   {
@@ -422,8 +370,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Cosmic Web",
     type: "network",
     thumbnail: "🕸️",
-    rating: 4.7,
-    favorite: true,
     visualizerType: "cosmicWeb",
   },
   {
@@ -431,8 +377,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Crystal Cave",
     type: "geometric",
     thumbnail: "💠",
-    rating: 4.8,
-    favorite: false,
     visualizerType: "crystalCave",
   },
   {
@@ -440,8 +384,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Fire Rings",
     type: "energy",
     thumbnail: "🔥",
-    rating: 4.9,
-    favorite: true,
     visualizerType: "fireRings",
   },
   {
@@ -449,8 +391,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "EM Field",
     type: "field",
     thumbnail: "🧲",
-    rating: 4.8,
-    favorite: false,
     visualizerType: "electromagneticField",
   },
   {
@@ -458,8 +398,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Möbius Strip",
     type: "geometric",
     thumbnail: "♾️",
-    rating: 4.7,
-    favorite: true,
     visualizerType: "mobiusStrip",
   },
   {
@@ -467,8 +405,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Fibonacci Spiral",
     type: "fractal",
     thumbnail: "🌀",
-    rating: 4.9,
-    favorite: false,
     visualizerType: "fibonacciSpiral",
   },
   {
@@ -476,8 +412,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Tesseract 4D",
     type: "4d",
     thumbnail: "📐",
-    rating: 4.8,
-    favorite: true,
     visualizerType: "tesseract",
   },
   {
@@ -485,8 +419,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "DNA Origami",
     type: "biological",
     thumbnail: "🧬",
-    rating: 4.7,
-    favorite: false,
     visualizerType: "dnaOrigami",
   },
   {
@@ -494,8 +426,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Supernova",
     type: "cosmic",
     thumbnail: "💥",
-    rating: 4.9,
-    favorite: true,
     visualizerType: "supernova",
   },
   {
@@ -503,8 +433,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Warp Tunnel",
     type: "warp",
     thumbnail: "🚀",
-    rating: 4.8,
-    favorite: false,
     visualizerType: "warpTunnel",
   },
   {
@@ -512,8 +440,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Molecular Bonds",
     type: "molecular",
     thumbnail: "⚗️",
-    rating: 4.7,
-    favorite: true,
     visualizerType: "moleculeBonds",
   },
   {
@@ -521,8 +447,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Lightning Storm",
     type: "energy",
     thumbnail: "⚡",
-    rating: 4.9,
-    favorite: false,
     visualizerType: "lightningStorm",
   },
   {
@@ -530,8 +454,6 @@ const defaultVisualizers: Visualizer[] = [
     name: "Quantum Foam",
     type: "quantum",
     thumbnail: "🫧",
-    rating: 4.8,
-    favorite: true,
     visualizerType: "quantumFoam",
   },
   {
@@ -539,11 +461,10 @@ const defaultVisualizers: Visualizer[] = [
     name: "Celestial Orbit",
     type: "cosmic",
     thumbnail: "🪐",
-    rating: 4.9,
-    favorite: false,
     visualizerType: "celestialOrbit",
   },
 ];
+
 
 // Default audio data
 const defaultAudioData: AudioData = {

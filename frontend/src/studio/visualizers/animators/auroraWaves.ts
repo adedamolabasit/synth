@@ -9,33 +9,41 @@ export const animateAuroraWaves = (
   beatInfo?: BeatInfo
 ): void => {
   const scaledTime = time * 0.001;
-  
-  objects.forEach((obj, index) => {
-    if (obj instanceof THREE.Mesh && obj.geometry instanceof THREE.PlaneGeometry) {
-      const waveIndex = obj.userData.waveIndex || 0;
-      const positions = obj.geometry.attributes.position.array as Float32Array;
-      const resolution = obj.userData.resolution || 50;
 
-      for (let i = 0; i < positions.length / 3; i++) {
-        const i3 = i * 3;
-        const x = positions[i3];
-        const y = positions[i3 + 1];
-        
-        const dataIndex = Math.floor((i / (positions.length / 3)) * frequencyData.length);
-        const audioValue = frequencyData[dataIndex] / 255;
+  objects.forEach((obj) => {
+    if (!(obj instanceof THREE.Line)) return;
 
-        positions[i3 + 2] = 
-          Math.sin(x * 0.5 + scaledTime * 2 + waveIndex) * audioValue * 2 +
-          Math.cos(y * 0.5 + scaledTime * 1.5 + waveIndex) * audioValue * 1.5;
-      }
+    const geometry = obj.geometry as THREE.BufferGeometry;
+    const positions = geometry.attributes.position.array as Float32Array;
+    const colors = geometry.attributes.color.array as Float32Array;
+    const pointsPerRibbon = obj.userData.pointsPerRibbon;
+    const speed = obj.userData.speed;
+    const offset = obj.userData.offset;
+    const ribbonIndex = obj.userData.ribbonIndex;
 
-      obj.geometry.attributes.position.needsUpdate = true;
-      obj.geometry.computeVertexNormals();
+    for (let i = 0; i < pointsPerRibbon; i++) {
+      const i3 = i * 3;
+      const t = i / pointsPerRibbon;
 
-      if (obj.material instanceof THREE.MeshPhongMaterial) {
-        const hue = (0.5 + waveIndex * 0.1 + scaledTime * 0.05) % 1;
-        obj.material.color.setHSL(hue, 1, 0.5);
-      }
+      const dataIndex = Math.floor((i / pointsPerRibbon) * frequencyData.length);
+      const audioValue = frequencyData[dataIndex] / 255;
+
+      // Wave motion with twist & random offsets
+      positions[i3 + 0] =
+        Math.sin(scaledTime * speed + i * 0.1 + offset) * 5 * (0.3 + audioValue);
+      positions[i3 + 1] = t * 5 + audioValue * 2; // lift by audio
+      positions[i3 + 2] =
+        Math.cos(scaledTime * speed + i * 0.1 + offset) * 5 * (0.3 + audioValue);
+
+      // Animate color along spectrum
+      const hue = (ribbonIndex / objects.length + t + scaledTime * 0.05 + audioValue * 0.1) % 1;
+      const color = new THREE.Color().setHSL(hue, 1, 0.5 + audioValue * 0.3);
+      colors[i3 + 0] = color.r;
+      colors[i3 + 1] = color.g;
+      colors[i3 + 2] = color.b;
     }
+
+    geometry.attributes.position.needsUpdate = true;
+    geometry.attributes.color.needsUpdate = true;
   });
 };

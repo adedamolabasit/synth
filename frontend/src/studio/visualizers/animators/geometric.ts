@@ -8,34 +8,36 @@ export const animateGeometric = (
   params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
-  objects.forEach((obj, index) => {
+  const scaledTime = time * 0.001;
+
+  objects.forEach((obj) => {
     if (!(obj instanceof THREE.Mesh)) return;
 
-    const dataIndex = Math.floor(
-      (index / objects.length) * frequencyData.length
-    );
-    const frequencyValue = frequencyData[dataIndex] / 255;
+    const { index, baseAngle, radius, speed, yOffset } = obj.userData;
 
-    // Scale animation
-    const scale = 1 + frequencyValue * params.intensity * 0.1;
+    const dataIndex = Math.floor((index / objects.length) * frequencyData.length);
+    const audioValue = frequencyData[dataIndex] / 255;
+
+    // Orbiting movement
+    const angle = baseAngle + scaledTime * speed;
+    obj.position.x = Math.cos(angle) * radius;
+    obj.position.z = Math.sin(angle) * radius;
+    obj.position.y = Math.sin(scaledTime * speed * 2 + yOffset) * 1.5 * audioValue;
+
+    // Pulsating scale
+    const scale = 0.5 + audioValue * 1.5;
     obj.scale.set(scale, scale, scale);
 
-    // Rotation animation
-    obj.rotation.x = time * params.speed * 0.01;
-    obj.rotation.y = time * params.speed * 0.008;
-    obj.rotation.z = time * params.speed * 0.006;
-
-    // Position animation
-    if (obj.userData.basePosition) {
-      const basePos = obj.userData.basePosition as THREE.Vector3;
-      obj.position.x = basePos.x + Math.sin(time * 0.5 + index) * 0.5;
-      obj.position.y = basePos.y + Math.cos(time * 0.3 + index) * 0.5;
-    }
+    // Smooth rotation
+    obj.rotation.x = scaledTime * speed + audioValue * 2;
+    obj.rotation.y = scaledTime * speed * 0.5 + audioValue * 1.5;
 
     // Color animation
     if (obj.material instanceof THREE.MeshPhongMaterial) {
-      const hue = (time * 0.05 + index * 0.1) % 1;
-      obj.material.color.setHSL(hue, 0.8, 0.6);
+      const hue = (scaledTime * 0.1 + index / objects.length) % 1;
+      obj.material.color.setHSL(hue, 0.9, 0.5 + audioValue * 0.2);
+      obj.material.emissive.setHSL(hue, 0.9, audioValue * 0.5);
+      obj.material.opacity = 0.7 + audioValue * 0.3;
     }
   });
 };

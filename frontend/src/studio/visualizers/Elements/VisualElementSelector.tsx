@@ -116,14 +116,14 @@ export const VisualElementSelector: React.FC = () => {
   return (
     <div className="absolute bottom-60 left-4 flex flex-col gap-2">
       <div className="relative group">
-        <Button
+        {/* <Button
           variant="secondary"
           size="sm"
-          icon={<Plus size={14} />}
-          className="mb-2"
+          // icon={<Plus size={14} />}
+          className="mb-2  flex hidden group-hover:block"
         >
           Add Element
-        </Button>
+        </Button> */}
         <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-800/95 backdrop-blur-xl border border-slate-600 rounded-xl p-2 min-w-48 shadow-2xl z-50">
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-1">
@@ -185,7 +185,7 @@ export const VisualElementSelector: React.FC = () => {
         </div>
       </div>
 
-      <div className="space-y-2 max-h-96 overflow-y-auto px-2 scrollbar-left">
+      <div className="space-y-2 max-h-96 overflow-y-auto px-2 scrollbar-left  hidden group-hover:block">
         {visualElements.map((element) => (
           <div
             key={element.id}

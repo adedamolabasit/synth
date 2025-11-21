@@ -3,28 +3,16 @@ import {
   Upload,
   Music,
   Loader2,
-  FileAudio,
   ChevronLeft,
   ChevronRight,
   Play,
   Pause,
-  X,
-  Settings,
-  Text,
-  FileText,
-  Hash,
   Download,
 } from "lucide-react";
 import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
-import { Badge } from "../../ui/Badge";
-import { MusicPlayerPanel } from "./MusicPlayerPanel";
-import {
-  AudioFile,
-  AudioUploadPanelProps,
-} from "../../../shared/types/audio.types";
-import { decodeGzippedBase64, formatTime } from "../../../shared/utils";
 import { useAudio } from "../../../provider/AudioContext";
+import { AudioUploadPanelProps } from "../../../shared/types/audio.types";
 
 export function AudioUploadPanel({
   isCollapsed = false,
@@ -35,45 +23,37 @@ export function AudioUploadPanel({
     currentAudio,
     isPlaying,
     isLoading,
-    currentTime,
-    duration,
-    volume,
-    isMuted,
-    playbackRate,
     playAudio,
     pauseAudio,
     resumeAudio,
-    stopAudio,
-    seekTo,
-    setVolume,
-    setPlaybackRate,
-    toggleMute,
   } = useAudio();
 
   const [isDragging, setIsDragging] = useState(false);
-  const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
+  const [audioFiles, setAudioFiles] = useState<any[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeTab, setActiveTab] = useState<"upload" | "library">("upload");
-  const [selectedAudio, setSelectedAudio] = useState<AudioFile | null>(null);
-  const [decodedTranscript, setDecodedTranscript] = useState<string>("");
-  const [decodedLyrics, setDecodedLyrics] = useState<string>("");
-  const [isDecoding, setIsDecoding] = useState(false);
   const [fetchError, setFetchError] = useState<string>("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Simplified play/pause handler using the AudioContext
-  const handlePlayPause = async (audioFile: AudioFile) => {
+  // Set active tab based on library content
+  useEffect(() => {
+    if (audioFiles.length > 0) {
+      setActiveTab("library");
+    } else {
+      setActiveTab("upload");
+    }
+  }, [audioFiles.length]);
+
+  const handlePlayPause = async (audioFile: any) => {
     try {
       if (currentAudio?._id === audioFile._id) {
-        // Same audio - toggle play/pause
         if (isPlaying) {
           pauseAudio();
         } else {
           await resumeAudio();
         }
       } else {
-        // New audio - play it
         await playAudio(audioFile);
       }
     } catch (error) {
@@ -109,12 +89,10 @@ export function AudioUploadPanel({
   };
 
   const handleFiles = async (files: File[]) => {
-    console.log("Files to upload:", files);
     setIsAnalyzing(true);
     setFetchError("");
 
     try {
-      // Create FormData for file upload
       const formData = new FormData();
       files.forEach((file) => {
         formData.append("audio", file);
@@ -133,12 +111,10 @@ export function AudioUploadPanel({
       }
 
       const data = await response.json();
-      console.log("Upload response:", data);
 
       if (data.success) {
-        // Refresh the library after successful upload
         await fetchAudioLibrary();
-        setActiveTab("library");
+        // Tab will automatically switch to library due to useEffect
       } else {
         throw new Error(data.error || "Upload failed");
       }
@@ -150,30 +126,7 @@ export function AudioUploadPanel({
     }
   };
 
-  const handleViewDetails = async (audioFile: AudioFile) => {
-    setSelectedAudio(audioFile);
-    setIsDecoding(true);
-
-    try {
-      if (audioFile.transcript) {
-        const transcript = await decodeGzippedBase64(audioFile.transcript);
-        setDecodedTranscript(transcript);
-      }
-
-      if (audioFile.lyrics) {
-        const lyrics = await decodeGzippedBase64(audioFile.lyrics);
-        setDecodedLyrics(lyrics);
-      }
-    } catch (error) {
-      console.error("Error decoding data:", error);
-      setDecodedTranscript("Error decoding transcript");
-      setDecodedLyrics("Error decoding lyrics");
-    } finally {
-      setIsDecoding(false);
-    }
-  };
-
-  const handleDownload = (audioFile: AudioFile) => {
+  const handleDownload = (audioFile: any) => {
     const link = document.createElement("a");
     link.href = audioFile.audioUrl || audioFile.url;
     link.download = audioFile.name;
@@ -190,12 +143,9 @@ export function AudioUploadPanel({
       year: "numeric",
       month: "short",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
-  // Fetch audio library from server
   const fetchAudioLibrary = async () => {
     setIsAnalyzing(true);
     setFetchError("");
@@ -213,13 +163,11 @@ export function AudioUploadPanel({
       }
 
       const data = await response.json();
-      console.log("Fetched audio data:", data);
 
       if (data.success && Array.isArray(data.audio)) {
-        const fetchedAudioFiles: AudioFile[] = data.audio.map((audio: any) => ({
+        const fetchedAudioFiles = data.audio.map((audio: any) => ({
           ...audio,
           uploadedAt: new Date(audio.createdAt || audio.uploadedAt),
-          // Ensure all required fields are present
           _id: audio._id || audio.id,
           name: audio.name || audio.metadata?.name || "Unknown",
           url: audio.url || audio.audioUrl,
@@ -231,11 +179,9 @@ export function AudioUploadPanel({
           },
           size: audio.size || audio.metadata?.size,
           type: audio.type || audio.metadata?.type,
-          transcript: audio.transcript,
-          lyrics: audio.lyrics,
-          audioHash: audio.audioHash,
         }));
         setAudioFiles(fetchedAudioFiles);
+        // Tab will automatically be set based on the array length
       } else {
         throw new Error("Invalid response format");
       }
@@ -249,14 +195,13 @@ export function AudioUploadPanel({
     }
   };
 
-  // Fetch audio library on component mount and when tab changes to library
   useEffect(() => {
-    if (activeTab === "library") {
+  
       fetchAudioLibrary();
-    }
-  }, [activeTab]);
+    
+  }, []);
 
-  // Collapsed state
+
   if (isCollapsed) {
     return (
       <div className="h-full flex items-center justify-center p-2">
@@ -277,12 +222,11 @@ export function AudioUploadPanel({
 
   return (
     <div
-      className="h-full flex flex-col gap-4 p-4 transition-all duration-300 ease-in-out animate-in slide-in-from-left"
+      className="h-full flex flex-col gap-4 p-4 transition-all duration-300 ease-in-out"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Hidden file input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -309,27 +253,10 @@ export function AudioUploadPanel({
           </Button>
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <Music className="text-cyan-400" size={20} />
-            Audio Manager
+            Audio Player
           </h2>
         </div>
 
-        {/* Refresh button for library */}
-        {activeTab === "library" && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fetchAudioLibrary}
-            disabled={isAnalyzing}
-            icon={
-              <Loader2
-                size={16}
-                className={isAnalyzing ? "animate-spin" : ""}
-              />
-            }
-          >
-            Refresh
-          </Button>
-        )}
       </div>
 
       {/* Tabs */}
@@ -378,14 +305,14 @@ export function AudioUploadPanel({
       {/* Content based on active tab */}
       {activeTab === "upload" ? (
         <Card
-          className={`flex-1 flex flex-col items-center justify-center p-8 transition-all duration-300 animate-in fade-in-50 ${
+          className={`flex-1 flex flex-col items-center justify-center p-8 transition-all duration-300 ${
             isDragging
               ? "border-cyan-500 bg-cyan-500/10 scale-[0.98] shadow-lg shadow-cyan-500/20"
               : "hover:scale-[0.995] hover:shadow-lg hover:shadow-cyan-500/10"
           }`}
         >
           {isAnalyzing ? (
-            <div className="flex flex-col items-center gap-4 animate-in zoom-in-50">
+            <div className="flex flex-col items-center gap-4">
               <Loader2 className="text-cyan-400 animate-spin" size={48} />
               <p className="text-slate-300">Uploading audio...</p>
             </div>
@@ -412,7 +339,6 @@ export function AudioUploadPanel({
         </Card>
       ) : (
         <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-          {/* Audio Files List */}
           <div className="flex-1 overflow-y-auto space-y-3">
             {isAnalyzing && audioFiles.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
@@ -478,226 +404,24 @@ export function AudioUploadPanel({
                           {formatDate(audioFile.uploadedAt)}
                         </span>
                       </div>
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        {audioFile.transcript && (
-                          <Badge variant="success" size="sm">
-                            <Text size={12} className="mr-1" />
-                            Transcript
-                          </Badge>
-                        )}
-                        {audioFile.lyrics && (
-                          <Badge variant="info" size="sm">
-                            <FileText size={12} className="mr-1" />
-                            Lyrics
-                          </Badge>
-                        )}
-                        {audioFile.audioHash && (
-                          <Badge variant="default" size="sm">
-                            <Hash size={12} className="mr-1" />
-                            IPFS
-                          </Badge>
-                        )}
-                      </div>
                     </div>
 
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-6 h-6 p-0 text-slate-400 hover:text-blue-400"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewDetails(audioFile);
-                        }}
-                      >
-                        <Settings size={14} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-6 h-6 p-0 text-slate-400 hover:text-green-400"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownload(audioFile);
-                        }}
-                      >
-                        <Download size={14} />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-6 h-6 p-0 text-slate-400 hover:text-green-400"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(audioFile);
+                      }}
+                    >
+                      <Download size={14} />
+                    </Button>
                   </div>
                 </Card>
               ))
             )}
           </div>
-
-          {/* Music Player Component */}
-          {currentAudio && (
-            <MusicPlayerPanel
-              currentAudio={currentAudio}
-              onPlayPause={() => handlePlayPause(currentAudio)}
-              isPlaying={isPlaying}
-              isLoading={isLoading}
-              currentTime={currentTime}
-              duration={duration}
-              volume={volume}
-              isMuted={isMuted}
-              // playbackRate={playbackRate}
-              onSeek={seekTo}
-              onVolumeChange={setVolume}
-              // onPlaybackRateChange={setPlaybackRate}
-              onToggleMute={toggleMute}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Audio Details Modal */}
-      {selectedAudio && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-in fade-in-50">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                  <FileAudio className="text-cyan-400" size={24} />
-                  Audio Details
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedAudio(null);
-                    setDecodedTranscript("");
-                    setDecodedLyrics("");
-                  }}
-                >
-                  <X size={20} />
-                </Button>
-              </div>
-
-              <div className="space-y-6">
-                {/* Basic Info */}
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-4">
-                    File Information
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-slate-400">Name</p>
-                      <p className="text-white">
-                        {selectedAudio.metadata?.name || selectedAudio.name}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400">Size</p>
-                      <p className="text-white">
-                        {formatFileSize(
-                          selectedAudio.metadata?.size || selectedAudio.size
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400">Type</p>
-                      <p className="text-white">
-                        {selectedAudio.metadata?.type || selectedAudio.type}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400">Uploaded</p>
-                      <p className="text-white">
-                        {formatDate(selectedAudio.uploadedAt)}
-                      </p>
-                    </div>
-                    {selectedAudio.audioHash && (
-                      <div className="col-span-2">
-                        <p className="text-slate-400">IPFS Hash</p>
-                        <p className="text-white font-mono text-xs break-all">
-                          {selectedAudio.audioHash}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Transcript */}
-                {selectedAudio.transcript && (
-                  <div>
-                    <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                      <Text size={20} className="text-cyan-400" />
-                      Transcript
-                    </h4>
-                    <div className="bg-slate-800 rounded-lg p-4 max-h-40 overflow-y-auto">
-                      {isDecoding ? (
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <Loader2 size={16} className="animate-spin" />
-                          Decoding transcript...
-                        </div>
-                      ) : (
-                        <p className="text-slate-200 text-sm whitespace-pre-wrap">
-                          {decodedTranscript || "No transcript available"}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Lyrics */}
-                {selectedAudio.lyrics && (
-                  <div>
-                    <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                      <FileText size={20} className="text-cyan-400" />
-                      Lyrics
-                    </h4>
-                    <div className="bg-slate-800 rounded-lg p-4 max-h-40 overflow-y-auto">
-                      {isDecoding ? (
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <Loader2 size={16} className="animate-spin" />
-                          Decoding lyrics...
-                        </div>
-                      ) : (
-                        <p className="text-slate-200 text-sm whitespace-pre-wrap">
-                          {decodedLyrics || "No lyrics available"}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="secondary"
-                    onClick={() => handlePlayPause(selectedAudio)}
-                    className="flex-1"
-                    disabled={isLoading}
-                    icon={
-                      isLoading && currentAudio?._id === selectedAudio._id ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : currentAudio?._id === selectedAudio._id &&
-                        isPlaying ? (
-                        <Pause size={16} />
-                      ) : (
-                        <Play size={16} />
-                      )
-                    }
-                  >
-                    {isLoading && currentAudio?._id === selectedAudio._id
-                      ? "Loading..."
-                      : currentAudio?._id === selectedAudio._id && isPlaying
-                      ? "Pause"
-                      : "Play"}
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={() => handleDownload(selectedAudio)}
-                    className="flex-1"
-                    icon={<Download size={16} />}
-                  >
-                    Download
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
         </div>
       )}
     </div>

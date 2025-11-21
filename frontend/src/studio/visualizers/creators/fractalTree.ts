@@ -1,59 +1,63 @@
 import * as THREE from "three";
 import { VisualizerParams } from "../../types/visualizer";
 
-export const createFractalTreeVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
+export const createFractalTreeVisualizer = (
+  scene: THREE.Scene,
+  params: VisualizerParams
+): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
-  const maxDepth = Math.min(4 + Math.floor(params.complexity), 7);
+  const layers = Math.floor(4 + params.patternDensity * 6);
+  const particlesPerLayer = Math.floor(200 + params.complexity * 300);
+  const totalParticles = layers * particlesPerLayer;
 
-  const createBranch = (
-    depth: number,
-    position: THREE.Vector3,
-    direction: THREE.Vector3,
-    length: number
-  ): void => {
-    if (depth > maxDepth) return;
+  const geometry = new THREE.SphereGeometry(0.03, 6, 6);
+  const material = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    emissive: 0x2222ff,
+    transparent: true,
+    opacity: 0.7,
+    shininess: 50,
+  });
 
-    const geometry = new THREE.CylinderGeometry(
-      0.05 * (1 - depth / maxDepth),
-      0.1 * (1 - depth / maxDepth),
-      length,
-      8
-    );
-    
-    const material = new THREE.MeshPhongMaterial({
-      color: new THREE.Color().setHSL(0.3 - depth * 0.05, 0.8, 0.5),
-      transparent: true,
-      opacity: 0.9,
-    });
+  // Create a single instanced mesh
+  const instancedMesh = new THREE.InstancedMesh(geometry, material, totalParticles);
+  instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
-    const branch = new THREE.Mesh(geometry, material);
-    branch.position.copy(position);
-    branch.lookAt(position.clone().add(direction));
-    branch.rotateX(Math.PI / 2);
-    branch.userData = { depth, pulsePhase: Math.random() * Math.PI * 2 };
+  const dummy = new THREE.Object3D();
 
-    scene.add(branch);
-    objects.push(branch);
+  const particleData: { radius: number; angle: number; speed: number; pulsePhase: number }[] = [];
 
-    const endPosition = position.clone().add(direction.clone().multiplyScalar(length));
+  let index = 0;
+  for (let l = 0; l < layers; l++) {
+    const radius = 1.5 + l * 0.6;
+    for (let i = 0; i < particlesPerLayer; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const elevation = Math.random() * Math.PI;
 
-    if (depth < maxDepth) {
-      const branches = 3;
-      for (let i = 0; i < branches; i++) {
-        const angle = (i / branches) * Math.PI * 2;
-        const spread = 0.6;
-        const newDirection = new THREE.Vector3(
-          direction.x + Math.cos(angle) * spread,
-          direction.y + 0.7,
-          direction.z + Math.sin(angle) * spread
-        ).normalize();
+      const x = radius * Math.sin(elevation) * Math.cos(angle);
+      const y = radius * Math.cos(elevation);
+      const z = radius * Math.sin(elevation) * Math.sin(angle);
 
-        createBranch(depth + 1, endPosition, newDirection, length * 0.7);
-      }
+      dummy.position.set(x, y, z);
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      instancedMesh.setMatrixAt(index, dummy.matrix);
+
+      particleData.push({
+        radius,
+        angle,
+        speed: 0.5 + Math.random(),
+        pulsePhase: Math.random() * Math.PI * 2,
+      });
+
+      index++;
     }
-  };
+  }
 
-  createBranch(0, new THREE.Vector3(0, -4, 0), new THREE.Vector3(0, 1, 0), 2);
+  scene.add(instancedMesh);
+  // Attach particle data for animation
+  (instancedMesh.userData as any).particleData = particleData;
 
+  objects.push(instancedMesh);
   return objects;
 };

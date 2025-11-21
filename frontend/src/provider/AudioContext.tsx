@@ -1,6 +1,6 @@
 // app/provider/AudioContext.tsx
 import React, { createContext, useContext, useRef, useState, useEffect, ReactNode } from 'react';
-import { AudioFile } from '../components/dashboard/audio/types';
+import { AudioFile } from '../shared/types/audio.types';
 import { BeatInfo } from '../studio/types/visualizer';
 import { AudioManager } from '../studio/visualizers/manager/AudioManager';
 

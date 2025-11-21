@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { VisualizerParams } from "../../types/visualizer";
 
-export const createWaveform3DVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
+export const createWaveform3DVisualizer = (
+  scene: THREE.Scene,
+  params: VisualizerParams
+): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const points = 128;
   const geometry = new THREE.BufferGeometry();
@@ -9,7 +12,7 @@ export const createWaveform3DVisualizer = (scene: THREE.Scene, params: Visualize
 
   for (let i = 0; i < points; i++) {
     const i3 = i * 3;
-    positions[i3] = (i - points / 2) * 0.1;
+    positions[i3] = (i - points / 2) * 0.1; // X-axis spacing
     positions[i3 + 1] = 0;
     positions[i3 + 2] = 0;
   }
@@ -27,7 +30,9 @@ export const createWaveform3DVisualizer = (scene: THREE.Scene, params: Visualize
     type: "waveform3D",
     points: points,
     originalPositions: positions.slice(),
+    phaseOffsets: Array.from({ length: points }, () => Math.random() * Math.PI * 2), // for extra motion
   };
+
   scene.add(waveform);
   objects.push(waveform);
 

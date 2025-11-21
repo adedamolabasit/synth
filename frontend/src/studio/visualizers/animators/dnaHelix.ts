@@ -8,55 +8,41 @@ export const animateDNAHelix = (
   params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
-
   const scaledTime = time * 0.001;
 
-  objects.forEach((obj) => {
-    if (obj instanceof THREE.Mesh) {
+  objects.forEach(obj => {
+    if (!(obj instanceof THREE.Mesh)) return;
 
-      // RESET POSITION + SCALE FIRST
-      if (obj.userData.basePosition) {
-        obj.position.copy(obj.userData.basePosition);
-      }
+    const index = obj.userData.index || 0;
+    const t = obj.userData.t || 0;
+    const baseY = obj.userData.baseY || 0;
+    const dataIndex = Math.floor((index / objects.length) * frequencyData.length);
+    const audioValue = frequencyData[dataIndex] / 255;
 
-      obj.scale.setScalar(obj.userData.baseScale ?? 1);
+    // Sine wave along Y-axis
+    obj.position.y = baseY + Math.sin(t * 3 + scaledTime * 4) * 0.5 + audioValue * 1.5;
 
-      const index = obj.userData.index || 0;
-      const dataIndex = Math.floor((index / objects.length) * frequencyData.length);
-      const audioValue = frequencyData[dataIndex] / 255;
+    // Helix radius breathing
+    const radiusOffset = 0.2 + audioValue * 0.6;
+    const radius = 1.8 + radiusOffset;
+    const angle = obj.userData.strand === 1 ? t : t + Math.PI;
+    obj.position.x = Math.cos(angle + scaledTime * 0.5) * radius;
+    obj.position.z = Math.sin(angle + scaledTime * 0.5) * radius;
 
-      if (obj.userData.isConnector) {
-        // connector wobble
-        obj.scale.y = 1 + audioValue * 0.4;
+    // Sphere scaling
+    const scale = 0.8 + audioValue * 0.7 + Math.sin(scaledTime * 3 + index) * 0.1;
+    obj.scale.setScalar(scale);
 
-        if (obj.material instanceof THREE.MeshPhongMaterial) {
-          obj.material.opacity = 0.4 + audioValue * 0.4;
-        }
-
-      } else {
-        // DNA ball scale
-        const scale = 1 + audioValue * 0.6;
-        obj.scale.setScalar(scale);
-
-        if (obj.material instanceof THREE.MeshPhongMaterial) {
-          const hue = obj.userData.strand === 1 ? 0.4 : 0.9;
-          obj.material.color.setHSL(
-            hue + audioValue * 0.1,
-            0.8,
-            0.5 + audioValue * 0.2
-          );
-        }
-      }
-
-      // subtle breathing motion — NOT cumulative
-      obj.position.y += Math.sin(scaledTime * 2 + index) * 0.02;
+    // Color flow along strands
+    if (obj.material instanceof THREE.MeshPhongMaterial) {
+      const baseHue = obj.userData.strand === 1 ? 0.4 : 0.9;
+      obj.material.color.setHSL((baseHue + audioValue * 0.15 + scaledTime * 0.1) % 1, 0.8, 0.5 + audioValue * 0.2);
+      obj.material.emissive.setHSL(baseHue, 0.8, audioValue * 0.5);
     }
   });
 
-  // beat effect — TEMPORARY, not permanent
+  // Beat pulse
   if (beatInfo?.isBeat) {
-    objects.forEach(obj => {
-      obj.scale.multiplyScalar(1.05);
-    });
+    objects.forEach(obj => obj.scale.multiplyScalar(1.1));
   }
 };

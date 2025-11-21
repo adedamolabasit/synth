@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { LyricsController } from "./controllers/lyricsController";
+import { audioController } from "./controllers/audioController";
 import { upload } from "./middleware/upload";
 import multer from "multer";
 import fs from "fs";
@@ -9,11 +9,11 @@ import { setupSwagger } from "../swagger";
 import config from "./config/config";
 import helmet from "helmet";
 import morgan from "morgan";
-import lyricsRoutes from "./routes/lyricsRoutes";
+import lyricsRoutes from "./routes/audioRoutes";
 import videoRoutes from "./routes/videoRoutes"
 
 const app = express();
-const lyricsController = new LyricsController();
+const lyricsController = new audioController();
 
 // Load environment variables if needed
 // import dotenv from 'dotenv'; dotenv.config();

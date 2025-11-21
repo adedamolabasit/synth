@@ -9,26 +9,50 @@ export const animateFractalTree = (
   beatInfo?: BeatInfo
 ): void => {
   const scaledTime = time * 0.001;
-  
-  objects.forEach((obj, index) => {
-    if (obj instanceof THREE.Mesh) {
-      const depth = obj.userData.depth || 0;
-      const pulsePhase = obj.userData.pulsePhase || 0;
-      const dataIndex = Math.min(
-        Math.floor((depth / 7) * frequencyData.length),
-        frequencyData.length - 1
-      );
+
+  objects.forEach((obj) => {
+    if (!(obj instanceof THREE.InstancedMesh)) return;
+
+    const particleData = (obj.userData as any).particleData as {
+      radius: number;
+      angle: number;
+      speed: number;
+      pulsePhase: number;
+    }[];
+
+    const dummy = new THREE.Object3D();
+
+    for (let i = 0; i < obj.count; i++) {
+      const pdata = particleData[i];
+      const dataIndex = Math.floor((i / obj.count) * frequencyData.length);
       const audioValue = frequencyData[dataIndex] / 255;
 
-      const pulse = 1 + Math.sin(scaledTime * 2 + pulsePhase) * 0.1 * audioValue;
-      obj.scale.y = pulse;
+      // Spin around center
+      const spinSpeed = 0.2 + (i % 10) * 0.01;
+      pdata.angle += spinSpeed * 0.01;
 
-      obj.rotation.z = Math.sin(scaledTime * 0.5 + depth) * 0.1 * audioValue;
+      // Pulse radius with audio
+      const pulse = pdata.radius + Math.sin(scaledTime * pdata.speed + pdata.pulsePhase) * audioValue * 0.5;
+      const x = pulse * Math.cos(pdata.angle);
+      const z = pulse * Math.sin(pdata.angle);
+      const y = Math.sin(scaledTime * 2 + i) * audioValue * 0.3;
 
-      if (obj.material instanceof THREE.MeshPhongMaterial) {
-        const hue = (0.3 - depth * 0.05 + audioValue * 0.2) % 1;
-        obj.material.color.setHSL(hue, 0.8, 0.5);
-      }
+      dummy.position.set(x, y, z);
+      const scale = 0.5 + audioValue * 1.2;
+      dummy.scale.set(scale, scale, scale);
+
+      // Color via color attribute workaround
+      dummy.updateMatrix();
+      obj.setMatrixAt(i, dummy.matrix);
+    }
+
+    obj.instanceMatrix.needsUpdate = true;
+
+    // Optional: animate material hue
+    if (obj.material instanceof THREE.MeshPhongMaterial) {
+      const hue = (scaledTime * 0.1) % 1;
+      obj.material.color.setHSL(hue, 1, 0.5);
+      obj.material.emissive.setHSL(hue, 1, 0.5);
     }
   });
 };

@@ -801,8 +801,8 @@ useEffect(() => {
         // Try to decode the lyrics
         let lyricsData = {
           text:  await decodeLyricsData(currentAudio.lyrics),
-          timestamps: await decodeLyricsData(currentAudio.words),
-          segments: await decodeLyricsData(currentAudio.segments)
+          timestamps: await decodeLyricsData(currentAudio.words as string),
+          segments: await decodeLyricsData(currentAudio.segments as string)
         }
         
        

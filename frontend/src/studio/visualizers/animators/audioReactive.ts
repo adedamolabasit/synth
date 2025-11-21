@@ -8,15 +8,17 @@ export const animateAudioReactive = (
   params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
-  const mesh = objects[0] as THREE.Mesh;
+  const mesh = objects[0];
+  if (!(mesh instanceof THREE.Mesh)) return;
+  if (!(mesh.material instanceof THREE.ShaderMaterial)) return;
 
-  const bass = (beatInfo?.bandStrengths?.bass || 0) * 0.01;
-  const mid = (beatInfo?.bandStrengths?.mid || 0) * 0.01;
-  const treble = (beatInfo?.bandStrengths?.treble || 0) * 0.01;
+  const mat = mesh.material;
 
-  const mat = mesh.material as THREE.ShaderMaterial;
+  const bass = (beatInfo?.bandStrengths?.bass ?? 0) * 0.01;
+  const mid = (beatInfo?.bandStrengths?.mid ?? 0) * 0.01;
+  const treble = (beatInfo?.bandStrengths?.treble ?? 0) * 0.01;
 
-  mat.uniforms.uTime.value = time;
+  mat.uniforms.uTime.value = time * 0.001;
   mat.uniforms.uBass.value = bass * params.intensity;
   mat.uniforms.uMid.value = mid * params.intensity;
   mat.uniforms.uTreble.value = treble * params.intensity;
