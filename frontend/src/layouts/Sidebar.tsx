@@ -1,5 +1,5 @@
-import { Home, Music, Sparkles, Box, Settings, FileText } from 'lucide-react';
-import { ReactNode } from 'react';
+import { Home, Video, Box, FileText } from "lucide-react";
+import { ReactNode } from "react";
 
 interface NavItem {
   icon: ReactNode;
@@ -15,12 +15,10 @@ interface SidebarProps {
 
 export function Sidebar({ activeView, onViewChange }: SidebarProps) {
   const navItems: NavItem[] = [
-    { icon: <Home size={20} />, label: 'Workspace', id: 'workspace' },
-    { icon: <Music size={20} />, label: 'Audio', id: 'audio' },
-    { icon: <Sparkles size={20} />, label: 'Visualizers', id: 'visualizers' },
-    { icon: <Box size={20} />, label: 'IP Assets', id: 'ip' },
-    { icon: <FileText size={20} />, label: 'Export', id: 'export' },
-    { icon: <Settings size={20} />, label: 'Settings', id: 'settings' },
+    { icon: <Home size={20} />, label: "Workspace", id: "workspace" },
+    { icon: <Video size={20} />, label: "Media", id: "media" },
+    { icon: <Box size={20} />, label: "IP Assets", id: "ip" },
+    { icon: <FileText size={20} />, label: "Import", id: "import" },
   ];
 
   return (
@@ -40,8 +38,8 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
               transition-all duration-250
               ${
                 activeView === item.id
-                  ? 'bg-cyan-500/20 text-cyan-400 shadow-lg shadow-cyan-500/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  ? "bg-cyan-500/20 text-cyan-400 shadow-lg shadow-cyan-500/20"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
               }
             `}
           >

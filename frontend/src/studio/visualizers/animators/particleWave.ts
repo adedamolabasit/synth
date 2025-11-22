@@ -1,56 +1,86 @@
+// animateParticleWave.ts
 import * as THREE from "three";
 import { VisualizerParams, BeatInfo } from "../../types/visualizer";
+import { beatPulse } from "../../effects/gsapAnimations";
+
+
 
 export const animateParticleWave = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
   time: number,
   params: VisualizerParams,
-  beatInfo?: BeatInfo
-): void => {
-  objects.forEach((obj) => {
-    if (!(obj instanceof THREE.Points) || obj.userData.type !== "particleWave")
-      return;
+  beatInfo?: BeatInfo,
+  camera?: THREE.Camera
+) => {
+  const bass = frequencyData[2] / 255;
+  const mid = frequencyData[50] / 255;
+  const treble = frequencyData[120] / 255;
 
-    const geometry = obj.geometry as THREE.BufferGeometry;
-    const positions = geometry.attributes.position.array as Float32Array;
-    const originalPositions = obj.userData.originalPositions as Float32Array;
-    const phases: Float32Array = obj.userData.phases;
+  // 🎥 Camera reactive movement
+  if (camera) {
+    camera.position.x = Math.sin(time * 0.3) * (0.5 + bass);
+    camera.position.y = Math.sin(time * 0.2) * (0.3 + mid * 0.3);
+    camera.position.z = 8 - mid * 2;
+    camera.lookAt(0, 0, 0);
+  }
 
-    for (let i = 0; i < positions.length / 3; i++) {
-      const i3 = i * 3;
-      const dataIndex = Math.floor(
-        (i / (positions.length / 3)) * frequencyData.length
-      );
-      const freq = frequencyData[dataIndex] / 255;
+  objects.forEach(obj => {
+    if (!(obj instanceof THREE.Points)) return;
+    if (obj.userData?.isLyrics) return;
 
-      // Audio-reactive wave motion
-      const waveY = Math.sin(time * 2 + originalPositions[i3] * 0.3 + phases[i]) * freq * 3;
-      const waveX = Math.cos(time + originalPositions[i3 + 2] * 0.2 + phases[i]) * freq * 1.5;
-      const waveZ = Math.sin(time * 1.5 + originalPositions[i3] * 0.2 + phases[i]) * freq * 1.5;
+    const geometry = obj.geometry;
+    const posAttr = geometry.getAttribute("position");
+    const colorAttr = geometry.getAttribute("color");
 
-      positions[i3] = originalPositions[i3] + waveX;
-      positions[i3 + 1] = originalPositions[i3 + 1] + waveY;
-      positions[i3 + 2] = originalPositions[i3 + 2] + waveZ;
+    const positions = posAttr.array;
+    const colors = colorAttr.array;
+    const original = obj.userData.originalPositions;
+    const phases = obj.userData.phases;
 
-      // Color animation
-      if (geometry.attributes.color) {
-        const colors = geometry.attributes.color.array as Float32Array;
-        const hue = (time * 0.2 + i * 0.002) % 1;
-        const color = new THREE.Color().setHSL(hue, 0.9, 0.6);
-        colors[i3] = color.r;
-        colors[i3 + 1] = color.g;
-        colors[i3 + 2] = color.b;
-      }
-    }
+    const baseHue = obj.userData.baseHue;
+    const colorShiftSpeed = obj.userData.colorShiftSpeed;
 
-    geometry.attributes.position.needsUpdate = true;
-    if (geometry.attributes.color) geometry.attributes.color.needsUpdate = true;
-
-    // Beat pulse scaling
+    // 🔄 Flip flow direction on beats
     if (beatInfo?.isBeat) {
-      const scale = 1 + freq * 0.5;
-      obj.scale.set(scale, scale, scale);
+      obj.userData.flowDirection *= -1;
     }
+
+    const flow = obj.userData.flowDirection;
+    const fluid = params.fluidity * 0.02 * (1 + bass * 1.5);
+    const intensityBoost = 1 + params.intensity * 0.02;
+
+    // 🎨 Real-time color shifting
+    const hueShift = (baseHue + time * colorShiftSpeed + treble * 0.2) % 1;
+
+    for (let i = 0; i < original.length; i += 3) {
+      const px = original[i];
+      const py = original[i + 1];
+      const pz = original[i + 2];
+      const phase = phases[i / 3];
+
+      const wave = Math.sin(time * 1.2 + phase) * fluid;
+
+      positions[i] = px + wave * 2.5 * flow;
+      positions[i + 1] = py + Math.sin(time * 0.4 + px * 0.1) * bass * 4 * intensityBoost;
+      positions[i + 2] = pz + Math.cos(time * 0.7 + phase) * 1.5 * flow;
+
+      // Color update
+      const c = new THREE.Color().setHSL(hueShift, 0.9, 0.5 + bass * 0.2);
+      const idx = i;
+      colors[idx] = c.r;
+      colors[idx + 1] = c.g;
+      colors[idx + 2] = c.b;
+    }
+
+    posAttr.needsUpdate = true;
+    colorAttr.needsUpdate = true;
+
+    // 🔥 Rotate ONLY the particle wave
+    obj.rotation.y += params.rotationSpeed * 0.002;
+    obj.rotation.x += bass * 0.003;
+
+    // Beat pulse
+    if (beatInfo?.isBeat) beatPulse(obj, 1 + params.intensity * 0.01);
   });
 };

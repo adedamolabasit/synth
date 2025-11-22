@@ -1,20 +1,20 @@
-// src/studio/audio/AudioManager.ts
-import { BeatInfo } from '../../../shared/types/visualizer.types';
-import { LyricsManager } from './LyricsManager';
-
+import { BeatInfo } from "../../../shared/types/visualizer.types";
+import { LyricsManager } from "./LyricsManager";
 
 export class AudioManager {
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private source: MediaElementAudioSourceNode | null = null;
   private audioElement: HTMLAudioElement | null = null;
-  private dataArray: Uint8Array | null = null;
   private beatCutoff: number = 0;
   private beatTime: number = 0;
   private isInitialized: boolean = false;
   private defaultSource: AudioBufferSourceNode | null = null;
   private isDefaultAudioPlaying: boolean = false;
-  private progressCallbacks: ((currentTime: number, duration: number) => void)[] = [];
+  private progressCallbacks: ((
+    currentTime: number,
+    duration: number
+  ) => void)[] = [];
   private destinationNode: MediaStreamAudioDestinationNode | null = null;
   private lyricsManager: LyricsManager | null = null;
 
@@ -26,84 +26,73 @@ export class AudioManager {
     treble: [6000, 20000],
   };
 
-  // Add this method to your existing AudioManager class
-async loadAudioFromUrl(url: string): Promise<boolean> {
-  if (!this.isInitialized) {
-    await this.initialize();
-  }
-  
-  this.pause();
-  this.isDefaultAudioPlaying = false;
-
-  if (!this.audioElement) {
-    this.audioElement = new Audio();
-    this.audioElement.crossOrigin = 'anonymous';
-    if (this.audioContext && this.destinationNode && !this.source) {
-      this.source = this.audioContext.createMediaElementSource(this.audioElement);
-      this.source.connect(this.analyser!);
-      this.analyser!.connect(this.destinationNode);
-      this.analyser!.connect(this.audioContext.destination);
+  async loadAudioFromUrl(url: string): Promise<boolean> {
+    if (!this.isInitialized) {
+      await this.initialize();
     }
-  }
 
-  return new Promise((resolve) => {
-    this.audioElement!.src = url;
-    this.audioElement!.ontimeupdate = () => this.notifyProgressCallbacks();
-    this.audioElement!.onended = () => {
-      this.isDefaultAudioPlaying = false;
-      this.notifyProgressCallbacks();
-    };
-    this.audioElement!.oncanplaythrough = () => {
-      resolve(true);
-    };
-    this.audioElement!.onerror = (e) => {
-      console.error('Error loading audio from URL:', e);
-      resolve(false);
-    };
-  });
-}
+    this.pause();
+    this.isDefaultAudioPlaying = false;
+
+    if (!this.audioElement) {
+      this.audioElement = new Audio();
+      this.audioElement.crossOrigin = "anonymous";
+      if (this.audioContext && this.destinationNode && !this.source) {
+        this.source = this.audioContext.createMediaElementSource(
+          this.audioElement
+        );
+        this.source.connect(this.analyser!);
+        this.analyser!.connect(this.destinationNode);
+        this.analyser!.connect(this.audioContext.destination);
+      }
+    }
+
+    return new Promise((resolve) => {
+      this.audioElement!.src = url;
+      this.audioElement!.ontimeupdate = () => this.notifyProgressCallbacks();
+      this.audioElement!.onended = () => {
+        this.isDefaultAudioPlaying = false;
+        this.notifyProgressCallbacks();
+      };
+      this.audioElement!.oncanplaythrough = () => {
+        resolve(true);
+      };
+      this.audioElement!.onerror = (e) => {
+        console.error("Error loading audio from URL:", e);
+        resolve(false);
+      };
+    });
+  }
 
   async initialize() {
     if (this.isInitialized) return;
     try {
-      this.audioContext =
-        new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 4096;
       this.analyser.smoothingTimeConstant = 0.7;
-
       this.audioElement = new Audio();
-      this.audioElement.crossOrigin = 'anonymous';
-
-      // create source and destination for capturing the processed audio
-      this.source = this.audioContext.createMediaElementSource(this.audioElement);
-      // destination to capture stream of processed audio
+      this.audioElement.crossOrigin = "anonymous";
+      this.source = this.audioContext.createMediaElementSource(
+        this.audioElement
+      );
       this.destinationNode = this.audioContext.createMediaStreamDestination();
-
-      // connect source -> analyser -> destination + playback
       this.source.connect(this.analyser);
-      // send analyser to destination (so the recorded stream contains the same processed audio)
       this.analyser.connect(this.destinationNode);
-      // also send analyser to context.destination so user hears it
       this.analyser.connect(this.audioContext.destination);
-
-      const bufferLength = this.analyser.frequencyBinCount;
-      this.dataArray = new Uint8Array(bufferLength);
-
       this.isInitialized = true;
-      console.log('Audio manager initialized successfully');
+      console.log("Audio manager initialized successfully");
     } catch (error) {
-      console.error('Audio setup failed:', error);
+      console.error("Audio setup failed:", error);
       this.isInitialized = false;
     }
   }
 
-  // Return the MediaStream from the audio context destination (processed audio)
   getProcessedAudioStream(): MediaStream | null {
     return this.destinationNode ? this.destinationNode.stream : null;
   }
 
-  // Expose audio element for DOM fallback / UI
   getAudioElement(): HTMLAudioElement | null {
     return this.audioElement;
   }
@@ -117,9 +106,11 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
 
     if (!this.audioElement) {
       this.audioElement = new Audio();
-      this.audioElement.crossOrigin = 'anonymous';
+      this.audioElement.crossOrigin = "anonymous";
       if (this.audioContext && this.destinationNode && !this.source) {
-        this.source = this.audioContext.createMediaElementSource(this.audioElement);
+        this.source = this.audioContext.createMediaElementSource(
+          this.audioElement
+        );
         this.source.connect(this.analyser!);
         this.analyser!.connect(this.destinationNode);
         this.analyser!.connect(this.audioContext.destination);
@@ -138,7 +129,7 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
         resolve(true);
       };
       this.audioElement!.onerror = (e) => {
-        console.error('Error loading audio file:', e);
+        console.error("Error loading audio file:", e);
         URL.revokeObjectURL(url);
         resolve(false);
       };
@@ -156,7 +147,11 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
       const duration = 10;
       const sampleRate = 44100;
       const numberOfSamples = duration * sampleRate;
-      const audioBuffer = this.audioContext!.createBuffer(2, numberOfSamples, sampleRate);
+      const audioBuffer = this.audioContext!.createBuffer(
+        2,
+        numberOfSamples,
+        sampleRate
+      );
 
       for (let channel = 0; channel < 2; channel++) {
         const channelData = audioBuffer.getChannelData(channel);
@@ -164,7 +159,9 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
           const t = i / sampleRate;
           const freq1 = 220 + Math.sin(t * 0.5) * 110;
           const freq2 = 440 + Math.sin(t * 0.3) * 220;
-          channelData[i] = Math.sin(2 * Math.PI * freq1 * t) * 0.3 + Math.sin(2 * Math.PI * freq2 * t) * 0.2;
+          channelData[i] =
+            Math.sin(2 * Math.PI * freq1 * t) * 0.3 +
+            Math.sin(2 * Math.PI * freq2 * t) * 0.2;
         }
       }
 
@@ -173,10 +170,10 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
       this.defaultSource.connect(this.analyser!);
       this.defaultSource.loop = true;
 
-      console.log('Default audio loaded successfully');
+      console.log("Default audio loaded successfully");
       return true;
     } catch (error) {
-      console.error('Error loading default audio:', error);
+      console.error("Error loading default audio:", error);
       return false;
     }
   }
@@ -184,7 +181,7 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
   async play(): Promise<void> {
     if (!this.isInitialized) await this.initialize();
 
-    if (this.audioContext?.state === 'suspended') {
+    if (this.audioContext?.state === "suspended") {
       await this.audioContext.resume();
     }
 
@@ -200,7 +197,7 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
         this.isDefaultAudioPlaying = true;
         this.startProgressTracking();
       } catch (error) {
-        console.error('Default audio play failed:', error);
+        console.error("Default audio play failed:", error);
         await this.loadDefaultAudio();
         this.defaultSource!.start();
         this.isDefaultAudioPlaying = true;
@@ -217,10 +214,10 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
       try {
         this.defaultSource.stop();
       } catch (error) {
-        console.warn('Error stopping default source:', error);
+        console.warn("Error stopping default source:", error);
       }
       this.isDefaultAudioPlaying = false;
-      // recreate default source for next play
+
       this.loadDefaultAudio();
     }
     this.stopProgressTracking();
@@ -241,7 +238,7 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
   }
 
   detectBeat(frequencyData: Uint8Array): BeatInfo {
-    const bandStrengths: BeatInfo['bandStrengths'] = {
+    const bandStrengths: BeatInfo["bandStrengths"] = {
       bass: 0,
       lowMid: 0,
       mid: 0,
@@ -259,13 +256,14 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
         for (let i = lowIndex; i < highIndex; i++) energy += frequencyData[i];
         energy /= count;
       }
-      bandStrengths[band as keyof BeatInfo['bandStrengths']] = energy / 255;
+      bandStrengths[band as keyof BeatInfo["bandStrengths"]] = energy / 255;
       totalEnergy += energy;
     });
 
     const averageEnergy = totalEnergy / 5 / 255;
     const currentTime = Date.now();
-    const isBeat = averageEnergy > this.beatCutoff && currentTime - this.beatTime > 200;
+    const isBeat =
+      averageEnergy > this.beatCutoff && currentTime - this.beatTime > 200;
     if (isBeat) {
       this.beatTime = currentTime;
       this.beatCutoff = averageEnergy * 1.3;
@@ -294,12 +292,14 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
   }
 
   isPlaying(): boolean {
-    if (this.audioElement) return !this.audioElement.paused && !this.audioElement.ended;
+    if (this.audioElement)
+      return !this.audioElement.paused && !this.audioElement.ended;
     return this.isDefaultAudioPlaying;
   }
 
   getDuration(): number {
-    if (this.audioElement && this.audioElement.duration) return this.audioElement.duration;
+    if (this.audioElement && this.audioElement.duration)
+      return this.audioElement.duration;
     return this.defaultSource?.buffer?.duration || 10;
   }
 
@@ -313,39 +313,43 @@ async loadAudioFromUrl(url: string): Promise<boolean> {
   }
 
   offTimeUpdate(cb: (currentTime: number, duration: number) => void) {
-    this.progressCallbacks = this.progressCallbacks.filter(c => c !== cb);
+    this.progressCallbacks = this.progressCallbacks.filter((c) => c !== cb);
   }
-
 
   setLyricsManager(lyricsManager: LyricsManager): void {
-  this.lyricsManager = lyricsManager;
-  
-  // Update lyrics on time updates
-  this.onTimeUpdate((currentTime, duration) => {
-    if (this.lyricsManager) {
-      this.lyricsManager.update(currentTime);
-    }
-  });
-}
+    this.lyricsManager = lyricsManager;
 
-// Add lyrics data directly
-loadLyricsData(lyricsData: any): void {
-  if (this.lyricsManager) {
-    this.lyricsManager.loadLyrics(lyricsData);
+    this.onTimeUpdate((currentTime) => {
+      if (this.lyricsManager) {
+        this.lyricsManager.update(currentTime);
+      }
+    });
   }
-}
+
+  loadLyricsData(lyricsData: any): void {
+    if (this.lyricsManager) {
+      this.lyricsManager.loadLyrics(lyricsData);
+    }
+  }
   private notifyProgressCallbacks() {
     const currentTime = this.getCurrentTime();
     const duration = this.getDuration();
-    this.progressCallbacks.forEach(cb => {
-      try { cb(currentTime, duration); } catch (e) { console.error(e); }
+    this.progressCallbacks.forEach((cb) => {
+      try {
+        cb(currentTime, duration);
+      } catch (e) {
+        console.error(e);
+      }
     });
   }
 
   private progressInterval: number | null = null;
   private startProgressTracking() {
     this.stopProgressTracking();
-    this.progressInterval = window.setInterval(() => this.notifyProgressCallbacks(), 100);
+    this.progressInterval = window.setInterval(
+      () => this.notifyProgressCallbacks(),
+      100
+    );
   }
   private stopProgressTracking() {
     if (this.progressInterval) {
@@ -364,11 +368,15 @@ loadLyricsData(lyricsData: any): void {
       this.progressCallbacks = [];
       if (this.audioElement) {
         this.audioElement.pause();
-        this.audioElement.src = '';
-        try { this.audioElement.load(); } catch {}
+        this.audioElement.src = "";
+        try {
+          this.audioElement.load();
+        } catch {}
       }
       if (this.defaultSource) {
-        try { this.defaultSource.stop(); } catch {}
+        try {
+          this.defaultSource.stop();
+        } catch {}
         this.defaultSource = null;
       }
       this.isDefaultAudioPlaying = false;
@@ -378,9 +386,9 @@ loadLyricsData(lyricsData: any): void {
       }
       this.isInitialized = false;
       this.destinationNode = null;
-      console.log('AudioManager cleaned up');
+      console.log("AudioManager cleaned up");
     } catch (error) {
-      console.error('Error during cleanup:', error);
+      console.error("Error during cleanup:", error);
     }
   }
 }

@@ -1,4 +1,3 @@
-// src/components/lyrics/LyricsDisplay.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { LyricsManager } from '../../../studio/visualizers/manager/LyricsManager';
 import { LyricsState, LyricsDisplayConfig } from '../../../shared/types/visualizer.types';
@@ -39,7 +38,6 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
     let currentIndex = 0;
 
     words.forEach((word, index) => {
-      // Add text before word
       if (word.start > currentIndex) {
         const beforeText = text.substring(currentIndex, word.start);
         if (beforeText.trim()) {
@@ -51,7 +49,6 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
         }
       }
 
-      // Add the word itself
       const isActive = index === currentWordIndex;
       elements.push(
         <span
@@ -73,7 +70,6 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
       currentIndex = word.end;
     });
 
-    // Add remaining text
     if (currentIndex < text.length) {
       const afterText = text.substring(currentIndex);
       if (afterText.trim()) {
@@ -105,7 +101,6 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
         background: config.backgroundColor !== 'transparent' ? config.backgroundColor : undefined,
       }}
     >
-      {/* Previous lines (faded) */}
       <div className="opacity-50 mb-4">
         {lyricsManager.getPreviousLines(1).map((line, index) => (
           <div
@@ -118,7 +113,6 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
         ))}
       </div>
 
-      {/* Current line */}
       <div
         className={`mb-4 transition-all duration-300 ${
           config.showLineHighlight ? 'scale-105' : ''
@@ -135,19 +129,8 @@ export const LyricsDisplay: React.FC<LyricsDisplayProps> = ({
           <span>{lyricsState.currentLine}</span>
         )}
         
-        {/* Progress bar for current line */}
-        {/* <div
-          className="h-1 bg-gray-600 mt-2 rounded-full overflow-hidden"
-          style={{ width: '200px', margin: '8px auto 0' }}
-        > */}
-          {/* <div
-            className="h-full bg-green-400 transition-all duration-100"
-            style={{ width: `${lyricsState.progress * 100}%` }}
-          /> */}
-        {/* </div> */}
       </div>
 
-      {/* Upcoming lines */}
       <div className="opacity-70 mt-4">
         {upcomingLines.map((line, index) => (
           <div

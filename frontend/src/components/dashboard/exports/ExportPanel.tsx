@@ -1,42 +1,45 @@
-import { Download, FileVideo, Shield, Share2, Upload, X } from 'lucide-react';
-import { Card } from '../../ui/Card';
-import { Button } from '../../ui/Button';
-import { Badge } from '../../ui/Badge';
-import { useState, useRef } from 'react';
+import { Download, FileVideo, Shield, Share2, Upload, X } from "lucide-react";
+import { Card } from "../../ui/Card";
+import { Button } from "../../ui/Button";
+import { Badge } from "../../ui/Badge";
+import { useState, useRef } from "react";
 
 export function ExportPanel() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadResult, setUploadResult] = useState<{ success: boolean; videoUrl?: string; error?: string } | null>(null);
+  const [uploadResult, setUploadResult] = useState<{
+    success: boolean;
+    videoUrl?: string;
+    error?: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
       const allowedTypes = [
-        'video/mp4',
-        'video/mpeg',
-        'video/avi',
-        'video/mov',
-        'video/wmv',
-        'video/webm'
+        "video/mp4",
+        "video/mpeg",
+        "video/avi",
+        "video/mov",
+        "video/wmv",
+        "video/webm",
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
         setUploadResult({
           success: false,
-          error: 'Invalid file type. Please upload MP4, MPEG, AVI, MOV, WMV, or WebM files.'
+          error:
+            "Invalid file type. Please upload MP4, MPEG, AVI, MOV, WMV, or WebM files.",
         });
         return;
       }
 
-      // Validate file size (100MB)
       if (file.size > 100 * 1024 * 1024) {
         setUploadResult({
           success: false,
-          error: 'File too large. Maximum size is 100MB.'
+          error: "File too large. Maximum size is 100MB.",
         });
         return;
       }
@@ -54,12 +57,11 @@ export function ExportPanel() {
     setUploadResult(null);
 
     const formData = new FormData();
-    formData.append('video', selectedFile);
+    formData.append("video", selectedFile);
 
     try {
-      // Simulate progress for demo (replace with actual progress tracking)
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
+        setUploadProgress((prev) => {
           if (prev >= 90) {
             clearInterval(progressInterval);
             return 90;
@@ -68,8 +70,8 @@ export function ExportPanel() {
         });
       }, 200);
 
-      const response = await fetch('http://localhost:8000/api/video/upload', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8000/api/video/upload", {
+        method: "POST",
         body: formData,
       });
 
@@ -81,22 +83,22 @@ export function ExportPanel() {
       if (result.success) {
         setUploadResult({
           success: true,
-          videoUrl: result.videoUrl
+          videoUrl: result.videoUrl,
         });
         setSelectedFile(null);
         if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          fileInputRef.current.value = "";
         }
       } else {
         setUploadResult({
           success: false,
-          error: result.error || 'Upload failed'
+          error: result.error || "Upload failed",
         });
       }
     } catch (error) {
       setUploadResult({
         success: false,
-        error: 'Network error. Please try again.'
+        error: "Network error. Please try again.",
       });
     } finally {
       setIsUploading(false);
@@ -107,16 +109,16 @@ export function ExportPanel() {
     setSelectedFile(null);
     setUploadResult(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   return (
@@ -128,7 +130,6 @@ export function ExportPanel() {
         </h2>
       </div>
 
-      {/* Video Upload Card */}
       <Card className="p-4">
         <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
           <FileVideo size={16} className="text-blue-400" />
@@ -136,7 +137,6 @@ export function ExportPanel() {
         </h3>
 
         <div className="space-y-4">
-          {/* File Upload Area */}
           {!selectedFile ? (
             <div className="border-2 border-dashed border-slate-600/50 rounded-lg p-6 text-center hover:border-cyan-500/50 transition-colors">
               <input
@@ -163,7 +163,6 @@ export function ExportPanel() {
               </Button>
             </div>
           ) : (
-            /* Selected File Preview */
             <div className="border border-slate-600/50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -173,7 +172,8 @@ export function ExportPanel() {
                       {selectedFile.name}
                     </p>
                     <p className="text-slate-400 text-xs">
-                      {formatFileSize(selectedFile.size)} • {selectedFile.type.split('/')[1].toUpperCase()}
+                      {formatFileSize(selectedFile.size)} •{" "}
+                      {selectedFile.type.split("/")[1].toUpperCase()}
                     </p>
                   </div>
                 </div>
@@ -186,8 +186,6 @@ export function ExportPanel() {
                   Remove
                 </Button>
               </div>
-
-              {/* Upload Progress */}
               {isUploading && (
                 <div className="space-y-2">
                   <div className="w-full bg-slate-700/50 rounded-full h-2">
@@ -201,8 +199,6 @@ export function ExportPanel() {
                   </p>
                 </div>
               )}
-
-              {/* Upload Button */}
               {!isUploading && (
                 <Button
                   variant="primary"
@@ -215,14 +211,14 @@ export function ExportPanel() {
               )}
             </div>
           )}
-
-          {/* Upload Result */}
           {uploadResult && (
-            <div className={`p-3 rounded-lg text-sm ${
-              uploadResult.success 
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                : 'bg-red-500/20 text-red-400 border border-red-500/30'
-            }`}>
+            <div
+              className={`p-3 rounded-lg text-sm ${
+                uploadResult.success
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  : "bg-red-500/20 text-red-400 border border-red-500/30"
+              }`}
+            >
               {uploadResult.success ? (
                 <div>
                   <p className="font-medium">Upload Successful!</p>
@@ -248,7 +244,9 @@ export function ExportPanel() {
 
         <div className="space-y-3">
           <div>
-            <label className="text-sm text-slate-400 mb-2 block">License Type</label>
+            <label className="text-sm text-slate-400 mb-2 block">
+              License Type
+            </label>
             <select className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
               <option>Commercial Use - Full Rights</option>
               <option>Personal Use Only</option>
@@ -258,15 +256,21 @@ export function ExportPanel() {
           </div>
 
           <div>
-            <label className="text-sm text-slate-400 mb-2 block">Revenue Split</label>
+            <label className="text-sm text-slate-400 mb-2 block">
+              Revenue Split
+            </label>
             <div className="bg-slate-900/50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-300">Audio Creator</span>
-                <Badge variant="info" size="sm">60%</Badge>
+                <Badge variant="info" size="sm">
+                  60%
+                </Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-300">Visual Creator</span>
-                <Badge variant="info" size="sm">40%</Badge>
+                <Badge variant="info" size="sm">
+                  40%
+                </Badge>
               </div>
             </div>
           </div>
@@ -279,24 +283,41 @@ export function ExportPanel() {
             <Shield className="text-cyan-400" size={20} />
           </div>
           <div className="flex-1">
-            <h4 className="font-semibold text-white mb-1">Story Protocol Registration</h4>
+            <h4 className="font-semibold text-white mb-1">
+              Story Protocol Registration
+            </h4>
             <p className="text-sm text-slate-300 mb-3">
-              Register this composition as an IP Asset on Story Protocol to enable transparent licensing and royalty distribution.
+              Register this composition as an IP Asset on Story Protocol to
+              enable transparent licensing and royalty distribution.
             </p>
             <div className="flex items-center gap-2">
-              <Badge variant="success" size="sm">Audio Registered</Badge>
-              <Badge variant="success" size="sm">Visual Registered</Badge>
-              <Badge variant="warning" size="sm">Composition Pending</Badge>
+              <Badge variant="success" size="sm">
+                Audio Registered
+              </Badge>
+              <Badge variant="success" size="sm">
+                Visual Registered
+              </Badge>
+              <Badge variant="warning" size="sm">
+                Composition Pending
+              </Badge>
             </div>
           </div>
         </div>
       </Card>
 
       <div className="flex gap-3">
-        <Button variant="secondary" className="flex-1" icon={<Share2 size={16} />}>
+        <Button
+          variant="secondary"
+          className="flex-1"
+          icon={<Share2 size={16} />}
+        >
           Generate Share Link
         </Button>
-        <Button variant="primary" className="flex-1" icon={<Download size={16} />}>
+        <Button
+          variant="primary"
+          className="flex-1"
+          icon={<Download size={16} />}
+        >
           Export & Register
         </Button>
       </div>

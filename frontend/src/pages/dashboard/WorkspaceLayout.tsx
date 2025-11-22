@@ -6,16 +6,11 @@ import { IPManagementDashboard } from "../../components/dashboard/ipAssets/IPMan
 import { ExportPanel } from "../../components/dashboard/exports/ExportPanel";
 import { VideoGallery } from "../../components/dashboard/video/VideoGallery";
 
-
 interface WorkspaceLayoutProps {
   activeView: string;
 }
 
 export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
-  const [leftPanelWidth, setLeftPanelWidth] = useState(320);
-  const [rightPanelWidth, setRightPanelWidth] = useState(320);
-
-  // Detect screen size for responsive behavior
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -25,7 +20,6 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  /* ---------------------- Simple views (full-screen panels) ---------------------- */
   if (activeView === "audio") {
     return (
       <div className="flex-1 overflow-hidden">
@@ -34,7 +28,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
-  if (activeView === "visualizers") {
+  if (activeView === "media") {
     return (
       <div className="flex-1 overflow-hidden">
         <VideoGallery />
@@ -50,7 +44,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
-  if (activeView === "export") {
+  if (activeView === "import") {
     return (
       <div className="flex-1 overflow-hidden">
         <ExportPanel />
@@ -66,12 +60,8 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
-  /* ---------------------- Default View: FULL WORKSPACE ---------------------- */
-
   return (
     <div className="flex-1 flex overflow-hidden">
-
-      {/* LEFT PANEL */}
       {!isMobile && (
         <div
           className="
@@ -80,18 +70,16 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
             overflow-y-auto
             hidden md:block
           "
-          style={{ width: `${leftPanelWidth}px` }}
+          style={{ width: `320px` }}
         >
           <AudioUploadPanel />
         </div>
       )}
 
-      {/* CENTER CANVAS */}
       <div className="flex-1 flex flex-col bg-slate-950/40 overflow-hidden">
         <LivePreviewCanvas />
       </div>
 
-      {/* RIGHT PANEL */}
       {!isMobile && (
         <div
           className="
@@ -100,7 +88,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
             overflow-y-auto
             hidden md:block
           "
-          style={{ width: `${rightPanelWidth}px` }}
+          style={{ width: `320px` }}
         >
           <VisualizerLibrary />
         </div>

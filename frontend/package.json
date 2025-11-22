@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
+    "gsap": "^3.13.0",
     "lucide-react": "^0.344.0",
     "openai": "^6.7.0",
     "pako": "^2.1.0",
+    "postprocessing": "^6.38.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "three": "^0.181.2"

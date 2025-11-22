@@ -36,7 +36,6 @@ export function AudioUploadPanel({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Set active tab based on library content
   useEffect(() => {
     if (audioFiles.length > 0) {
       setActiveTab("library");
@@ -57,7 +56,6 @@ export function AudioUploadPanel({
         await playAudio(audioFile);
       }
     } catch (error) {
-      console.error("Playback error:", error);
     }
   };
 
@@ -114,12 +112,10 @@ export function AudioUploadPanel({
 
       if (data.success) {
         await fetchAudioLibrary();
-        // Tab will automatically switch to library due to useEffect
       } else {
         throw new Error(data.error || "Upload failed");
       }
     } catch (error) {
-      console.error("Upload error:", error);
       setFetchError(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setIsAnalyzing(false);
@@ -181,7 +177,6 @@ export function AudioUploadPanel({
           type: audio.type || audio.metadata?.type,
         }));
         setAudioFiles(fetchedAudioFiles);
-        // Tab will automatically be set based on the array length
       } else {
         throw new Error("Invalid response format");
       }
@@ -196,11 +191,8 @@ export function AudioUploadPanel({
   };
 
   useEffect(() => {
-  
-      fetchAudioLibrary();
-    
+    fetchAudioLibrary();
   }, []);
-
 
   if (isCollapsed) {
     return (
@@ -236,7 +228,6 @@ export function AudioUploadPanel({
         className="hidden"
       />
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button
@@ -256,10 +247,8 @@ export function AudioUploadPanel({
             Audio Player
           </h2>
         </div>
-
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-700/50 pb-2">
         <Button
           variant="ghost"
@@ -287,7 +276,6 @@ export function AudioUploadPanel({
         </Button>
       </div>
 
-      {/* Error Display */}
       {fetchError && (
         <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
           <p className="text-red-400 text-sm">{fetchError}</p>
@@ -302,7 +290,6 @@ export function AudioUploadPanel({
         </div>
       )}
 
-      {/* Content based on active tab */}
       {activeTab === "upload" ? (
         <Card
           className={`flex-1 flex flex-col items-center justify-center p-8 transition-all duration-300 ${

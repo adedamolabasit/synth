@@ -1,11 +1,12 @@
-// SlidersPanel.tsx
 import React from "react";
 import { VisualizerParams } from "../../../studio/types/visualizer";
 import { Slider } from "../../ui/Slider";
 
 interface SlidersPanelProps {
   params: VisualizerParams;
-  onParamsChange: (updater: (prev: VisualizerParams) => VisualizerParams) => void;
+  onParamsChange: (
+    updater: (prev: VisualizerParams) => VisualizerParams
+  ) => void;
 }
 
 export const SlidersPanel: React.FC<SlidersPanelProps> = ({
@@ -28,13 +29,6 @@ export const SlidersPanel: React.FC<SlidersPanelProps> = ({
           onParamsChange((p: VisualizerParams) => ({ ...p, speed: v }))
         }
       />
-      {/* <Slider
-        label="Rotation"
-        value={params.rotationSpeed}
-        onChange={(v: number) =>
-          onParamsChange((p: VisualizerParams) => ({ ...p, rotationSpeed: v }))
-        }
-      /> */}
       <Slider
         label="Complexity"
         value={params.complexity}

@@ -26,7 +26,6 @@ export interface MusicPlayerProps {
   onVolumeChange: (value: number) => void;
   onSeek: (value: number) => void;
   onToggleMute: () => void;
-  // setIsPlaying: (playing: boolean) => void;
 }
 
 export function MusicPlayerPanel({
@@ -34,7 +33,6 @@ export function MusicPlayerPanel({
   onPlayPause,
   isPlaying,
   isLoading = false,
-  // setIsPlaying,
 }: MusicPlayerProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -45,7 +43,6 @@ export function MusicPlayerPanel({
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
-  // Audio event handlers
   const handleTimeUpdate = () => {
     if (audioRef.current) {
       setCurrentTime(audioRef.current.currentTime);
@@ -59,7 +56,6 @@ export function MusicPlayerPanel({
   };
 
   const handleAudioEnded = () => {
-    // setIsPlaying(false);
     setCurrentTime(0);
   };
 
@@ -140,7 +136,6 @@ export function MusicPlayerPanel({
     });
   };
 
-  // Update audio element when currentAudio changes
   useEffect(() => {
     if (audioRef.current && currentAudio) {
       const audio = audioRef.current;
@@ -148,7 +143,6 @@ export function MusicPlayerPanel({
       audio.load();
       setCurrentTime(0);
 
-      // Set up event listeners for the new audio element
       const handleLoad = () => {
         setDuration(audio.duration);
       };
@@ -161,7 +155,6 @@ export function MusicPlayerPanel({
     }
   }, [currentAudio]);
 
-  // Initialize audio element listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -177,12 +170,10 @@ export function MusicPlayerPanel({
     };
   }, []);
 
-  // Don't render if no audio is selected
   if (!currentAudio) {
     return null;
   }
 
-  // Sync external play/pause state with internal audio element
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -208,13 +199,11 @@ export function MusicPlayerPanel({
 
   return (
     <>
-      {/* Hidden audio element */}
       <audio ref={audioRef} className="hidden" preload="metadata" />
 
       <Card className="p-4 bg-slate-800/50 border-slate-700 space-y-3">
         <h4 className="text-sm font-semibold text-slate-300">Now Playing</h4>
 
-        {/* Track Info */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
             <FileAudio className="text-white" size={20} />
@@ -229,7 +218,6 @@ export function MusicPlayerPanel({
           </div>
         </div>
 
-        {/* Progress Bar */}
         <div className="space-y-1">
           <div
             ref={progressBarRef}
@@ -250,9 +238,7 @@ export function MusicPlayerPanel({
           </div>
         </div>
 
-        {/* Controls */}
         <div className="flex items-center justify-between">
-          {/* Left side - Volume */}
           <div className="flex items-center gap-2 flex-1">
             <Button
               variant="ghost"
@@ -277,7 +263,6 @@ export function MusicPlayerPanel({
             </div>
           </div>
 
-          {/* Center - Playback Controls */}
           <div className="flex items-center gap-2 flex-1 justify-center">
             <Button
               variant="ghost"
@@ -314,7 +299,6 @@ export function MusicPlayerPanel({
             </Button>
           </div>
 
-          {/* Right side - Playback Rate */}
           <div className="flex items-center gap-2 flex-1 justify-end">
             <Button
               variant="ghost"

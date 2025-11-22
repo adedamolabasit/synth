@@ -1,6 +1,3 @@
-// types/visualizer.ts - Complete fixed version
-import * as THREE from "three";
-
 export interface VisualizerParams {
   visualizerType:
     | "spectrum"
@@ -95,10 +92,9 @@ export interface BackgroundCustomization {
   gradientStart?: string;
   gradientEnd?: string;
   opacity?: number;
-  // New image upload fields
-  backgroundType?: 'color' | 'gradient' | 'image' | string;
-  image?: string | null; // URL or base64 string for the uploaded image
-  imageFile?: string | null; // Original filename
+  backgroundType?: "color" | "gradient" | "image" | string;
+  image?: string | null;
+  imageFile?: string | null;
   imageScale?: number;
   imageOffsetX?: number;
   imageOffsetY?: number;
@@ -119,7 +115,14 @@ export interface WaveCustomization extends BaseCustomization {
 }
 
 export interface AmbientElementCustomization extends BaseCustomization {
-  elementType: "bouncing-ball" | "floating-particle" | "flying-bird" | "floating-text" | "rotating-cube" | "pulsing-sphere" | string;
+  elementType:
+    | "bouncing-ball"
+    | "floating-particle"
+    | "flying-bird"
+    | "floating-text"
+    | "rotating-cube"
+    | "pulsing-sphere"
+    | string;
   movementType: "bounce" | "float" | "fly" | "rotate" | "pulse";
   size: number;
   speed: number;
@@ -139,7 +142,14 @@ export type Customization =
 
 export interface VisualElement {
   id: string;
-  type: "particle" | "shape" | "light" | "grid" | "wave" | "background" | "ambient";
+  type:
+    | "particle"
+    | "shape"
+    | "light"
+    | "grid"
+    | "wave"
+    | "background"
+    | "ambient";
   name: string;
   visible: boolean;
   position: [number, number, number];
@@ -155,8 +165,6 @@ export interface AudioData {
   audioLevel: number;
 }
 
-
-// src/studio/types/lyrics.ts
 export interface WordTimestamp {
   word: string;
   start: number;
@@ -192,9 +200,9 @@ export interface LyricsDisplayConfig {
   color: string;
   highlightColor: string;
   backgroundColor: string;
-  textAlign: 'left' | 'center' | 'right';
+  textAlign: "left" | "center" | "right";
   position: { x: number; y: number };
-  animation: 'fade' | 'slide' | 'bounce' | 'typewriter';
+  animation: "fade" | "slide" | "bounce" | "typewriter";
   showWordHighlight: boolean;
   showLineHighlight: boolean;
 }

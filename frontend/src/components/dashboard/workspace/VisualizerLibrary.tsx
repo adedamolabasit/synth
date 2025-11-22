@@ -1,6 +1,5 @@
 import {
   Search,
-  Star,
   Grid3x3,
   Waves,
   Box as BoxIcon,
@@ -32,7 +31,6 @@ const typeIcons = {
   cyber: Grid3x3,
   geometric: BoxIcon,
   wave: Rainbow,
-  // New ones
   fractal: Flower,
   quantum: Atom,
   biological: Dna,
@@ -72,7 +70,6 @@ export function VisualizerLibrary() {
   ) => {
     setCurrentVisualizer(visualizerType);
     setShowVisualizerLibrary(false);
-    // The visualizer will be recreated automatically via the useEffect that depends on params.visualizerType
   };
 
   const filteredVisualizers = visualizers.filter((viz) => {
@@ -143,7 +140,6 @@ export function VisualizerLibrary() {
           />
         </div>
         
-        {/* Filter Icon Button */}
         <div className="relative">
           <button
             onClick={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -164,7 +160,6 @@ export function VisualizerLibrary() {
             )}
           </button>
 
-          {/* Filter Dropdown */}
           {showFilterDropdown && (
             <div className="absolute top-12 right-0 z-10 bg-slate-800 border border-slate-600 rounded-lg shadow-lg py-2 min-w-[140px]">
               {filterTypes.map((type) => {
@@ -195,7 +190,6 @@ export function VisualizerLibrary() {
         </div>
       </div>
 
-      {/* Filter Chips (Optional - for better UX) */}
      
 
       <div className="flex-1 overflow-y-auto mt-6 mx-2">
@@ -224,12 +218,6 @@ export function VisualizerLibrary() {
                   <div className="aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg mb-2 flex items-center justify-center text-3xl relative overflow-hidden group">
                     {viz.thumbnail}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {/* {viz.favorite && (
-                      <Star
-                        size={14}
-                        className="absolute top-2 right-2 fill-amber-400 text-amber-400"
-                      />
-                    )} */}
                     {isActive && (
                       <div className="absolute top-2 left-2 bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded-full">
                         Active
@@ -245,11 +233,6 @@ export function VisualizerLibrary() {
                       {viz.type}
                     </Badge>
                     <span className="text-xs text-slate-400 flex items-center gap-1">
-                      {/* <Star
-                        size={10}
-                        className="fill-amber-400 text-amber-400"
-                      /> */}
-                      {/* {viz.rating} */}
                     </span>
                   </div>
                 </Card>

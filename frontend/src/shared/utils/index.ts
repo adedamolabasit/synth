@@ -16,18 +16,14 @@ export const simulateAudioData = (): Uint8Array => {
   return simulatedData;
 };
 
-
-// utils/lyricsDecoder.ts
 export const decodeLyricsData = async (encodedLyrics: string): Promise<any> => {
   try {
-    // Decode base64
     const binaryString = atob(encodedLyrics);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
     
-    // Decompress gzip
     const ds = new DecompressionStream('gzip');
     const writer = ds.writable.getWriter();
     writer.write(bytes);
@@ -45,10 +41,8 @@ export const decodeLyricsData = async (encodedLyrics: string): Promise<any> => {
   }
 };
 
-// Fallback for older browsers
 export const decodeLyricsDataFallback = (encodedLyrics: string): any => {
   try {
-    // Simple base64 decode (if data isn't actually gzipped)
     const decodedString = atob(encodedLyrics);
     return JSON.parse(decodedString);
   } catch (error) {

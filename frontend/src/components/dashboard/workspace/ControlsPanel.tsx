@@ -1,10 +1,16 @@
-// src/components/ControlsPanel.tsx
-import React, { useState, useEffect } from 'react';
-import { Button } from '../../ui/Button';
-import { Wand2, Download, Circle, Square, Volume2, VolumeX } from 'lucide-react';
-import { SceneRecorder } from '../../../shared/utils/sceneRecorder';
-import { VisualizerParams } from '../../../shared/types/visualizer.types';
-import { useAudio } from '../../../provider/AudioContext';
+import React, { useState } from "react";
+import { Button } from "../../ui/Button";
+import {
+  Wand2,
+  Download,
+  Circle,
+  Square,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
+import { SceneRecorder } from "../../../shared/utils/sceneRecorder";
+import { VisualizerParams } from "../../../shared/types/visualizer.types";
+import { useAudio } from "../../../provider/AudioContext";
 
 interface Props {
   params: VisualizerParams;
@@ -15,7 +21,6 @@ interface Props {
 
 export const ControlsPanel: React.FC<Props> = ({
   params,
-  onParamsChange,
   onDemoAudio,
   canvasRef,
 }) => {
@@ -26,49 +31,58 @@ export const ControlsPanel: React.FC<Props> = ({
 
   const handleRecord = async () => {
     if (!canvasRef.current) {
-      alert('Canvas missing');
+      alert("Canvas missing");
       return;
     }
 
     if (!isRecording) {
       try {
         let audioStream: MediaStream | undefined;
-        
+
         if (includeAudio) {
-          // Get audio stream from AudioManager
           const audioManager = getAudioManager();
           const stream = audioManager.getProcessedAudioStream();
           if (stream && stream.getAudioTracks().length > 0) {
             audioStream = stream;
-            console.log('Using AudioManager processed audio stream for recording');
+            console.log(
+              "Using AudioManager processed audio stream for recording"
+            );
           } else {
-            console.warn('No audio stream available - recording will be silent');
+            console.warn(
+              "No audio stream available - recording will be silent"
+            );
           }
         }
 
-        await recorderRef.current!.startRecording(canvasRef.current, audioStream);
+        await recorderRef.current!.startRecording(
+          canvasRef.current,
+          audioStream
+        );
         setIsRecording(true);
       } catch (err) {
-        console.error('Failed to start recording', err);
-        alert('Failed to start recording: ' + (err instanceof Error ? err.message : String(err)));
+        console.error("Failed to start recording", err);
+        alert(
+          "Failed to start recording: " +
+            (err instanceof Error ? err.message : String(err))
+        );
       }
     } else {
       try {
         const blob = await recorderRef.current!.stopRecording();
         setIsRecording(false);
-
-        // Download the recording
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `visualizer-${currentAudio?.name || 'recording'}-${Date.now()}.webm`;
+        a.download = `visualizer-${
+          currentAudio?.name || "recording"
+        }-${Date.now()}.webm`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } catch (err) {
-        console.error('Stop recording failed', err);
-        alert('Failed to stop recording');
+        console.error("Stop recording failed", err);
+        alert("Failed to stop recording");
         setIsRecording(false);
       }
     }
@@ -77,22 +91,25 @@ export const ControlsPanel: React.FC<Props> = ({
   return (
     <div className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-lg">
       <div className="flex items-center gap-2">
-        <input 
-          type="checkbox" 
+        <input
+          type="checkbox"
           id="includeAudio"
-          checked={includeAudio} 
-          onChange={(e) => setIncludeAudio(e.target.checked)} 
+          checked={includeAudio}
+          onChange={(e) => setIncludeAudio(e.target.checked)}
           className="w-4 h-4 text-cyan-500 bg-slate-700 border-slate-600 rounded focus:ring-cyan-500 focus:ring-2"
         />
-        <label htmlFor="includeAudio" className="text-sm text-slate-300 cursor-pointer">
+        <label
+          htmlFor="includeAudio"
+          className="text-sm text-slate-300 cursor-pointer"
+        >
           Include Audio
         </label>
       </div>
 
-      <Button 
-        onClick={onDemoAudio} 
-        variant="secondary" 
-        size="sm" 
+      <Button
+        onClick={onDemoAudio}
+        variant="secondary"
+        size="sm"
         icon={<Wand2 size={16} />}
         disabled={isRecording}
       >
@@ -100,24 +117,23 @@ export const ControlsPanel: React.FC<Props> = ({
       </Button>
 
       <Button
-        variant={isRecording ? 'danger' : 'primary'}
+        variant={isRecording ? "danger" : "primary"}
         onClick={handleRecord}
         icon={isRecording ? <Square size={16} /> : <Circle size={16} />}
         disabled={!currentAudio && !isRecording}
       >
-        {isRecording ? 'Stop Recording' : 'Start Recording'}
+        {isRecording ? "Stop Recording" : "Start Recording"}
       </Button>
 
-      <Button 
-        variant="secondary" 
-        size="sm" 
-        icon={<Download size={16} />} 
+      <Button
+        variant="secondary"
+        size="sm"
+        icon={<Download size={16} />}
         onClick={() => {
-          // Export current visualizer settings
           const settings = JSON.stringify(params, null, 2);
-          const blob = new Blob([settings], { type: 'application/json' });
+          const blob = new Blob([settings], { type: "application/json" });
           const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
+          const a = document.createElement("a");
           a.href = url;
           a.download = `visualizer-settings-${Date.now()}.json`;
           a.click();
@@ -127,7 +143,6 @@ export const ControlsPanel: React.FC<Props> = ({
         Export Settings
       </Button>
 
-      {/* Audio Status Indicator */}
       <div className="flex items-center gap-2 ml-2 px-3 py-1 bg-slate-700/50 rounded-full">
         {isPlaying ? (
           <Volume2 size={14} className="text-green-400" />
@@ -135,7 +150,7 @@ export const ControlsPanel: React.FC<Props> = ({
           <VolumeX size={14} className="text-slate-400" />
         )}
         <span className="text-xs text-slate-300 max-w-32 truncate">
-          {currentAudio ? currentAudio.name : 'No Audio'}
+          {currentAudio ? currentAudio.name : "No Audio"}
         </span>
       </div>
     </div>

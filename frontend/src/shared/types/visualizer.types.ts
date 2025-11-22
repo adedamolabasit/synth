@@ -1,5 +1,28 @@
-// types/visualizer.ts - Complete fixed version
-import * as THREE from "three";
+export interface VisualizerContextType {
+  params: VisualizerParams;
+  setParams: (
+    params: VisualizerParams | ((prev: VisualizerParams) => VisualizerParams)
+  ) => void;
+  visualElements: VisualElement[];
+  setVisualElements: (
+    elements: VisualElement[] | ((prev: VisualElement[]) => VisualElement[])
+  ) => void;
+  updateElement: (id: string, updates: Partial<VisualElement>) => void;
+  updateElementCustomization: (
+    id: string,
+    updates: Partial<Customization>
+  ) => void;
+  selectedElement: string | null;
+  setSelectedElement: (id: string | null) => void;
+  audioData: AudioData;
+  setAudioData: (data: AudioData) => void;
+
+  showVisualizerLibrary: boolean;
+  setShowVisualizerLibrary: (show: boolean) => void;
+  visualizers: Visualizer[];
+  currentVisualizer: string;
+  setCurrentVisualizer: (visualizerType: string) => void;
+}
 
 export interface VisualizerParams {
   visualizerType:
@@ -55,6 +78,33 @@ export interface VisualizerParams {
   reactionSpeed: number;
 }
 
+export interface Visualizer {
+  id: string;
+  name: string;
+  type:
+    | "bars"
+    | "particles"
+    | "waveform"
+    | "3d"
+    | "morphing"
+    | "cyber"
+    | "liquid"
+    | "geometric"
+    | "wave"
+    | "biological"
+    | "fractal"
+    | "network"
+    | "quantum"
+    | "cosmic"
+    | "field"
+    | "4d"
+    | "warp"
+    | "molecular"
+    | "energy";
+  thumbnail: string;
+  visualizerType: string;
+}
+
 export interface BeatInfo {
   isBeat: boolean;
   strength: number;
@@ -96,7 +146,7 @@ export interface BackgroundCustomization {
   gradientEnd?: string;
   opacity?: number;
   // New image upload fields
-  backgroundType?: 'color' | 'gradient' | 'image' | string;
+  backgroundType?: "color" | "gradient" | "image" | string;
   image?: string | null; // URL or base64 string for the uploaded image
   imageFile?: string | null; // Original filename
   imageScale?: number;
@@ -119,7 +169,14 @@ export interface WaveCustomization extends BaseCustomization {
 }
 
 export interface AmbientElementCustomization extends BaseCustomization {
-  elementType: "bouncing-ball" | "floating-particle" | "flying-bird" | "floating-text" | "rotating-cube" | "pulsing-sphere" | string;
+  elementType:
+    | "bouncing-ball"
+    | "floating-particle"
+    | "flying-bird"
+    | "floating-text"
+    | "rotating-cube"
+    | "pulsing-sphere"
+    | string;
   movementType: "bounce" | "float" | "fly" | "rotate" | "pulse";
   size: number;
   speed: number;
@@ -139,7 +196,14 @@ export type Customization =
 
 export interface VisualElement {
   id: string;
-  type: "particle" | "shape" | "light" | "grid" | "wave" | "background" | "ambient";
+  type:
+    | "particle"
+    | "shape"
+    | "light"
+    | "grid"
+    | "wave"
+    | "background"
+    | "ambient";
   name: string;
   visible: boolean;
   position: [number, number, number];
@@ -155,8 +219,6 @@ export interface AudioData {
   audioLevel: number;
 }
 
-
-// src/studio/types/lyrics.ts
 export interface WordTimestamp {
   word: string;
   start: number;
@@ -192,9 +254,9 @@ export interface LyricsDisplayConfig {
   color: string;
   highlightColor: string;
   backgroundColor: string;
-  textAlign: 'left' | 'center' | 'right';
+  textAlign: "left" | "center" | "right";
   position: { x: number; y: number };
-  animation: 'fade' | 'slide' | 'bounce' | 'typewriter';
+  animation: "fade" | "slide" | "bounce" | "typewriter";
   showWordHighlight: boolean;
   showLineHighlight: boolean;
 }

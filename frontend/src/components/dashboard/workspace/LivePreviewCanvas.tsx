@@ -10,7 +10,6 @@ import { VisualElementSelector } from "../../../studio/visualizers/Elements/Visu
 import { SlidersPanel } from "./SlidersPanel";
 import { ControlsPanel } from "./ControlsPanel";
 import { LyricsManager } from "../../../studio/visualizers/manager/LyricsManager";
-import { LyricsDisplay } from "./LyricsDisplay";
 import { useAudio } from "../../../provider/AudioContext";
 import { decodeLyricsData } from "../../../shared/utils";
 import { LyricsRenderer } from "../../../studio/visualizers/manager/LyricsRenderer";
@@ -38,6 +37,7 @@ export const LivePreviewCanvas: React.FC = () => {
   const [hasDefaultAudio, setHasDefaultAudio] = useState(false);
   const [progress, setProgress] = useState(0);
   const [beatDetected, setBeatDetected] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -60,14 +60,12 @@ export const LivePreviewCanvas: React.FC = () => {
   const pointLightsRef = useRef<THREE.PointLight[]>([]);
   const backgroundRef = useRef<THREE.Color | THREE.Texture | null>(null);
 
-  // Update progress when currentTime changes
   useEffect(() => {
     if (duration > 0) {
       setProgress((currentTime / duration) * 100);
     }
   }, [currentTime, duration]);
 
-  // Update audio name when currentAudio changes
   useEffect(() => {
     if (currentAudio) {
       setAudioName(currentAudio.metadata?.name || currentAudio.name);
@@ -79,7 +77,6 @@ export const LivePreviewCanvas: React.FC = () => {
     }
   }, [currentAudio, hasDefaultAudio]);
 
-  // Sync audio data with visualizer context
   useEffect(() => {
     const convertedTimeData =
       timeData instanceof Uint8Array
@@ -100,7 +97,6 @@ export const LivePreviewCanvas: React.FC = () => {
     (scene: THREE.Scene) => {
       if (!sceneRef.current) return;
 
-      // Clear existing ambient objects
       ambientObjectsRef.current.forEach((obj) => {
         scene.remove(obj);
       });
@@ -269,7 +265,6 @@ export const LivePreviewCanvas: React.FC = () => {
         const data = object.userData;
         if (!data || !data.startPosition) return;
 
-        // Calculate audio intensity
         let audioIntensity = 1;
         if (data.responsive) {
           switch (data.responseTo) {
@@ -391,7 +386,6 @@ export const LivePreviewCanvas: React.FC = () => {
     []
   );
 
-  // Main animation loop
   const animateScene = useCallback(
     (time: number) => {
       if (
@@ -406,13 +400,12 @@ export const LivePreviewCanvas: React.FC = () => {
 
       const currentTime = time * 0.001;
 
-      // Use beat info from AudioContext
       const bass = beatInfo.bandStrengths.bass || 0;
       const mid = beatInfo.bandStrengths.mid || 0;
       const treble = beatInfo.bandStrengths.treble || 0;
       const overall = beatInfo.strength || 0;
 
-      // Update lights based on audio
+      // Update lights based on audio response
       visualElements.forEach((element) => {
         if (!element.visible || element.type !== "light") return;
 
@@ -466,7 +459,6 @@ export const LivePreviewCanvas: React.FC = () => {
         setTimeout(() => setBeatDetected(false), 100);
       }
 
-      // Use frequency data from AudioContext
       visualizerManagerRef.current.animateVisualizer(
         visualizerObjectsRef.current,
         frequencyData,
@@ -477,7 +469,6 @@ export const LivePreviewCanvas: React.FC = () => {
 
       animateAmbientElements(currentTime, beatInfo);
 
-      // Camera movement
       if (cameraRef.current && params.rotationSpeed > 0) {
         const cameraDistance = 15 + bass * 5;
         const cameraSpeed = params.rotationSpeed * 0.005 + bass * 0.01;
@@ -496,155 +487,159 @@ export const LivePreviewCanvas: React.FC = () => {
     [params, visualElements, animateAmbientElements, frequencyData, beatInfo]
   );
 
-  const updateBackground = (scene: THREE.Scene) => {
-    const backgroundElement = visualElements.find(
-      (el) => el.id === "background"
-    );
-    if (!backgroundElement || !backgroundElement.visible) {
-      scene.background = new THREE.Color(0x0a0a0a);
-      return;
-    }
+  const updateBackground = useCallback(
+    (scene: THREE.Scene) => {
+      const backgroundElement = visualElements.find(
+        (el) => el.id === "background"
+      );
+      if (!backgroundElement || !backgroundElement.visible) {
+        scene.background = new THREE.Color(0x0a0a0a);
+        return;
+      }
 
-    const customization = backgroundElement.customization as any;
-    const backgroundType =
-      customization.backgroundType ||
-      (customization.image
-        ? "image"
-        : customization.gradient
-        ? "gradient"
-        : "color");
+      const customization = backgroundElement.customization as any;
+      const backgroundType =
+        customization.backgroundType ||
+        (customization.image
+          ? "image"
+          : customization.gradient
+          ? "gradient"
+          : "color");
 
-    switch (backgroundType) {
-      case "image":
-        if (customization.image) {
-          const textureLoader = new THREE.TextureLoader();
-          textureLoader.load(customization.image, (texture) => {
-            // Apply image scaling and offset
-            texture.wrapS = THREE.RepeatWrapping;
-            texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(
-              customization.imageScale || 1,
-              customization.imageScale || 1
-            );
-            texture.offset.set(
-              customization.imageOffsetX || 0,
-              customization.imageOffsetY || 0
-            );
+      switch (backgroundType) {
+        case "image":
+          if (customization.image) {
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load(customization.image, (texture) => {
+              texture.wrapS = THREE.RepeatWrapping;
+              texture.wrapT = THREE.RepeatWrapping;
+              texture.repeat.set(
+                customization.imageScale || 1,
+                customization.imageScale || 1
+              );
+              texture.offset.set(
+                customization.imageOffsetX || 0,
+                customization.imageOffsetY || 0
+              );
 
+              scene.background = texture;
+              backgroundRef.current = texture;
+            });
+          } else {
+            scene.background = new THREE.Color(customization.color || 0x0a0a0a);
+            backgroundRef.current = scene.background;
+          }
+          break;
+
+        case "gradient":
+          if (
+            customization.gradient &&
+            customization.gradientStart &&
+            customization.gradientEnd
+          ) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 256;
+            canvas.height = 256;
+            const context = canvas.getContext("2d")!;
+            const gradient = context.createLinearGradient(0, 0, 256, 256);
+            gradient.addColorStop(0, customization.gradientStart);
+            gradient.addColorStop(1, customization.gradientEnd);
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 256, 256);
+
+            const texture = new THREE.CanvasTexture(canvas);
             scene.background = texture;
             backgroundRef.current = texture;
-          });
-        } else {
+          } else {
+            scene.background = new THREE.Color(customization.color || 0x0a0a0a);
+            backgroundRef.current = scene.background;
+          }
+          break;
+
+        case "color":
+        default:
           scene.background = new THREE.Color(customization.color || 0x0a0a0a);
           backgroundRef.current = scene.background;
-        }
-        break;
-
-      case "gradient":
-        if (
-          customization.gradient &&
-          customization.gradientStart &&
-          customization.gradientEnd
-        ) {
-          const canvas = document.createElement("canvas");
-          canvas.width = 256;
-          canvas.height = 256;
-          const context = canvas.getContext("2d")!;
-          const gradient = context.createLinearGradient(0, 0, 256, 256);
-          gradient.addColorStop(0, customization.gradientStart);
-          gradient.addColorStop(1, customization.gradientEnd);
-          context.fillStyle = gradient;
-          context.fillRect(0, 0, 256, 256);
-
-          const texture = new THREE.CanvasTexture(canvas);
-          scene.background = texture;
-          backgroundRef.current = texture;
-        } else {
-          scene.background = new THREE.Color(customization.color || 0x0a0a0a);
-          backgroundRef.current = scene.background;
-        }
-        break;
-
-      case "color":
-      default:
-        scene.background = new THREE.Color(customization.color || 0x0a0a0a);
-        backgroundRef.current = scene.background;
-        break;
-    }
-  };
-
-  const createLightsFromElements = (scene: THREE.Scene) => {
-    // Remove existing lights
-    if (ambientLightRef.current) scene.remove(ambientLightRef.current);
-    if (directionalLightRef.current) scene.remove(directionalLightRef.current);
-    pointLightsRef.current.forEach((light) => scene.remove(light));
-    pointLightsRef.current = [];
-
-    visualElements.forEach((element) => {
-      if (element.type === "light" && element.visible) {
-        const customization = element.customization as any;
-
-        if (element.id === "ambient-light") {
-          const light = new THREE.AmbientLight(
-            customization.color || "#ffffff",
-            customization.intensity || 1
-          );
-          ambientLightRef.current = light;
-          scene.add(light);
-        } else if (element.id === "directional-light") {
-          const light = new THREE.DirectionalLight(
-            customization.color || "#ffffff",
-            customization.intensity || 1
-          );
-
-          const position = (customization.position || [5, 5, 5]) as [
-            number,
-            number,
-            number
-          ];
-          light.position.set(...position);
-
-          directionalLightRef.current = light;
-          scene.add(light);
-        } else {
-          const light = new THREE.PointLight(
-            customization.color || "#ffffff",
-            customization.intensity || 1,
-            customization.distance || 100,
-            customization.decay || 2
-          );
-          light.position.set(
-            (Math.random() - 0.5) * 20,
-            (Math.random() - 0.5) * 20,
-            (Math.random() - 0.5) * 20
-          );
-          pointLightsRef.current.push(light);
-          scene.add(light);
-        }
+          break;
       }
-    });
-  };
+    },
+    [visualElements]
+  );
 
-  const createVisualizer = () => {
+  const createLightsFromElements = useCallback(
+    (scene: THREE.Scene) => {
+      if (ambientLightRef.current) scene.remove(ambientLightRef.current);
+      if (directionalLightRef.current)
+        scene.remove(directionalLightRef.current);
+      pointLightsRef.current.forEach((light) => scene.remove(light));
+      pointLightsRef.current = [];
+
+      visualElements.forEach((element) => {
+        if (element.type === "light" && element.visible) {
+          const customization = element.customization as any;
+
+          if (element.id === "ambient-light") {
+            const light = new THREE.AmbientLight(
+              customization.color || "#ffffff",
+              customization.intensity || 1
+            );
+            ambientLightRef.current = light;
+            scene.add(light);
+          } else if (element.id === "directional-light") {
+            const light = new THREE.DirectionalLight(
+              customization.color || "#ffffff",
+              customization.intensity || 1
+            );
+
+            const position = (customization.position || [5, 5, 5]) as [
+              number,
+              number,
+              number
+            ];
+            light.position.set(...position);
+
+            directionalLightRef.current = light;
+            scene.add(light);
+          } else {
+            const light = new THREE.PointLight(
+              customization.color || "#ffffff",
+              customization.intensity || 1,
+              customization.distance || 100,
+              customization.decay || 2
+            );
+            light.position.set(
+              (Math.random() - 0.5) * 20,
+              (Math.random() - 0.5) * 20,
+              (Math.random() - 0.5) * 20
+            );
+            pointLightsRef.current.push(light);
+            scene.add(light);
+          }
+        }
+      });
+    },
+    [visualElements]
+  );
+
+  const createVisualizer = useCallback(() => {
     if (!sceneRef.current) return;
 
-    // Clear existing visualizer objects
     visualizerObjectsRef.current.forEach((obj) => {
       sceneRef.current!.remove(obj);
     });
     visualizerObjectsRef.current = [];
 
-    // Create new visualizer objects
     const objects = visualizerManagerRef.current.createVisualizer(
       sceneRef.current,
       params
     );
     visualizerObjectsRef.current = objects;
-  };
+  }, [params]);
 
-  // Initialize Three.js scene
   useEffect(() => {
     if (!canvasRef.current) return;
+
+    console.log("🎨 Initializing Three.js scene...");
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -670,8 +665,8 @@ export const LivePreviewCanvas: React.FC = () => {
     sceneRef.current = scene;
     cameraRef.current = camera;
     rendererRef.current = renderer;
+    setSceneReady(true);
 
-    // Initialize scene elements
     updateBackground(scene);
     createLightsFromElements(scene);
     createAmbientElements(scene);
@@ -692,30 +687,46 @@ export const LivePreviewCanvas: React.FC = () => {
     window.addEventListener("resize", handleResize);
 
     return () => {
+      console.log("🧹 Cleaning up Three.js scene...");
       window.removeEventListener("resize", handleResize);
       isAnimatingRef.current = false;
       if (animationIdRef.current) {
         cancelAnimationFrame(animationIdRef.current);
       }
+      sceneRef.current?.clear();
+      rendererRef.current?.dispose();
+      sceneRef.current = null;
+      cameraRef.current = null;
+      rendererRef.current = null;
+      setSceneReady(false);
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (sceneRef.current && lyricsManagerRef.current) {
-  //     console.log("🎵 Initializing LyricsRenderer...");
-  //     lyricsRendererRef.current = new LyricsRenderer(
-  //       sceneRef.current,
-  //       lyricsManagerRef.current
-  //     );
-  //     console.log("✅ LyricsRenderer initialized");
-  //   }
+  useEffect(() => {
+    if (!sceneRef.current) return;
 
-  //   return () => {
-  //     console.log("🧹 Cleaning up LyricsRenderer...");
-  //     lyricsRendererRef.current?.dispose();
-  //   };
-  // }, []);
-  // Start/stop animation based on playback state
+    updateBackground(sceneRef.current);
+    createLightsFromElements(sceneRef.current);
+    createAmbientElements(sceneRef.current);
+  }, [
+    visualElements,
+    updateBackground,
+    createLightsFromElements,
+    createAmbientElements,
+  ]);
+
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    createVisualizer();
+  }, [
+    params.visualizerType,
+    params.complexity,
+    params.wireframe,
+    params.objectSize,
+    params.particleCount,
+    createVisualizer,
+  ]);
+
   useEffect(() => {
     if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
 
@@ -745,35 +756,19 @@ export const LivePreviewCanvas: React.FC = () => {
     };
   }, [isPlaying, animateScene]);
 
-  // Update scene when visual elements change
-// In LivePreviewCanvas.tsx - update the LyricsRenderer initialization
-useEffect(() => {
-  if (sceneRef.current && lyricsManagerRef.current && rendererRef.current) {
-    console.log('🎵 Initializing LyricsRenderer...');
-    lyricsRendererRef.current = new LyricsRenderer(
-      sceneRef.current, 
-      lyricsManagerRef.current,
-      rendererRef.current // Pass the renderer
-    );
-    console.log('✅ LyricsRenderer initialized with overlay');
-  }
-
-  return () => {
-    console.log('🧹 Cleaning up LyricsRenderer...');
-    lyricsRendererRef.current?.dispose();
-  };
-}, []);
-
-  // Recreate visualizer when params change
   useEffect(() => {
-    createVisualizer();
-  }, [
-    params.visualizerType,
-    params.complexity,
-    params.wireframe,
-    params.objectSize,
-    params.particleCount,
-  ]);
+    if (sceneRef.current && lyricsManagerRef.current && rendererRef.current) {
+      console.log("🎵 Initializing LyricsRenderer...");
+      lyricsRendererRef.current = new LyricsRenderer(
+        sceneRef.current,
+        lyricsManagerRef.current
+      );
+    }
+
+    return () => {
+      lyricsRendererRef.current?.dispose();
+    };
+  }, []);
 
   const togglePlayback = async () => {
     if (!currentAudio && !hasDefaultAudio) {
@@ -793,7 +788,6 @@ useEffect(() => {
   const handleDemoAudio = async () => {
     try {
       if (!hasDefaultAudio) {
-        // You might want to load a demo audio file through the AudioContext
         setHasDefaultAudio(true);
         setAudioName("Default Demo Audio");
       }
@@ -823,17 +817,11 @@ useEffect(() => {
     const loadLyrics = async () => {
       if (currentAudio?.lyrics) {
         try {
-          // Try to decode the lyrics
           let lyricsData = {
             text: await decodeLyricsData(currentAudio.lyrics),
             timestamps: await decodeLyricsData(currentAudio.words as string),
             segments: await decodeLyricsData(currentAudio.segments as string),
           };
-
-          // If that fails, try fallback
-          // if (!lyricsData) {
-          //   lyricsData = decodeLyricsDataFallback(currentAudio.lyrics);
-          // }
 
           if (lyricsData) {
             lyricsManagerRef.current.loadLyrics(lyricsData);
@@ -858,84 +846,19 @@ useEffect(() => {
     }
   }, [currentTime, isPlaying]);
 
-  const debugScene = () => {
-    if (sceneRef.current) {
-      console.log("🔍 SCENE INSPECTION:");
-      console.log("Total children:", sceneRef.current.children.length);
-      sceneRef.current.children.forEach((child, index) => {
-        console.log(`  ${index}: ${child.name || child.type}`, child.position);
-        if (child.children && child.children.length > 0) {
-          child.children.forEach((grandchild, gIndex) => {
-            console.log(
-              `    ${gIndex}: ${grandchild.name || grandchild.type}`,
-              grandchild.position
-            );
-          });
-        }
-      });
-
-      const lyrics = sceneRef.current.getObjectByName("lyrics-group");
-      console.log("Lyrics group found:", !!lyrics);
-      if (lyrics) {
-        console.log("Lyrics children:", lyrics.children.length);
-      }
-    } else {
-      console.log("❌ No scene reference");
-    }
-  };
-
   const canPlayAudio = currentAudio || hasDefaultAudio;
 
   return (
     <div className="h-full w-full flex flex-col bg-slate-900/50">
       <div className="flex-1 relative group">
-        {/* // In your LivePreviewCanvas JSX, add this test button: */}
-       <div className="absolute top-4 right-4 z-50 flex flex-col gap-2">
-  <Button
-    variant="secondary"
-    size="sm"
-    onClick={() => {
-      // Test with manual lyrics
-      const testLyrics = {
-        segments: [
-          {
-            text: "TEST: Hello World! This is 3D text!",
-            start: 0,
-            end: 10,
-            words: []
-          }
-        ]
-      };
-      lyricsManagerRef.current.loadLyrics(testLyrics as any);
-      lyricsManagerRef.current.update(1); // Force update at time 1
-      console.log('🧪 Manual lyrics test triggered');
-      
-      // Also debug the scene
-      setTimeout(debugScene, 100);
-    }}
-  >
-    Test 3D Lyrics
-  </Button>
-  
-  <Button
-    variant="secondary"
-    size="sm"
-    onClick={debugScene}
-  >
-    Debug Scene
-  </Button>
-</div>
         <canvas ref={canvasRef} className="w-full h-full" />
 
-        <ElementCustomizationPanel />
-        <VisualElementSelector />
-
-        {/* <div className="mt-92">
-          <LyricsDisplay
-            lyricsManager={lyricsManagerRef.current}
-            className="pointer-events-none"
-          />
-        </div> */}
+        {sceneReady && (
+          <>
+            <ElementCustomizationPanel />
+            <VisualElementSelector />
+          </>
+        )}
 
         {beatDetected && (
           <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />

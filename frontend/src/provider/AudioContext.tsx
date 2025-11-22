@@ -1,8 +1,14 @@
-// app/provider/AudioContext.tsx
-import React, { createContext, useContext, useRef, useState, useEffect, ReactNode } from 'react';
-import { AudioFile } from '../shared/types/audio.types';
-import { BeatInfo } from '../studio/types/visualizer';
-import { AudioManager } from '../studio/visualizers/manager/AudioManager';
+import React, {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { AudioFile } from "../shared/types/audio.types";
+import { BeatInfo } from "../studio/types/visualizer";
+import { AudioManager } from "../studio/visualizers/manager/AudioManager";
 
 interface AudioState {
   currentAudio: AudioFile | null;
@@ -34,7 +40,9 @@ interface AudioContextType extends AudioState {
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
-export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AudioProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [audioState, setAudioState] = useState<AudioState>({
     currentAudio: null,
     isPlaying: false,
@@ -57,7 +65,6 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const audioManagerRef = useRef<AudioManager>(new AudioManager());
   const animationRef = useRef<number>();
 
-  // Initialize AudioManager and start analysis loop
   useEffect(() => {
     const initializeAudio = async () => {
       await audioManagerRef.current.initialize();
@@ -66,9 +73,8 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     initializeAudio();
 
-    // Set up progress callbacks
     audioManagerRef.current.onTimeUpdate((currentTime, duration) => {
-      setAudioState(prev => ({
+      setAudioState((prev) => ({
         ...prev,
         currentTime,
         duration,
@@ -86,15 +92,13 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const startAudioAnalysis = () => {
     const analyzeAudio = () => {
       const audioManager = audioManagerRef.current;
-      
-      // Get frequency data from AudioManager
+
       const frequencyData = audioManager.getFrequencyData();
       const timeData = audioManager.getTimeDomainData();
-      
-      // Detect beat using AudioManager's method
+
       const beatInfo = audioManager.detectBeat(frequencyData);
-      
-      setAudioState(prev => ({
+
+      setAudioState((prev) => ({
         ...prev,
         frequencyData,
         timeData,
@@ -105,7 +109,7 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
       animationRef.current = requestAnimationFrame(analyzeAudio);
     };
-    
+
     animationRef.current = requestAnimationFrame(analyzeAudio);
   };
 
@@ -113,85 +117,81 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       const audioUrl = audioFile.audioUrl || audioFile.url;
       if (!audioUrl) {
-        console.error('No audio URL available');
         return;
       }
 
-      setAudioState(prev => ({ 
-        ...prev, 
+      setAudioState((prev) => ({
+        ...prev,
         currentAudio: audioFile,
-        isLoading: true 
+        isLoading: true,
       }));
 
-      // Load and play audio using AudioManager
       const success = await audioManagerRef.current.loadAudioFromUrl(audioUrl);
       if (success) {
         await audioManagerRef.current.play();
-        setAudioState(prev => ({ 
-          ...prev, 
+        setAudioState((prev) => ({
+          ...prev,
           isPlaying: true,
-          isLoading: false 
+          isLoading: false,
         }));
       } else {
-        throw new Error('Failed to load audio');
+        throw new Error("Failed to load audio");
       }
     } catch (error) {
-      console.error('Error playing audio:', error);
-      setAudioState(prev => ({ 
-        ...prev, 
+      console.error("Error playing audio:", error);
+      setAudioState((prev) => ({
+        ...prev,
         isLoading: false,
-        isPlaying: false 
+        isPlaying: false,
       }));
     }
   };
 
   const pauseAudio = () => {
     audioManagerRef.current.pause();
-    setAudioState(prev => ({ ...prev, isPlaying: false }));
+    setAudioState((prev) => ({ ...prev, isPlaying: false }));
   };
 
   const resumeAudio = async () => {
     try {
       await audioManagerRef.current.play();
-      setAudioState(prev => ({ ...prev, isPlaying: true }));
+      setAudioState((prev) => ({ ...prev, isPlaying: true }));
     } catch (error) {
-      console.error('Error resuming audio:', error);
+      console.error("Error resuming audio:", error);
     }
   };
 
   const stopAudio = () => {
     audioManagerRef.current.pause();
     audioManagerRef.current.seekTo(0);
-    setAudioState(prev => ({ 
-      ...prev, 
-      isPlaying: false, 
-      currentTime: 0 
+    setAudioState((prev) => ({
+      ...prev,
+      isPlaying: false,
+      currentTime: 0,
     }));
   };
 
   const seekTo = (time: number) => {
     audioManagerRef.current.seekTo(time);
-    setAudioState(prev => ({ ...prev, currentTime: time }));
+    setAudioState((prev) => ({ ...prev, currentTime: time }));
   };
 
   const setVolume = (volume: number) => {
-    // AudioManager doesn't have volume control, but we can store it in state
-    setAudioState(prev => ({ ...prev, volume }));
+    setAudioState((prev) => ({ ...prev, volume }));
   };
 
   const setPlaybackRate = (rate: number) => {
-    // AudioManager doesn't have playback rate control, but we can store it in state
-    setAudioState(prev => ({ ...prev, playbackRate: rate }));
+    setAudioState((prev) => ({ ...prev, playbackRate: rate }));
   };
 
   const toggleMute = () => {
-    setAudioState(prev => ({ ...prev, isMuted: !prev.isMuted }));
+    setAudioState((prev) => ({ ...prev, isMuted: !prev.isMuted }));
   };
 
   const getAudioUrl = (): string | null => {
-    return audioState.currentAudio ? 
-      (audioState.currentAudio.audioUrl || audioState.currentAudio.url) : 
-      null;
+    return audioState.currentAudio
+      ? audioState.currentAudio.audioUrl || audioState.currentAudio.url
+      : null;
   };
 
   const getAudioManager = (): AudioManager => {
@@ -213,16 +213,14 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <AudioContext.Provider value={value}>
-      {children}
-    </AudioContext.Provider>
+    <AudioContext.Provider value={value}>{children}</AudioContext.Provider>
   );
 };
 
 export const useAudio = (): AudioContextType => {
   const context = useContext(AudioContext);
   if (context === undefined) {
-    throw new Error('useAudio must be used within an AudioProvider');
+    throw new Error("useAudio must be used within an AudioProvider");
   }
   return context;
 };

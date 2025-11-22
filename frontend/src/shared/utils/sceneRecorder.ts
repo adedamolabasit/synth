@@ -1,11 +1,8 @@
-// src/components/utils/sceneRecorder.ts
 export class SceneRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private recordedChunks: BlobPart[] = [];
 
-  // audioStream is the processed audio (MediaStream) - from AudioManager.getProcessedAudioStream()
   async startRecording(canvas: HTMLCanvasElement, audioStream?: MediaStream) {
-    // get canvas stream
     const canvasStream = canvas.captureStream(60);
     if (!canvasStream) throw new Error('captureStream not supported or canvas invalid');
 
@@ -14,7 +11,6 @@ export class SceneRecorder {
     const videoTracks = canvasStream.getVideoTracks();
     if (videoTracks.length) combined.addTrack(videoTracks[0]);
 
-    // if we have processed audio (from audioContext.destination), add its tracks
     if (audioStream) {
       const audioTracks = audioStream.getAudioTracks();
       if (audioTracks.length) {
@@ -27,7 +23,6 @@ export class SceneRecorder {
       console.warn('⚠️ No audioStream provided; recording will be silent');
     }
 
-    // choose best-supported mime
     const mimeTypes = [
       'video/webm;codecs=vp8,opus',
       'video/webm;codecs=vp9,opus',

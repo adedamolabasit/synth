@@ -39,11 +39,9 @@ export class LyricsRenderer {
   private renderAllLyrics(state: LyricsState, config: LyricsDisplayConfig) {
     this.clearAllLyrics();
 
-    const formattedLine = this.lyricsManager.getFormattedLine();
     const upcoming = this.lyricsManager.getUpcomingLines(1);
     const previous = this.lyricsManager.getPreviousLines(1);
 
-    // Previous (smaller + faded)
     if (previous.length > 0) {
       this.previousLinesMesh = this.createTextMesh(previous[0], {
         fontSize: 16,
@@ -54,38 +52,29 @@ export class LyricsRenderer {
       if (this.previousLinesMesh) this.lyricsLayer.add(this.previousLinesMesh);
     }
 
-    // Current
-    this.currentLyricsObject = this.createTextMesh(
-      state.currentLine,
-      {
-        fontSize: 22,
-        opacity: 1,
-        color: config.color,
-        y: -11.5,
-        scale: config.showLineHighlight ? 1.1 : 1,
-        isCurrent: true,
-      }
-    );
+    this.currentLyricsObject = this.createTextMesh(state.currentLine, {
+      fontSize: 22,
+      opacity: 1,
+      color: config.color,
+      y: -11.5,
+      scale: config.showLineHighlight ? 1.1 : 1,
+      isCurrent: true,
+    });
 
     if (this.currentLyricsObject)
       this.lyricsLayer.add(this.currentLyricsObject);
 
-    // Upcoming
     if (upcoming.length > 0) {
       this.upcomingLinesMesh = this.createTextMesh(upcoming[0], {
-        fontSize:16,
+        fontSize: 16,
         opacity: 0.7,
         color: "#e2e8f0",
         y: -12.8,
       });
-      if (this.upcomingLinesMesh)
-        this.lyricsLayer.add(this.upcomingLinesMesh);
+      if (this.upcomingLinesMesh) this.lyricsLayer.add(this.upcomingLinesMesh);
     }
   }
 
-  /**
-   * Create sharp, transparent, auto-wrapped text mesh
-   */
   private createTextMesh(
     text: string,
     options: {
@@ -98,7 +87,7 @@ export class LyricsRenderer {
     }
   ): THREE.Mesh | null {
     try {
-      const maxWidthPx = 1300; // ✨ prevents cutoff
+      const maxWidthPx = 1300;
       const scaleFactor = 2;
       const padding = 20 * scaleFactor;
 
@@ -108,7 +97,6 @@ export class LyricsRenderer {
 
       ctx.font = `700 ${options.fontSize * scaleFactor}px Inter, sans-serif`;
 
-      // ✨ Auto-wrap long text
       const words = text.split(" ");
       const lines: string[] = [];
       let current = "";
@@ -128,7 +116,6 @@ export class LyricsRenderer {
       canvas.width = maxWidthPx + padding * 2;
       canvas.height = lineHeight * lines.length + padding * 2;
 
-      // Transparent background ✨
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       ctx.fillStyle = options.color;
@@ -136,11 +123,9 @@ export class LyricsRenderer {
       ctx.textBaseline = "middle";
       ctx.font = `700 ${options.fontSize * scaleFactor}px Inter, sans-serif`;
 
-      // Shadow for glow
       ctx.shadowColor = "rgba(0,0,0,0.9)";
       ctx.shadowBlur = 6 * scaleFactor;
 
-      // Draw each line
       lines.forEach((line, i) => {
         const yPos = padding + lineHeight / 2 + i * lineHeight;
         ctx.fillText(line, canvas.width / 2, yPos);
@@ -164,7 +149,6 @@ export class LyricsRenderer {
 
       const mesh = new THREE.Mesh(geo, mat);
 
-      // Raise from bottom ✨
       mesh.position.set(0, options.y, 0.2);
 
       if (options.scale) mesh.scale.set(options.scale, options.scale, 1);
@@ -180,8 +164,9 @@ export class LyricsRenderer {
     this.lyricsLayer.clear();
   }
 
-  // ❗ STOP ROTATION — No billboard, no copy quaternion
-  public update() {}
+  public update() {
+    this.lyricsLayer.rotation.set(0, 0, 0);
+  }
 
   public dispose() {
     this.scene.remove(this.lyricsLayer);
