@@ -1,40 +1,14 @@
-// import * as THREE from "three";
-// import { VisualizerParams, BeatInfo } from "../../types/visualizer";
-
-// export const animateAudioReactive = (
-//   objects: THREE.Object3D[],
-//   frequencyData: Uint8Array,
-//   time: number,
-//   params: VisualizerParams,
-//   beatInfo?: BeatInfo
-// ): void => {
-//   const mesh = objects[0];
-//   if (!(mesh instanceof THREE.Mesh)) return;
-//   if (!(mesh.material instanceof THREE.ShaderMaterial)) return;
-
-//   const mat = mesh.material;
-
-//   const bass = (beatInfo?.bandStrengths?.bass ?? 0) * 0.01;
-//   const mid = (beatInfo?.bandStrengths?.mid ?? 0) * 0.01;
-//   const treble = (beatInfo?.bandStrengths?.treble ?? 0) * 0.01;
-
-//   mat.uniforms.uTime.value = time * 0.001;
-//   mat.uniforms.uBass.value = bass * params.intensity;
-//   mat.uniforms.uMid.value = mid * params.intensity;
-//   mat.uniforms.uTreble.value = treble * params.intensity;
-// };
-
+// animations/neuralCosmos.ts
 import * as THREE from "three";
 import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
-export const animateAudioReactive = (
+export const animateNeuralCosmos = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
   time: number,
   params: VisualizerParams,
   beatInfo?: BeatInfo,
-  camera?: THREE.PerspectiveCamera,
-  scene?: THREE.Scene
+  camera?: THREE.Camera
 ): void => {
   const bass = frequencyData[10] / 255;
   const mid = frequencyData[75] / 255;

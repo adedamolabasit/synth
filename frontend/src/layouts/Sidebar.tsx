@@ -18,7 +18,6 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
     { icon: <Home size={20} />, label: "Workspace", id: "workspace" },
     { icon: <Video size={20} />, label: "Media", id: "media" },
     { icon: <Box size={20} />, label: "IP Assets", id: "ip" },
-    { icon: <FileText size={20} />, label: "Import", id: "import" },
   ];
 
   return (

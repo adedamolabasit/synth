@@ -166,7 +166,7 @@ export const VisualElementSelector: React.FC = () => {
             onClick={() => setShowAddMenu(!showAddMenu)}
             className="bg-slate-800/95 backdrop-blur-xl border border-slate-600 hover:bg-slate-700/90 w-auto px-3"
           >
-            <span className="ml-2">Add Element</span>
+            <span className="ml-2">Add New Element</span>
           </Button>
         )}
       </div>
@@ -174,29 +174,7 @@ export const VisualElementSelector: React.FC = () => {
       {showAddMenu && (
         <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-600 rounded-xl p-3 min-w-48 shadow-2xl z-50 animate-in fade-in duration-200">
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              {(
-                [
-                  "particle",
-                  "shape",
-                  "light",
-                  "grid",
-                  "wave",
-                  "background",
-                ] as const
-              ).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => addNewElement(type)}
-                  className="text-xs p-2 rounded-lg hover:bg-slate-700 transition-all duration-200 text-slate-300 capitalize flex flex-col items-center gap-1 group"
-                >
-                  <div className="w-3 h-3 rounded-full bg-current opacity-60 group-hover:opacity-100 transition-opacity"></div>
-                  {type}
-                </button>
-              ))}
-            </div>
-
-            <div className="border-t border-slate-600 pt-3">
+            <div className=" pt-3">
               <div className="text-xs text-slate-400 px-2 pb-2 flex items-center gap-2">
                 <Sparkles size={12} />
                 Ambient Elements

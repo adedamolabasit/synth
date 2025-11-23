@@ -16,12 +16,16 @@ export interface VisualizerContextType {
   setSelectedElement: (id: string | null) => void;
   audioData: AudioData;
   setAudioData: (data: AudioData) => void;
+  showDownloadModal: boolean;
 
   showVisualizerLibrary: boolean;
+  setShowDownloadModal: (show: boolean) => void;
   setShowVisualizerLibrary: (show: boolean) => void;
   visualizers: Visualizer[];
   currentVisualizer: string;
   setCurrentVisualizer: (visualizerType: string) => void;
+  setVideoBlob: (visualizerType: Blob | null) => void;
+  videoBlob: Blob | null;
 }
 
 export interface VisualizerParams {

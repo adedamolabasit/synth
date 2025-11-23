@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Pause, Wand2, Trash2, Volume2, Music } from "lucide-react";
+import {
+  Play,
+  Pause,
+  Wand2,
+  Trash2,
+  Volume2,
+  Music,
+  Video,
+} from "lucide-react";
 import { BeatInfo } from "../../../shared/types/visualizer.types";
 import { Button } from "../../ui/Button";
 import * as THREE from "three";
@@ -30,7 +38,16 @@ export const LivePreviewCanvas: React.FC = () => {
     audioLevel,
   } = useAudio();
 
-  const { params, setParams, visualElements, setAudioData } = useVisualizer();
+  const {
+    params,
+    setParams,
+    visualElements,
+    setAudioData,
+    setShowDownloadModal,
+    showDownloadModal,
+    setVideoBlob,
+    videoBlob,
+  } = useVisualizer();
 
   const [audioName, setAudioName] = useState<string>("");
   const [audioError, setAudioError] = useState<string>("");
@@ -38,6 +55,8 @@ export const LivePreviewCanvas: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [beatDetected, setBeatDetected] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
+  const [videoName, setVideoName] = useState(`visualizer-${Date.now()}`);
+  const [isUploading, setIsUploading] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -405,7 +424,6 @@ export const LivePreviewCanvas: React.FC = () => {
       const treble = beatInfo.bandStrengths.treble || 0;
       const overall = beatInfo.strength || 0;
 
-      // Update lights based on audio response
       visualElements.forEach((element) => {
         if (!element.visible || element.type !== "light") return;
 
@@ -636,10 +654,44 @@ export const LivePreviewCanvas: React.FC = () => {
     visualizerObjectsRef.current = objects;
   }, [params]);
 
+  const handleSaveVideo = async () => {
+    if (!videoBlob) return;
+
+    setIsUploading(true);
+
+    const formData = new FormData();
+    const fileName = videoName.trim()
+      ? `${videoName}.webm`
+      : `visualizer-${Date.now()}.webm`;
+    const file = new File([videoBlob], fileName, { type: "video/webm" });
+    formData.append("video", file);
+
+    try {
+      const response = await fetch("http://localhost:8000/api/video/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+      console.log(result);
+
+      if (result.success) {
+        setShowDownloadModal(false);
+        setVideoBlob(null);
+        setVideoName(`visualizer-${Date.now()}`);
+      } else {
+        alert(result.error || "Upload failed");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Network error. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   useEffect(() => {
     if (!canvasRef.current) return;
-
-    console.log("🎨 Initializing Three.js scene...");
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -654,6 +706,8 @@ export const LivePreviewCanvas: React.FC = () => {
       canvas: canvasRef.current,
       antialias: true,
       alpha: true,
+      preserveDrawingBuffer: true,
+      powerPreference: "high-performance",
     });
 
     renderer.setSize(
@@ -855,8 +909,12 @@ export const LivePreviewCanvas: React.FC = () => {
 
         {sceneReady && (
           <>
-            <ElementCustomizationPanel />
-            <VisualElementSelector />
+            <div className="overflow-visible">
+              <ElementCustomizationPanel />
+            </div>
+            <div className="overflow-visible">
+              <VisualElementSelector />
+            </div>
           </>
         )}
 
@@ -866,44 +924,61 @@ export const LivePreviewCanvas: React.FC = () => {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 backdrop-blur-xl border border-slate-600 rounded-2xl px-6 py-3">
-          <div className="flex items-center gap-2">
-            {audioName && (
-              <div className="flex items-center gap-2">
-                <Music size={14} className="text-slate-300" />
-                <span className="text-sm text-slate-300 max-w-32 truncate">
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl px-8 py-4 shadow-2xl">
+          {/* Audio Name - Far Left */}
+          {audioName && (
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="flex items-center gap-3 bg-slate-800/50 rounded-xl px-4 py-2 border border-slate-700/30">
+                <Music size={16} className="text-emerald-400 flex-shrink-0" />
+                <span className="text-sm text-slate-200 font-medium truncate max-w-48">
                   {audioName}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Trash2 size={14} />}
-                  onClick={handleClearAudio}
-                  className="p-1 hover:bg-slate-700/50"
-                />
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Play/Pause Button - Center */}
+          <div className="flex gap-4 justify-center items-center">
+            <Button
+              variant="secondary"
+              size="md"
+              icon={isPlaying ? <Pause size={22} /> : <Play size={22} />}
+              onClick={togglePlayback}
+              disabled={!canPlayAudio || isLoading}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 "
+      //         className={`
+      //   px-8 py-3 rounded-xl font-semibold
+      //   bg-gradient-to-r from-blue-500 to-purple-600 
+      //   hover:from-blue-600 hover:to-purple-700
+      //   active:scale-95 transition-all duration-200
+      //   shadow-lg shadow-blue-500/25
+      //   ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
+      // `}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Loading...
+                </div>
+              ) : isPlaying ? (
+                "Pause"
+              ) : (
+                "Play"
+              )}
+            </Button>
+             <ControlsPanel
+            params={params}
+            onParamsChange={setParams}
+            onDemoAudio={handleDemoAudio}
+            canvasRef={canvasRef}
+          />
           </div>
 
-          <Button
-            variant="secondary"
-            size="lg"
-            icon={isPlaying ? <Pause size={20} /> : <Play size={20} />}
-            onClick={togglePlayback}
-            className="px-6"
-            disabled={!canPlayAudio || isLoading}
-          >
-            {isPlaying ? "Pause" : "Play"}
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <Volume2 size={16} className="text-slate-300" />
-            <div className="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 transition-all duration-100"
-                style={{ width: `${audioLevel}%` }}
-              />
-            </div>
+          {/* Music Icon - Far Right */}
+          <div className="flex items-center justify-end min-w-0 flex-1">
+            {/* <div className="flex items-center gap-3 bg-slate-800/50 rounded-xl px-4 py-2 border border-slate-700/30"> */}
+              <SlidersPanel params={params} onParamsChange={setParams} />
+            {/* </div> */}
           </div>
         </div>
 
@@ -937,33 +1012,59 @@ export const LivePreviewCanvas: React.FC = () => {
                 Select Audio to Visualize
               </h3>
               <p className="text-slate-300 mb-4">
-                Choose an audio file from the Audio Manager panel to see it come
-                to life with dynamic visualizations.
+                Upload a new audio or select one from the Audio Player on the
+                left to see it come to life with dynamic visualizations.
               </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<Wand2 size={16} />}
-                onClick={handleDemoAudio}
-                className="w-full"
-              >
-                Try Demo Audio
-              </Button>
             </div>
           </div>
         )}
-      </div>
 
-      <div className="border-t border-slate-800/50 bg-slate-900/90 backdrop-blur-xl p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <ControlsPanel
-            params={params}
-            onParamsChange={setParams}
-            onDemoAudio={handleDemoAudio}
-            canvasRef={canvasRef}
-          />
-        </div>
-        <SlidersPanel params={params} onParamsChange={setParams} />
+        {showDownloadModal && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-slate-900/90 border border-slate-700 shadow-2xl rounded-2xl p-8 w-full max-w-md relative">
+              <button
+                onClick={() => setShowDownloadModal(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
+              >
+                ✕
+              </button>
+
+              <Video size={48} className="mx-auto mb-4 text-slate-400" />
+
+              <h3 className="text-xl font-semibold text-white text-center mb-2">
+                Save Video
+              </h3>
+
+              <p className="text-slate-300 text-center mb-4">
+                Save your video to watch later in your media.
+              </p>
+
+              <input
+                type="text"
+                className="w-full rounded-lg p-2 mb-6 text-black"
+                value={videoName}
+                onChange={(e) => setVideoName(e.target.value)}
+                placeholder="Enter video name"
+              />
+
+              <div className="space-y-3">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveVideo}
+                  disabled={isUploading}
+                  className={`w-full ${
+                    isUploading
+                      ? "bg-gray-600 hover:bg-gray-600"
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
+                >
+                  {isUploading ? "Saving..." : "Save Visualizer Output"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { VisualizerLibrary } from "../../components/dashboard/workspace/Visualiz
 import { LivePreviewCanvas } from "../../components/dashboard/workspace/LivePreviewCanvas";
 import { IPManagementDashboard } from "../../components/dashboard/ipAssets/IPManagementDashboard";
 import { ExportPanel } from "../../components/dashboard/exports/ExportPanel";
-import { VideoGallery } from "../../components/dashboard/video/VideoGallery";
+import { VideoPlayer } from "../../components/dashboard/video/VideoPlayer";
 
 interface WorkspaceLayoutProps {
   activeView: string;
@@ -31,7 +31,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
   if (activeView === "media") {
     return (
       <div className="flex-1 overflow-hidden">
-        <VideoGallery />
+        <VideoPlayer />
       </div>
     );
   }
@@ -44,21 +44,6 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
     );
   }
 
-  if (activeView === "import") {
-    return (
-      <div className="flex-1 overflow-hidden">
-        <ExportPanel />
-      </div>
-    );
-  }
-
-  if (activeView === "settings") {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-slate-400">Settings panel coming soon</p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 flex overflow-hidden">

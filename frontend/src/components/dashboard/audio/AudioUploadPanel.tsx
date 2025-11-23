@@ -8,6 +8,7 @@ import {
   Play,
   Pause,
   Download,
+  Sparkles,
 } from "lucide-react";
 import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
@@ -31,8 +32,10 @@ export function AudioUploadPanel({
   const [isDragging, setIsDragging] = useState(false);
   const [audioFiles, setAudioFiles] = useState<any[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<"upload" | "library">("upload");
   const [fetchError, setFetchError] = useState<string>("");
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +59,7 @@ export function AudioUploadPanel({
         await playAudio(audioFile);
       }
     } catch (error) {
+      console.error("Error playing audio:", error);
     }
   };
 
@@ -87,38 +91,65 @@ export function AudioUploadPanel({
   };
 
   const handleFiles = async (files: File[]) => {
-    setIsAnalyzing(true);
+    setIsUploading(true);
+    setUploadProgress(0);
     setFetchError("");
 
     try {
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append("audio", file);
-      });
-
-      const response = await fetch(
-        "http://localhost:8000/api/v1/audio/upload",
-        {
-          method: "POST",
-          body: formData,
+      for (const file of files) {
+        // Check file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          setFetchError(`File "${file.name}" exceeds 10MB limit`);
+          setIsUploading(false);
+          return;
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
+        const formData = new FormData();
+        formData.append("audio", file);
+
+        // Simulate upload progress
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => {
+            if (prev >= 90) {
+              clearInterval(progressInterval);
+              return 90;
+            }
+            return prev + 10;
+          });
+        }, 200);
+
+        const response = await fetch(
+          "http://localhost:8000/api/v1/extract",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || "Upload failed");
+        }
+
+        // Wait a bit to show completion
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      const data = await response.json();
-
-      if (data.success) {
-        await fetchAudioLibrary();
-      } else {
-        throw new Error(data.error || "Upload failed");
-      }
+      // Refresh library after successful upload
+      await fetchAudioLibrary();
     } catch (error) {
       setFetchError(error instanceof Error ? error.message : "Upload failed");
     } finally {
-      setIsAnalyzing(false);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -226,6 +257,7 @@ export function AudioUploadPanel({
         accept="audio/*"
         multiple
         className="hidden"
+        disabled={isUploading}
       />
 
       <div className="flex items-center justify-between">
@@ -259,6 +291,7 @@ export function AudioUploadPanel({
               : "text-slate-400"
           }`}
           onClick={() => setActiveTab("upload")}
+          disabled={isUploading}
         >
           Upload
         </Button>
@@ -271,6 +304,7 @@ export function AudioUploadPanel({
               : "text-slate-400"
           }`}
           onClick={() => setActiveTab("library")}
+          disabled={isUploading}
         >
           Library ({audioFiles.length})
         </Button>
@@ -284,6 +318,7 @@ export function AudioUploadPanel({
             size="sm"
             onClick={fetchAudioLibrary}
             className="mt-2 text-red-400 hover:text-red-300"
+            disabled={isUploading}
           >
             Try Again
           </Button>
@@ -293,15 +328,45 @@ export function AudioUploadPanel({
       {activeTab === "upload" ? (
         <Card
           className={`flex-1 flex flex-col items-center justify-center p-8 transition-all duration-300 ${
-            isDragging
+            isDragging && !isUploading
               ? "border-cyan-500 bg-cyan-500/10 scale-[0.98] shadow-lg shadow-cyan-500/20"
+              : isUploading
+              ? "border-purple-500 bg-purple-500/10"
               : "hover:scale-[0.995] hover:shadow-lg hover:shadow-cyan-500/10"
-          }`}
+          } ${isUploading ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
+          onClick={() => !isUploading && fileInputRef.current?.click()}
         >
-          {isAnalyzing ? (
+          {isUploading ? (
+            <div className="flex flex-col items-center gap-4 w-full max-w-xs">
+              <div className="flex items-center gap-3 text-purple-400">
+                <Sparkles className="animate-pulse" size={32} />
+                <Loader2 className="animate-spin" size={32} />
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-slate-700/50 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-purple-500 to-cyan-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              
+              <div className="text-center">
+                <p className="text-purple-300 font-medium mb-2">
+                  AI Analysis in Progress
+                </p>
+                <p className="text-slate-400 text-sm">
+                  Extracting music elements like lyrics, effects, and patterns...
+                </p>
+                <p className="text-slate-500 text-xs mt-2">
+                  This may take a moment while our AI processes your audio
+                </p>
+              </div>
+            </div>
+          ) : isAnalyzing ? (
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="text-cyan-400 animate-spin" size={48} />
-              <p className="text-slate-300">Uploading audio...</p>
+              <p className="text-slate-300">Processing audio...</p>
             </div>
           ) : (
             <>
@@ -311,15 +376,18 @@ export function AudioUploadPanel({
               <h3 className="text-xl font-semibold text-white mb-2 text-center">
                 Drop your audio file
               </h3>
-              <p className="text-slate-400 text-center mb-6">
+              <p className="text-slate-400 text-center mb-2">
                 Support for MP3, WAV, FLAC, OGG
+              </p>
+              <p className="text-slate-500 text-center text-sm mb-4">
+                Max file size: 10MB • AI-powered music analysis
               </p>
               <Button
                 variant="primary"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isAnalyzing}
+                disabled={isUploading}
               >
-                {isAnalyzing ? "Uploading..." : "Browse Files"}
+                {isUploading ? "Uploading..." : "Browse Files"}
               </Button>
             </>
           )}
@@ -340,6 +408,7 @@ export function AudioUploadPanel({
                   variant="ghost"
                   size="sm"
                   onClick={() => setActiveTab("upload")}
+                  disabled={isUploading}
                 >
                   Upload your first file
                 </Button>
@@ -348,20 +417,29 @@ export function AudioUploadPanel({
               audioFiles.map((audioFile) => (
                 <Card
                   key={audioFile._id}
-                  className={`p-3 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-cyan-500/5 ${
+                  className={`p-3 transition-all duration-300 cursor-pointer group relative ${
                     currentAudio?._id === audioFile._id
-                      ? "border-cyan-500 bg-cyan-500/10"
-                      : ""
-                  }`}
-                  onClick={() => handlePlayPause(audioFile)}
+                      ? "border-2 border-cyan-500 bg-cyan-500/15 shadow-lg shadow-cyan-500/20 scale-[1.02]"
+                      : "border border-slate-700/50 hover:border-slate-600/50 hover:shadow-lg hover:shadow-cyan-500/5"
+                  } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  onClick={() => !isUploading && handlePlayPause(audioFile)}
                 >
+                  {/* Active indicator bar */}
+                  {currentAudio?._id === audioFile._id && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 rounded-l-md" />
+                  )}
+                  
                   <div className="flex items-center gap-3">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-8 h-8 p-0 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30"
+                      className={`w-8 h-8 p-0 rounded-full transition-all ${
+                        currentAudio?._id === audioFile._id
+                          ? "bg-cyan-500/30 shadow-lg shadow-cyan-500/20"
+                          : "bg-cyan-500/20 hover:bg-cyan-500/30"
+                      } ${isUploading ? "cursor-not-allowed opacity-50" : ""}`}
                       disabled={
-                        isLoading && currentAudio?._id === audioFile._id
+                        isLoading && currentAudio?._id === audioFile._id || isUploading
                       }
                     >
                       {isLoading && currentAudio?._id === audioFile._id ? (
@@ -377,17 +455,35 @@ export function AudioUploadPanel({
                     </Button>
 
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-white truncate">
+                      <h4 className={`font-medium truncate ${
+                        currentAudio?._id === audioFile._id 
+                          ? "text-cyan-300" 
+                          : "text-white"
+                      }`}>
                         {audioFile.metadata?.name || audioFile.name}
                       </h4>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="text-xs text-slate-400">
+                        <span className={`text-xs ${
+                          currentAudio?._id === audioFile._id 
+                            ? "text-cyan-400/80" 
+                            : "text-slate-400"
+                        }`}>
                           {formatFileSize(
                             audioFile.metadata?.size || audioFile.size
                           )}
                         </span>
-                        <span className="text-xs text-slate-400">•</span>
-                        <span className="text-xs text-slate-400">
+                        <span className={`text-xs ${
+                          currentAudio?._id === audioFile._id 
+                            ? "text-cyan-400/80" 
+                            : "text-slate-400"
+                        }`}>
+                          •
+                        </span>
+                        <span className={`text-xs ${
+                          currentAudio?._id === audioFile._id 
+                            ? "text-cyan-400/80" 
+                            : "text-slate-400"
+                        }`}>
                           {formatDate(audioFile.uploadedAt)}
                         </span>
                       </div>
@@ -396,11 +492,18 @@ export function AudioUploadPanel({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-6 h-6 p-0 text-slate-400 hover:text-green-400"
+                      className={`w-6 h-6 p-0 transition-all ${
+                        currentAudio?._id === audioFile._id
+                          ? "text-cyan-400 hover:text-cyan-300"
+                          : "text-slate-400 hover:text-green-400"
+                      } ${isUploading ? "cursor-not-allowed opacity-50" : ""}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDownload(audioFile);
+                        if (!isUploading) {
+                          handleDownload(audioFile);
+                        }
                       }}
+                      disabled={isUploading}
                     >
                       <Download size={14} />
                     </Button>

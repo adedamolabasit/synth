@@ -6,6 +6,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const PINATA_JWT = process.env.PINATA_JWT!;
+const PINATA_GATEWAY = process.env.PINATA_GATEWAY!;
+const PINATA_KEY = process.env.PINATA_KEY!;
 
 export interface PinataResult {
   ipfsHash: string;
@@ -39,7 +41,7 @@ export const uploadToPinata = async (file: Express.Multer.File): Promise<PinataR
     // fs.unlinkSync(filePath);
 
     const ipfsHash = res.data.IpfsHash;
-    const gatewayUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+    const gatewayUrl = `${PINATA_GATEWAY}/ipfs/${ipfsHash}?pinataGatewayToken=${PINATA_KEY}`;
 
     return { ipfsHash, url: gatewayUrl };
   } catch (err: any) {

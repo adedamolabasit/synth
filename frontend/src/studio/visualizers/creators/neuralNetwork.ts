@@ -1,3 +1,4 @@
+// creators/neuralNetwork.ts
 import * as THREE from "three";
 import { VisualizerParams } from "../../types/visualizer";
 
@@ -6,65 +7,82 @@ export const createNeuralNetworkVisualizer = (
   params: VisualizerParams
 ): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
-  const layers = 4;
-  const nodesPerLayer = Math.floor(6 + params.patternDensity * 10);
+  const layers = 6;
+  const nodesPerLayer = 12;
+  const neuralGroup = new THREE.Group();
 
-  const nodeMaterial = new THREE.MeshPhongMaterial({
-    color: 0x00ffff,
-    emissive: 0x003366,
-    transparent: true,
-    opacity: 0.9,
-  });
+  // Create neural nodes and connections
+  const nodes: THREE.Vector3[] = [];
+  const connections: THREE.Line[] = [];
 
-  const connectionMaterial = new THREE.LineBasicMaterial({
-    color: 0x4488ff,
-    transparent: true,
-    opacity: 0.3,
-  });
-
-  const nodePositions: THREE.Vector3[][] = [];
-
-  // Create nodes with random z-wobble for depth
   for (let layer = 0; layer < layers; layer++) {
-    nodePositions[layer] = [];
-    const layerZ = (layer - layers / 2) * 2;
+    const layerRadius = 2 + layer * 1.5;
+    const angleStep = (Math.PI * 2) / nodesPerLayer;
+    
+    for (let node = 0; node < nodesPerLayer; node++) {
+      const angle = node * angleStep;
+      const x = Math.cos(angle) * layerRadius;
+      const y = (layer - layers / 2) * 2;
+      const z = Math.sin(angle) * layerRadius;
 
-    for (let i = 0; i < nodesPerLayer; i++) {
-      const angle = (i / nodesPerLayer) * Math.PI * 2;
-      const radius = 2 + Math.random() * 1.5;
-      const position = new THREE.Vector3(
-        Math.cos(angle) * radius,
-        Math.sin(angle) * radius,
-        layerZ + (Math.random() - 0.5) * 0.5
-      );
-      nodePositions[layer].push(position);
+      // Create neuron node
+      const geometry = new THREE.SphereGeometry(0.3, 8, 8);
+      const material = new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setHSL(layer / layers, 0.8, 0.6),
+        transparent: true,
+        opacity: 0.8
+      });
+      
+      const neuron = new THREE.Mesh(geometry, material);
+      neuron.position.set(x, y, z);
+      neuralGroup.add(neuron);
+      nodes.push(new THREE.Vector3(x, y, z));
 
-      const node = new THREE.Mesh(
-        new THREE.SphereGeometry(0.2 + Math.random() * 0.1, 16, 16),
-        nodeMaterial.clone()
-      );
-      node.position.copy(position);
-      node.userData = { layer, index: i, isNode: true, basePosition: position.clone() };
-      scene.add(node);
-      objects.push(node);
-    }
-  }
+      // Connect to previous layer
+      if (layer > 0) {
+        const prevLayerStart = (layer - 1) * nodesPerLayer;
+        for (let prevNode = 0; prevNode < nodesPerLayer; prevNode++) {
+          if (Math.random() > 0.7) { // 30% connection density
+            const connectionGeometry = new THREE.BufferGeometry();
+            const connectionPositions = new Float32Array(6);
+            const prevNodePos = nodes[prevLayerStart + prevNode];
+            
+            connectionPositions[0] = prevNodePos.x;
+            connectionPositions[1] = prevNodePos.y;
+            connectionPositions[2] = prevNodePos.z;
+            connectionPositions[3] = x;
+            connectionPositions[4] = y;
+            connectionPositions[5] = z;
 
-  // Create randomized connections between layers
-  for (let layer = 0; layer < layers - 1; layer++) {
-    for (let i = 0; i < nodesPerLayer; i++) {
-      for (let j = 0; j < nodesPerLayer; j++) {
-        if (Math.random() > 0.5) {
-          const points = [nodePositions[layer][i], nodePositions[layer + 1][j]];
-          const geometry = new THREE.BufferGeometry().setFromPoints(points);
-          const line = new THREE.Line(geometry, connectionMaterial.clone());
-          line.userData = { isConnection: true, from: i, to: j, layer };
-          scene.add(line);
-          objects.push(line);
+            connectionGeometry.setAttribute('position', new THREE.BufferAttribute(connectionPositions, 3));
+            
+            const connectionMaterial = new THREE.LineBasicMaterial({
+              color: new THREE.Color().setHSL((layer / layers + prevNode / nodesPerLayer) / 2, 0.6, 0.5),
+              transparent: true,
+              opacity: 0.3
+            });
+
+            const connection = new THREE.Line(connectionGeometry, connectionMaterial);
+            neuralGroup.add(connection);
+            connections.push(connection);
+          }
         }
       }
     }
   }
 
+  neuralGroup.userData = {
+    type: "neuralNetwork",
+    layers,
+    nodesPerLayer,
+    nodes,
+    connections,
+    activationLevels: Array.from({ length: layers * nodesPerLayer }, () => 0),
+    signalPropagation: 0,
+    isLyrics: false,
+  };
+
+  scene.add(neuralGroup);
+  objects.push(neuralGroup);
   return objects;
 };

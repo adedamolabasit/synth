@@ -21,6 +21,8 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [params, setParams] = useState<VisualizerParams>(defaultParams);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
 
   const [visualElements, setVisualElements] = useState<VisualElement[]>(
     defaultVisualElements
@@ -89,6 +91,10 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
     visualizers: defaultVisualizers,
     currentVisualizer,
     setCurrentVisualizer: handleSetCurrentVisualizer,
+    setShowDownloadModal,
+    showDownloadModal,
+    setVideoBlob,
+    videoBlob,
   };
 
   return (

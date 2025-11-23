@@ -8,9 +8,10 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { SceneRecorder } from "../../../shared/utils/sceneRecorder";
+import { SceneRecorder } from "../../../studio/utils/sceneRecorder";
 import { VisualizerParams } from "../../../shared/types/visualizer.types";
 import { useAudio } from "../../../provider/AudioContext";
+import { useVisualizer } from "../../../provider/VisualizerContext";
 
 interface Props {
   params: VisualizerParams;
@@ -24,6 +25,7 @@ export const ControlsPanel: React.FC<Props> = ({
   onDemoAudio,
   canvasRef,
 }) => {
+  const { setShowDownloadModal, setVideoBlob } = useVisualizer();
   const [isRecording, setIsRecording] = useState(false);
   const [includeAudio, setIncludeAudio] = useState(true);
   const recorderRef = React.useRef<SceneRecorder | null>(new SceneRecorder());
@@ -69,17 +71,21 @@ export const ControlsPanel: React.FC<Props> = ({
     } else {
       try {
         const blob = await recorderRef.current!.stopRecording();
+        setVideoBlob(blob);
+        
         setIsRecording(false);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `visualizer-${
-          currentAudio?.name || "recording"
-        }-${Date.now()}.webm`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setShowDownloadModal(true);
+
+        // const url = URL.createObjectURL(blob);
+        // const a = document.createElement("a");
+        // a.href = url;
+        // a.download = `visualizer-${
+        //   currentAudio?.name || "recording"
+        // }-${Date.now()}.webm`;
+        // document.body.appendChild(a);
+        // a.click();
+        // document.body.removeChild(a);
+        // URL.revokeObjectURL(url);
       } catch (err) {
         console.error("Stop recording failed", err);
         alert("Failed to stop recording");
@@ -89,8 +95,8 @@ export const ControlsPanel: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-lg">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center gap-4">
+      {/* <div className="flex items-center gap-2">
         <input
           type="checkbox"
           id="includeAudio"
@@ -104,17 +110,8 @@ export const ControlsPanel: React.FC<Props> = ({
         >
           Include Audio
         </label>
-      </div>
+      </div> */}
 
-      <Button
-        onClick={onDemoAudio}
-        variant="secondary"
-        size="sm"
-        icon={<Wand2 size={16} />}
-        disabled={isRecording}
-      >
-        Demo Audio
-      </Button>
 
       <Button
         variant={isRecording ? "danger" : "primary"}
@@ -125,7 +122,7 @@ export const ControlsPanel: React.FC<Props> = ({
         {isRecording ? "Stop Recording" : "Start Recording"}
       </Button>
 
-      <Button
+      {/* <Button
         variant="secondary"
         size="sm"
         icon={<Download size={16} />}
@@ -141,9 +138,9 @@ export const ControlsPanel: React.FC<Props> = ({
         }}
       >
         Export Settings
-      </Button>
+      </Button> */}
 
-      <div className="flex items-center gap-2 ml-2 px-3 py-1 bg-slate-700/50 rounded-full">
+      {/* <div className="flex items-center gap-2 ml-2 px-3 py-1 bg-slate-700/50 rounded-full">
         {isPlaying ? (
           <Volume2 size={14} className="text-green-400" />
         ) : (
@@ -152,7 +149,7 @@ export const ControlsPanel: React.FC<Props> = ({
         <span className="text-xs text-slate-300 max-w-32 truncate">
           {currentAudio ? currentAudio.name : "No Audio"}
         </span>
-      </div>
+      </div> */}
     </div>
   );
 };

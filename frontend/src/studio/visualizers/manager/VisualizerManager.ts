@@ -90,6 +90,37 @@ export class VisualizerManager {
         return creators.createQuantumFoamVisualizer(scene, params);
       case "celestialOrbit":
         return creators.createCelestialOrbitVisualizer(scene, params);
+      // New visualizers
+      case "crystalMatrix":
+        return creators.createCrystalMatrixVisualizer(scene, params);
+      case "liquidMercury":
+        return creators.createLiquidMercuryVisualizer(scene, params);
+      case "cyberGrid2":
+        return creators.createCyberGrid2Visualizer(scene, params);
+      case "plasmaStorm":
+        return creators.createPlasmaStormVisualizer(scene, params);
+      case "holographicGrid":
+        return creators.createHolographicGridVisualizer(scene, params);
+      case "morphingCrystals":
+        return creators.createMorphingCrystalsVisualizer(scene, params);
+      case "orbitalRings":
+        return creators.createOrbitalRingsVisualizer(scene, params);
+      case "fractalExpansion":
+        return creators.createFractalExpansionVisualizer(scene, params);
+      case "celestialSymphony":
+        return creators.createCelestialSymphonyVisualizer(scene, params);
+      case "neuralFireworks":
+        return creators.createNeuralFireworksVisualizer(scene, params);
+      case "quantumFlux":
+        return creators.createQuantumFluxVisualizer(scene, params);
+      case "crystalResonance":
+        return creators.createCrystalResonanceVisualizer(scene, params);
+      case "timeVortex":
+        return creators.createTimeVortexVisualizer(scene, params);
+      case "dimensionalGateway":
+        return creators.createDimensionalGatewayVisualizer(scene, params);
+      case "neuralCosmos":
+        return creators.createNeuralCosmosVisualizer(scene, params);
       default:
         return creators.createDNAHelixVisualizer(scene, params);
     }
@@ -442,6 +473,142 @@ export class VisualizerManager {
           beatInfo
         );
         break;
+      // New animators
+      case "crystalMatrix":
+        animators.animateCrystalMatrix(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "liquidMercury":
+        animators.animateLiquidMercury(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "cyberGrid2":
+        animators.animateCyberGrid2(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "plasmaStorm":
+        animators.animatePlasmaStorm(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "holographicGrid":
+        animators.animateHolographicGrid(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "morphingCrystals":
+        animators.animateMorphingCrystals(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "orbitalRings":
+        animators.animateOrbitalRings(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "fractalExpansion":
+        animators.animateFractalExpansion(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "celestialSymphony":
+        animators.animateCelestialSymphony(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "neuralFireworks":
+        animators.animateNeuralFireworks(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "quantumFlux":
+        animators.animateQuantumFlux(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "crystalResonance":
+        animators.animateCrystalResonance(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "timeVortex":
+        animators.animateTimeVortex(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "dimensionalGateway":
+        animators.animateDimensionalGateway(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "neuralCosmos":
+        animators.animateNeuralCosmos(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
       default:
         animators.animateDNAHelix(
           objects,
@@ -494,6 +661,21 @@ export class VisualizerManager {
       "lightningStorm",
       "quantumFoam",
       "celestialOrbit",
+      "crystalMatrix",
+      "liquidMercury",
+      "cyberGrid2",
+      "plasmaStorm",
+      "holographicGrid",
+      "morphingCrystals",
+      "orbitalRings",
+      "fractalExpansion",
+      "celestialSymphony",
+      "neuralFireworks",
+      "quantumFlux",
+      "crystalResonance",
+      "timeVortex",
+      "dimensionalGateway",
+      "neuralCosmos",
     ];
   }
 }
