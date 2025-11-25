@@ -13,7 +13,7 @@ const upload = multer({
 });
 
 // Upload route
-router.post('/upload', upload.single('video'), (req, res) =>
+router.post('/upload/:walletAddress', upload.single('video'), (req, res) =>
   videoController.uploadVideo(req, res)
 );
 

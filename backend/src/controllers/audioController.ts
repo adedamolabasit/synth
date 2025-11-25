@@ -15,11 +15,12 @@ import { compress } from "@/utils/compress";
 const openAIService = new OpenAIService();
 
 export class audioController {
-  private DUMMY_USER_ID = new mongoose.Types.ObjectId();
-  private DUMMY_WALLET = "0xDUMMY1234567890";
+  private USER_ID = new mongoose.Types.ObjectId();
 
   async uploadAudio(req: AudioUploadRequest, res: Response): Promise<void> {
     try {
+      const walletAddress = req.params?.walletAddress;
+
       if (!req.file) {
         const response: LyricsResponse = {
           success: false,
@@ -52,8 +53,8 @@ export class audioController {
       this.cleanupFile(req.file.path);
 
       await AudioEntryService.saveAudioEntry({
-        userId: this.DUMMY_USER_ID,
-        walletAddress: this.DUMMY_WALLET,
+        userId: this.USER_ID,
+        walletAddress: walletAddress as string,
         transcript: compress(transcription.text.trim()),
         lyrics: compress(transcription.text.trim()),
         words: compress(transcription.words as WordTimestamp[]),

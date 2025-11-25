@@ -30,10 +30,7 @@ interface VideoDetailResponse {
 }
 
 export class VideoController {
-  private readonly DUMMY_USER_ID =
-    process.env.DUMMY_USER_ID || "507f1f77bcf86cd799439011"; // Valid ObjectId format
-  private readonly DUMMY_WALLET =
-    process.env.DUMMY_WALLET || "0x0000000000000000000000000000000000000000";
+  private USER_ID = new mongoose.Types.ObjectId();
 
   private cleanupFile(path: string): void {
     if (fs.existsSync(path)) {
@@ -59,16 +56,18 @@ export class VideoController {
       thumbnailUrl: video.thumbnailUrl,
       metadata: video.metadata,
       createdAt: video.createdAt,
-      updatedAt: video.updatedAt
+      updatedAt: video.updatedAt,
     };
   }
 
   async uploadVideo(req: VideoUploadRequest, res: Response): Promise<void> {
     try {
+      const walletAddress = req.params?.walletAddress;
       if (!req.file) {
         const response: VideoResponse = {
           success: false,
-          error: 'No video file provided. Please upload a video file using the "video" field name.',
+          error:
+            'No video file provided. Please upload a video file using the "video" field name.',
         };
         res.status(400).json(response);
         return;
@@ -97,13 +96,14 @@ export class VideoController {
         this.cleanupFile(req.file.path);
         const response: VideoResponse = {
           success: false,
-          error: "Invalid file type. Please upload a video file (MP4, MPEG, AVI, MOV, WMV, WebM).",
+          error:
+            "Invalid file type. Please upload a video file (MP4, MPEG, AVI, MOV, WMV, WebM).",
         };
         res.status(400).json(response);
         return;
       }
 
-      console.log('Uploading video to Pinata...');
+      console.log("Uploading video to Pinata...");
       // Upload video to Pinata
       const saveVideoFile = await uploadToPinata(req.file);
 
@@ -118,11 +118,11 @@ export class VideoController {
       // Clean up temporary file
       this.cleanupFile(req.file.path);
 
-      console.log('Saving video entry to database...');
+      console.log("Saving video entry to database...");
       // Save to database
       const videoEntry = await VideoEntryService.saveVideoEntry({
-        userId: new mongoose.Types.ObjectId(this.DUMMY_USER_ID),
-        walletAddress: this.DUMMY_WALLET,
+        userId: this.USER_ID,
+        walletAddress: walletAddress,
         videoHash: saveVideoFile.ipfsHash,
         videoUrl: saveVideoFile.url,
         thumbnailHash: thumbnailData?.ipfsHash,
@@ -134,7 +134,7 @@ export class VideoController {
         },
       });
 
-      console.log('Video saved successfully:', videoEntry._id);
+      console.log("Video saved successfully:", videoEntry._id);
 
       const response: VideoResponse = {
         success: true,
@@ -145,7 +145,7 @@ export class VideoController {
 
       res.json(response);
     } catch (error) {
-      console.error('Error in uploadVideo:', error);
+      console.error("Error in uploadVideo:", error);
       if (req.file?.path) {
         this.cleanupFile(req.file.path);
       }
@@ -161,22 +161,22 @@ export class VideoController {
 
   async getAllVideos(req: Request, res: Response): Promise<void> {
     try {
-      console.log('Fetching all videos...');
+      console.log("Fetching all videos...");
       const videos = await VideoEntryService.getAllVideos();
       console.log(`Found ${videos.length} videos`);
-      
+
       const response: VideosResponse = {
         success: true,
-        videos: videos.map(video => this.formatVideoResponse(video)),
-        total: videos.length
+        videos: videos.map((video) => this.formatVideoResponse(video)),
+        total: videos.length,
       };
 
       res.json(response);
     } catch (error) {
-      console.error('Error in getAllVideos:', error);
+      console.error("Error in getAllVideos:", error);
       const response: VideosResponse = {
         success: false,
-        error: this.getErrorMessage(error)
+        error: this.getErrorMessage(error),
       };
 
       res.status(500).json(response);
@@ -186,12 +186,12 @@ export class VideoController {
   async getVideoById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      console.log('Fetching video by ID:', id);
+      console.log("Fetching video by ID:", id);
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         const response: VideoDetailResponse = {
           success: false,
-          error: "Invalid video ID format"
+          error: "Invalid video ID format",
         };
         res.status(400).json(response);
         return;
@@ -202,7 +202,7 @@ export class VideoController {
       if (!video) {
         const response: VideoDetailResponse = {
           success: false,
-          error: "Video not found"
+          error: "Video not found",
         };
         res.status(404).json(response);
         return;
@@ -210,15 +210,15 @@ export class VideoController {
 
       const response: VideoDetailResponse = {
         success: true,
-        video: this.formatVideoResponse(video)
+        video: this.formatVideoResponse(video),
       };
 
       res.json(response);
     } catch (error) {
-      console.error('Error in getVideoById:', error);
+      console.error("Error in getVideoById:", error);
       const response: VideoDetailResponse = {
         success: false,
-        error: this.getErrorMessage(error)
+        error: this.getErrorMessage(error),
       };
 
       res.status(500).json(response);
@@ -228,12 +228,12 @@ export class VideoController {
   async getVideosByWallet(req: Request, res: Response): Promise<void> {
     try {
       const { walletAddress } = req.params;
-      console.log('Fetching videos by wallet:', walletAddress);
+      console.log("Fetching videos by wallet:", walletAddress);
 
       if (!walletAddress) {
         const response: VideosResponse = {
           success: false,
-          error: "Wallet address is required"
+          error: "Wallet address is required",
         };
         res.status(400).json(response);
         return;
@@ -244,16 +244,16 @@ export class VideoController {
 
       const response: VideosResponse = {
         success: true,
-        videos: videos.map(video => this.formatVideoResponse(video)),
-        total: videos.length
+        videos: videos.map((video) => this.formatVideoResponse(video)),
+        total: videos.length,
       };
 
       res.json(response);
     } catch (error) {
-      console.error('Error in getVideosByWallet:', error);
+      console.error("Error in getVideosByWallet:", error);
       const response: VideosResponse = {
         success: false,
-        error: this.getErrorMessage(error)
+        error: this.getErrorMessage(error),
       };
 
       res.status(500).json(response);
@@ -263,12 +263,12 @@ export class VideoController {
   async deleteVideo(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      console.log('Deleting video:', id);
+      console.log("Deleting video:", id);
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         const response: VideoDetailResponse = {
           success: false,
-          error: "Invalid video ID format"
+          error: "Invalid video ID format",
         };
         res.status(400).json(response);
         return;
@@ -279,24 +279,24 @@ export class VideoController {
       if (!video) {
         const response: VideoDetailResponse = {
           success: false,
-          error: "Video not found"
+          error: "Video not found",
         };
         res.status(404).json(response);
         return;
       }
 
-      console.log('Video deleted successfully:', id);
+      console.log("Video deleted successfully:", id);
       const response: VideoDetailResponse = {
         success: true,
-        video: this.formatVideoResponse(video)
+        video: this.formatVideoResponse(video),
       };
 
       res.json(response);
     } catch (error) {
-      console.error('Error in deleteVideo:', error);
+      console.error("Error in deleteVideo:", error);
       const response: VideoDetailResponse = {
         success: false,
-        error: this.getErrorMessage(error)
+        error: this.getErrorMessage(error),
       };
 
       res.status(500).json(response);

@@ -1,5 +1,6 @@
-import { Wifi, Database, Cloud, Clock } from 'lucide-react';
-import { Badge } from '../components/ui/Badge';
+import { Database } from "lucide-react";
+import { Badge } from "../components/ui/Badge";
+import { DynamicWidget, useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 interface StatusBarProps {
   ipConnected: boolean;
@@ -7,46 +8,43 @@ interface StatusBarProps {
   lastSaved?: Date;
 }
 
-export function StatusBar({ ipConnected, projectName, lastSaved }: StatusBarProps) {
+export function StatusBar({
+  ipConnected,
+  projectName,
+  lastSaved,
+}: StatusBarProps) {
+  const { user, setShowAuthFlow, handleLogOut } = useDynamicContext();
+  const isConnected = !!user;
+
+  const handleClick = () => {
+    if (!isConnected) {
+      // Open Dynamic modal to connect
+      setShowAuthFlow(true);
+    } else {
+      // Disconnect wallet
+      handleLogOut();
+    }
+  };
+
+  console.log(user, "user>>>");
+
   return (
-    <div className="h-10 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/50 px-4 flex items-center justify-between text-sm">
-      <div className="flex items-center gap-4">
-        <span className="text-slate-400 font-medium">{projectName}</span>
-
-        <div className="flex items-center gap-2">
-          <Badge variant={ipConnected ? 'success' : 'error'} size="sm">
-            <Database size={12} className="mr-1" />
-            {ipConnected ? 'Story Protocol Connected' : 'Disconnected'}
-          </Badge>
-        </div>
+    <div className="py-2 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/50 px-4 flex items-center justify-between text-sm">
+      {/* Left Side */}
+      <div className="flex items-center gap-4 ml-24">
+        <button
+          onClick={handleClick}
+          className="px-3 py-1 rounded-lg bg-cyan-400 text-black font-semibold flex items-center gap-2"
+        >
+          {isConnected ? "Disconnect Wallet" : "Connect Wallet"}
+        </button>
       </div>
 
-      <div className="flex items-center gap-4 text-slate-400">
-        {lastSaved && (
-          <div className="flex items-center gap-1.5">
-            <Clock size={14} />
-            <span className="text-xs">Saved {formatTimeAgo(lastSaved)}</span>
-          </div>
-        )}
-
-        <div className="flex items-center gap-1.5">
-          <Wifi size={14} className="text-emerald-400" />
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <Cloud size={14} className="text-cyan-400" />
-          <span className="text-xs">Synced</span>
-        </div>
-      </div>
+      {/* Right Side */}
+      <Badge variant={ipConnected ? "success" : "error"} size="sm">
+        <Database size={12} className="mr-1" />
+        {isConnected ? "Story Protocol Connected" : "Not connected"}
+      </Badge>
     </div>
   );
-}
-
-function formatTimeAgo(date: Date): string {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return `${Math.floor(seconds / 86400)}d ago`;
 }

@@ -27,7 +27,7 @@ const lyricsController = new audioController();
  *       400:
  *         description: File too large or invalid
  */
-router.post('/extract', upload.single('audio'), (req, res) =>
+router.post('/extract/:walletAddress', upload.single('audio'), (req, res) =>
   lyricsController.uploadAudio(req, res)
 );
 

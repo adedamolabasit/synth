@@ -11,7 +11,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@dynamic-labs/ethereum": "^4.47.0",
+    "@dynamic-labs/ethers-v6": "^4.47.0",
+    "@dynamic-labs/sdk-react-core": "^4.47.0",
+    "@dynamic-labs/wagmi-connector": "^4.47.0",
     "@supabase/supabase-js": "^2.57.4",
+    "@tanstack/react-query": "^5.90.10",
     "gsap": "^3.13.0",
     "lucide-react": "^0.344.0",
     "openai": "^6.7.0",
@@ -19,9 +24,13 @@
     "postprocessing": "^6.38.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "three": "^0.181.2"
+    "three": "^0.181.2",
+    "viem": "^2.40.0",
+    "wagmi": "^2.19.5"
   },
   "devDependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@eslint/js": "^9.9.1",
     "@types/pako": "^2.0.4",
     "@types/react": "^18.3.5",

@@ -1,6 +1,9 @@
-// src/types/index.ts
+
 export interface AudioUploadRequest extends Express.Request {
   file?: Express.Multer.File;
+  params?: {
+    walletAddress?: string;
+  };
 }
 
 export interface LyricsResponse {
@@ -21,7 +24,6 @@ export interface WordTimestamp {
   end: number;
   confidence?: number;
 }
-
 
 export interface SegmentTimestamp {
   id: number;

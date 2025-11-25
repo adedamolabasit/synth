@@ -8,9 +8,11 @@ import {
   FileVideo,
   X,
   ArrowLeft,
+  Lock,
 } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 interface Video {
   id: string;
@@ -28,6 +30,10 @@ interface Video {
 }
 
 export const VideoPlayer = () => {
+  const { user, primaryWallet } = useDynamicContext();
+  const isConnected = !!user;
+  const walletAddress = primaryWallet?.address;
+
   const [activeTab, setActiveTab] = useState<"all" | "your">("all");
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +44,6 @@ export const VideoPlayer = () => {
   }>({});
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
-  const DUMMY_WALLET = "0x0000000000000000000000000000000000000000";
 
   const videoThumbnailCache: Record<string, string> = {};
 
@@ -128,10 +133,17 @@ export const VideoPlayer = () => {
     const fetchVideos = async () => {
       setLoading(true);
       try {
+        // If trying to access "your" videos but not connected, show empty
+        if (activeTab === "your" && !isConnected) {
+          setVideos([]);
+          setLoading(false);
+          return;
+        }
+
         const endpoint =
           activeTab === "all"
             ? "http://localhost:8000/api/video"
-            : `http://localhost:8000/api/video/wallet/${DUMMY_WALLET}`;
+            : `http://localhost:8000/api/video/wallet/${walletAddress}`;
 
         const response = await fetch(endpoint);
         const result = await response.json();
@@ -151,7 +163,15 @@ export const VideoPlayer = () => {
     };
 
     fetchVideos();
-  }, [activeTab]);
+  }, [activeTab, isConnected]);
+
+  const handleTabChange = (tab: "all" | "your") => {
+    if (tab === "your" && !isConnected) {
+      // Don't switch to "your" tab if not connected
+      return;
+    }
+    setActiveTab(tab);
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -202,6 +222,8 @@ export const VideoPlayer = () => {
   };
 
   const handleDeleteVideo = async (videoId: string) => {
+    if (!isConnected) return;
+
     if (!confirm("Are you sure you want to delete this video?")) return;
 
     try {
@@ -243,18 +265,41 @@ export const VideoPlayer = () => {
           <div className="flex gap-2">
             <Button
               variant={activeTab === "all" ? "primary" : "secondary"}
-              onClick={() => setActiveTab("all")}
+              onClick={() => handleTabChange("all")}
             >
               All Videos
             </Button>
             <Button
               variant={activeTab === "your" ? "primary" : "secondary"}
-              onClick={() => setActiveTab("your")}
+              onClick={() => handleTabChange("your")}
+              disabled={!isConnected}
+              className={`relative ${
+                !isConnected ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
+              {!isConnected && (
+                <Lock size={14} className="absolute -left-2 -top-2" />
+              )}
               Your Videos
             </Button>
           </div>
         </div>
+
+        {activeTab === "your" && !isConnected && (
+          <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Lock className="text-amber-400" size={20} />
+              <div>
+                <p className="text-amber-300 font-medium">
+                  Connect your wallet
+                </p>
+                <p className="text-amber-400/80 text-sm">
+                  Please connect your wallet to view your uploaded videos
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex h-[calc(100vh-80px)]">
@@ -304,7 +349,9 @@ export const VideoPlayer = () => {
             <div className="h-48 flex-shrink-0">
               <Card className="h-full flex flex-col">
                 <div className="p-4 border-b  flex-shrink-0">
-                  <h4 className="text-lg font-semibold text-white">Video Information</h4>
+                  <h4 className="text-lg font-semibold text-white">
+                    Video Information
+                  </h4>
                 </div>
                 <div className="flex-1 p-4 bg-slate-800/50 ">
                   <div className="space-y-3">
@@ -340,9 +387,11 @@ export const VideoPlayer = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="mt-4 pt-4 border-t border-slate-800/50">
-                    <h5 className="text-sm font-medium text-slate-300 mb-2">IPFS Hash</h5>
+                    <h5 className="text-sm font-medium text-slate-300 mb-2">
+                      IPFS Hash
+                    </h5>
                     <div className="bg-slate-800/50 rounded-lg p-2">
                       <code className="text-xs text-slate-300 break-all">
                         {selectedVideo.videoHash}
@@ -371,14 +420,16 @@ export const VideoPlayer = () => {
                     >
                       View Original
                     </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      icon={<Trash2 size={16} />}
-                      onClick={() => handleDeleteVideo(selectedVideo.id)}
-                    >
-                      Delete
-                    </Button>
+                    {/* {isConnected && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        icon={<Trash2 size={16} />}
+                        onClick={() => handleDeleteVideo(selectedVideo.id)}
+                      >
+                        Delete
+                      </Button>
+                    )} */}
                   </div>
                 </div>
               </Card>
@@ -386,7 +437,18 @@ export const VideoPlayer = () => {
           </div>
         ) : (
           <div className="flex-1 p-6 overflow-y-auto">
-            {videos.length === 0 ? (
+            {activeTab === "your" && !isConnected ? (
+              <div className="text-center py-12">
+                <Lock className="mx-auto text-slate-400 mb-4" size={48} />
+                <h3 className="text-lg text-slate-300 mb-2">
+                  Connect Your Wallet
+                </h3>
+                <p className="text-slate-500 mb-4">
+                  Please connect your wallet to view your uploaded videos
+                </p>
+                <Button variant="primary">Connect Wallet</Button>
+              </div>
+            ) : videos.length === 0 ? (
               <div className="text-center py-12">
                 <FileVideo className="mx-auto text-slate-400 mb-4" size={48} />
                 <h3 className="text-lg text-slate-300 mb-2">No videos found</h3>

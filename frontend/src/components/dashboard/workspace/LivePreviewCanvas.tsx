@@ -21,6 +21,7 @@ import { LyricsManager } from "../../../studio/visualizers/manager/LyricsManager
 import { useAudio } from "../../../provider/AudioContext";
 import { decodeLyricsData } from "../../../shared/utils";
 import { LyricsRenderer } from "../../../studio/visualizers/manager/LyricsRenderer";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 export const LivePreviewCanvas: React.FC = () => {
   const {
@@ -49,6 +50,11 @@ export const LivePreviewCanvas: React.FC = () => {
     videoBlob,
   } = useVisualizer();
 
+  const { user, primaryWallet } = useDynamicContext();
+
+  const walletAddress = primaryWallet?.address;
+  const isConnected = !!user;
+
   const [audioName, setAudioName] = useState<string>("");
   const [audioError, setAudioError] = useState<string>("");
   const [hasDefaultAudio, setHasDefaultAudio] = useState(false);
@@ -57,6 +63,7 @@ export const LivePreviewCanvas: React.FC = () => {
   const [sceneReady, setSceneReady] = useState(false);
   const [videoName, setVideoName] = useState(`visualizer-${Date.now()}`);
   const [isUploading, setIsUploading] = useState(false);
+
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -78,6 +85,7 @@ export const LivePreviewCanvas: React.FC = () => {
   const directionalLightRef = useRef<THREE.DirectionalLight | null>(null);
   const pointLightsRef = useRef<THREE.PointLight[]>([]);
   const backgroundRef = useRef<THREE.Color | THREE.Texture | null>(null);
+
 
   useEffect(() => {
     if (duration > 0) {
@@ -667,10 +675,13 @@ export const LivePreviewCanvas: React.FC = () => {
     formData.append("video", file);
 
     try {
-      const response = await fetch("http://localhost:8000/api/video/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `http://localhost:8000/api/video/upload/${walletAddress}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const result = await response.json();
       console.log(result);
@@ -924,63 +935,51 @@ export const LivePreviewCanvas: React.FC = () => {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl px-8 py-4 shadow-2xl">
-          {/* Audio Name - Far Left */}
-          {audioName && (
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="flex items-center gap-3 bg-slate-800/50 rounded-xl px-4 py-2 border border-slate-700/30">
-                <Music size={16} className="text-emerald-400 flex-shrink-0" />
-                <span className="text-sm text-slate-200 font-medium truncate max-w-48">
-                  {audioName}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Play/Pause Button - Center */}
-          <div className="flex gap-4 justify-center items-center">
-            <Button
-              variant="secondary"
-              size="md"
-              icon={isPlaying ? <Pause size={22} /> : <Play size={22} />}
-              onClick={togglePlayback}
-              disabled={!canPlayAudio || isLoading}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 "
-      //         className={`
-      //   px-8 py-3 rounded-xl font-semibold
-      //   bg-gradient-to-r from-blue-500 to-purple-600 
-      //   hover:from-blue-600 hover:to-purple-700
-      //   active:scale-95 transition-all duration-200
-      //   shadow-lg shadow-blue-500/25
-      //   ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
-      // `}
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Loading...
+        {isConnected && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl px-8 py-4 shadow-2xl">
+            {audioName && (
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex items-center gap-3 bg-slate-800/50 rounded-xl px-4 py-2 border border-slate-700/30">
+                  <Music size={16} className="text-emerald-400 flex-shrink-0" />
+                  <span className="text-sm text-slate-200 font-medium truncate max-w-48">
+                    {audioName}
+                  </span>
                 </div>
-              ) : isPlaying ? (
-                "Pause"
-              ) : (
-                "Play"
-              )}
-            </Button>
-             <ControlsPanel
-            params={params}
-            onParamsChange={setParams}
-            onDemoAudio={handleDemoAudio}
-            canvasRef={canvasRef}
-          />
-          </div>
+              </div>
+            )}
 
-          {/* Music Icon - Far Right */}
-          <div className="flex items-center justify-end min-w-0 flex-1">
-            {/* <div className="flex items-center gap-3 bg-slate-800/50 rounded-xl px-4 py-2 border border-slate-700/30"> */}
+            <div className="flex gap-4 justify-center items-center">
+              <Button
+                variant="secondary"
+                size="md"
+                icon={isPlaying ? <Pause size={22} /> : <Play size={22} />}
+                onClick={togglePlayback}
+                disabled={!canPlayAudio || isLoading}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 "
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Loading...
+                  </div>
+                ) : isPlaying ? (
+                  "Pause"
+                ) : (
+                  "Play"
+                )}
+              </Button>
+              <ControlsPanel
+                params={params}
+                onParamsChange={setParams}
+                onDemoAudio={handleDemoAudio}
+                canvasRef={canvasRef}
+              />
+            </div>
+            <div className="flex items-center justify-end min-w-0 flex-1">
               <SlidersPanel params={params} onParamsChange={setParams} />
-            {/* </div> */}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="absolute bottom-0 left-4 right-4">
           <div

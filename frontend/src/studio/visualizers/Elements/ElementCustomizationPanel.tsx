@@ -362,41 +362,47 @@ export const ElementCustomizationPanel: React.FC = () => {
   };
 
   const handleImageUpload = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    fieldKey: string
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  event: React.ChangeEvent<HTMLInputElement>,
+  fieldKey: string
+) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file (JPEG, PNG, GIF, etc.)");
-      return;
-    }
+  if (!file.type.startsWith("image/")) {
+    alert("Please select a valid image file (JPEG, PNG, GIF, etc.)");
+    return;
+  }
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Please select an image smaller than 5MB");
-      return;
-    }
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Please select an image smaller than 5MB");
+    return;
+  }
 
-    const imageUrl = URL.createObjectURL(file);
+  // Create object URL for the GIF
+  const imageUrl = URL.createObjectURL(file);
 
-    if (fieldKey === "image" && element.type === "background") {
-      updateElementCustomization(element.id, {
-        [fieldKey]: imageUrl,
-        imageFile: file.name,
-        backgroundType: "image",
-      });
-    } else {
-      updateElementCustomization(element.id, {
-        [fieldKey]: imageUrl,
-        [`${fieldKey}File`]: file.name,
-      });
-    }
+  if (fieldKey === "image" && element.type === "background") {
+    updateElementCustomization(element.id, {
+      [fieldKey]: imageUrl,
+      imageFile: file.name,
+      backgroundType: "image",
+      // Store the file type to handle GIFs specially
+      imageType: file.type,
+    });
+  } else {
+    updateElementCustomization(element.id, {
+      [fieldKey]: imageUrl,
+      [`${fieldKey}File`]: file.name,
+      // Store the file type to handle GIFs specially
+      [`${fieldKey}Type`]: file.type,
+    });
+  }
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+};
+
 
   const removeImage = (fieldKey: string) => {
     const currentImage = (element.customization as any)[fieldKey];
