@@ -60,9 +60,7 @@ export const VideoPlayer = () => {
           videoThumbnailCache[video.videoUrl] = thumb;
 
           setVideoThumbnails((prev) => ({ ...prev, [video.id]: thumb }));
-        } catch (err) {
-          console.warn(`Thumbnail failed for ${video.id}`, err);
-        }
+        } catch (err) {}
       }
     };
 
@@ -149,11 +147,9 @@ export const VideoPlayer = () => {
         if (result.success) {
           setVideos(result.videos || []);
         } else {
-          console.error("Failed to fetch videos:", result.error);
           setVideos([]);
         }
       } catch (error) {
-        console.error("Error fetching videos:", error);
         setVideos([]);
       } finally {
         setLoading(false);
@@ -197,7 +193,7 @@ export const VideoPlayer = () => {
     setSelectedVideo(video);
     setTimeout(() => {
       if (videoRef.current) {
-        videoRef.current.play().catch(console.error);
+        videoRef.current.play();
       }
     }, 100);
   };

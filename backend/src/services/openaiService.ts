@@ -41,7 +41,6 @@ export class OpenAIService {
         segments: transcription.segments || [],
       };
     } catch (error) {
-      console.error("OpenAI transcription error:", error);
       throw new Error("Failed to transcribe audio with timestamps");
     }
   }
@@ -84,7 +83,6 @@ export class OpenAIService {
 
       return audioBuffer;
     } catch (error) {
-      console.error("OpenAI music generation error:", error);
       throw new Error("Failed to generate music");
     }
   }

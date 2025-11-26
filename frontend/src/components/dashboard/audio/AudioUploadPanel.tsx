@@ -32,7 +32,6 @@ export function AudioUploadPanel({
   useEffect(() => {
     if (isConnected && primaryWallet?.address) {
       setWalletAddr(primaryWallet.address);
-      console.log("Wallet ready:", primaryWallet.address);
     } else {
       setWalletAddr(null);
     }
@@ -85,9 +84,7 @@ export function AudioUploadPanel({
       } else {
         await playAudio(audioFile);
       }
-    } catch (error) {
-      console.error("Error playing audio:", error);
-    }
+    } catch (error) {}
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -234,7 +231,6 @@ export function AudioUploadPanel({
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
     } catch (err) {
-      console.error("Error fetching audio files:", err);
       setFetchError(
         err instanceof Error ? err.message : "Failed to load audio library"
       );

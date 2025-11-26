@@ -179,7 +179,7 @@ export function MusicPlayerPanel({
     if (!audio) return;
 
     if (isPlaying) {
-      audio.play().catch((err) => console.error("Playback failed:", err));
+      audio.play();
     } else {
       audio.pause();
     }
@@ -193,7 +193,7 @@ export function MusicPlayerPanel({
     audio.load();
 
     if (isPlaying) {
-      audio.play().catch(console.error);
+      audio.play();
     }
   }, [currentAudio]);
 

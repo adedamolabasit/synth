@@ -58,7 +58,6 @@ export class AudioManager {
         resolve(true);
       };
       this.audioElement!.onerror = (e) => {
-        console.error("Error loading audio from URL:", e);
         resolve(false);
       };
     });
@@ -82,9 +81,7 @@ export class AudioManager {
       this.analyser.connect(this.destinationNode);
       this.analyser.connect(this.audioContext.destination);
       this.isInitialized = true;
-      console.log("Audio manager initialized successfully");
     } catch (error) {
-      console.error("Audio setup failed:", error);
       this.isInitialized = false;
     }
   }
@@ -129,7 +126,6 @@ export class AudioManager {
         resolve(true);
       };
       this.audioElement!.onerror = (e) => {
-        console.error("Error loading audio file:", e);
         URL.revokeObjectURL(url);
         resolve(false);
       };
@@ -170,10 +166,8 @@ export class AudioManager {
       this.defaultSource.connect(this.analyser!);
       this.defaultSource.loop = true;
 
-      console.log("Default audio loaded successfully");
       return true;
     } catch (error) {
-      console.error("Error loading default audio:", error);
       return false;
     }
   }
@@ -197,7 +191,6 @@ export class AudioManager {
         this.isDefaultAudioPlaying = true;
         this.startProgressTracking();
       } catch (error) {
-        console.error("Default audio play failed:", error);
         await this.loadDefaultAudio();
         this.defaultSource!.start();
         this.isDefaultAudioPlaying = true;
@@ -213,9 +206,7 @@ export class AudioManager {
     if (this.defaultSource && this.isDefaultAudioPlaying) {
       try {
         this.defaultSource.stop();
-      } catch (error) {
-        console.warn("Error stopping default source:", error);
-      }
+      } catch (error) {}
       this.isDefaultAudioPlaying = false;
 
       this.loadDefaultAudio();
@@ -337,9 +328,7 @@ export class AudioManager {
     this.progressCallbacks.forEach((cb) => {
       try {
         cb(currentTime, duration);
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     });
   }
 
@@ -381,14 +370,11 @@ export class AudioManager {
       }
       this.isDefaultAudioPlaying = false;
       if (this.audioContext) {
-        this.audioContext.close().catch(console.error);
+        this.audioContext.close();
         this.audioContext = null;
       }
       this.isInitialized = false;
       this.destinationNode = null;
-      console.log("AudioManager cleaned up");
-    } catch (error) {
-      console.error("Error during cleanup:", error);
-    }
+    } catch (error) {}
   }
 }

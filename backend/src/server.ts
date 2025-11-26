@@ -46,11 +46,11 @@ process.on("unhandledRejection", (err) => {
 });
 
 process.on("uncaughtException", (err) => {
-  console.error("Uncaught exception:", err);
+  logger.error("Uncaught exception:", err);
   gracefulShutdown();
 });
 process.on("unhandledRejection", (reason) => {
-  console.error("Unhandled rejection:", reason);
+  logger.error("Unhandled rejection:", reason);
   gracefulShutdown();
 });
 

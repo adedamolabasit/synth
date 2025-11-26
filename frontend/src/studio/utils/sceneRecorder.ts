@@ -37,7 +37,6 @@ export class SceneRecorder {
       if (e.data && e.data.size) this.recordedChunks.push(e.data);
     };
     this.mediaRecorder.start();
-    console.log('🎥 SceneRecorder started, mime:', mime);
   }
 
   stopRecording(): Promise<Blob> {

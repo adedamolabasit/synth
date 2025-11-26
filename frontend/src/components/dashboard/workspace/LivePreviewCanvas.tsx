@@ -674,7 +674,6 @@ export const LivePreviewCanvas: React.FC = () => {
       );
 
       const result = await response.json();
-      console.log(result);
 
       if (result.success) {
         setShowDownloadModal(false);
@@ -684,7 +683,6 @@ export const LivePreviewCanvas: React.FC = () => {
         alert(result.error || "Upload failed");
       }
     } catch (error) {
-      console.error(error);
       alert("Network error. Please try again.");
     } finally {
       setIsUploading(false);
@@ -742,7 +740,6 @@ export const LivePreviewCanvas: React.FC = () => {
     window.addEventListener("resize", handleResize);
 
     return () => {
-      console.log("🧹 Cleaning up Three.js scene...");
       window.removeEventListener("resize", handleResize);
       isAnimatingRef.current = false;
       if (animationIdRef.current) {
@@ -813,7 +810,6 @@ export const LivePreviewCanvas: React.FC = () => {
 
   useEffect(() => {
     if (sceneRef.current && lyricsManagerRef.current && rendererRef.current) {
-      console.log("🎵 Initializing LyricsRenderer...");
       lyricsRendererRef.current = new LyricsRenderer(
         sceneRef.current,
         lyricsManagerRef.current
@@ -848,7 +844,6 @@ export const LivePreviewCanvas: React.FC = () => {
       }
       setAudioError("");
     } catch (error) {
-      console.error("Demo audio failed:", error);
       setAudioError("Failed to load demo audio");
     }
   };
@@ -874,13 +869,9 @@ export const LivePreviewCanvas: React.FC = () => {
           if (lyricsData) {
             lyricsManagerRef.current.loadLyrics(lyricsData);
           } else {
-            console.warn("Failed to decode lyrics data");
           }
-        } catch (error) {
-          console.error("Error loading lyrics:", error);
-        }
+        } catch (error) {}
       } else {
-        console.log("No lyrics data available for this audio");
         lyricsManagerRef.current.reset();
       }
     };

@@ -55,11 +55,10 @@ app.get("/health", (_req, res) => {
 app.use(
   (
     error: any,
-    req: express.Request,
+    _req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    _next: express.NextFunction
   ) => {
-    console.error("App error:", error);
 
     if (error instanceof multer.MulterError) {
       if (error.code === "LIMIT_FILE_SIZE") {

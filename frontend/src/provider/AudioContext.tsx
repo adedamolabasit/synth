@@ -138,7 +138,6 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({
         throw new Error("Failed to load audio");
       }
     } catch (error) {
-      console.error("Error playing audio:", error);
       setAudioState((prev) => ({
         ...prev,
         isLoading: false,
@@ -156,9 +155,7 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({
     try {
       await audioManagerRef.current.play();
       setAudioState((prev) => ({ ...prev, isPlaying: true }));
-    } catch (error) {
-      console.error("Error resuming audio:", error);
-    }
+    } catch (error) {}
   };
 
   const stopAudio = () => {

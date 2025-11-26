@@ -44,7 +44,6 @@ export const ControlsPanel: React.FC<Props> = ({ canvasRef }) => {
 
         setIsRecording(true);
       } catch (err) {
-        console.error("Failed to start recording", err);
         alert(
           "Failed to start recording: " +
             (err instanceof Error ? err.message : String(err))
@@ -58,7 +57,6 @@ export const ControlsPanel: React.FC<Props> = ({ canvasRef }) => {
 
         setIsRecording(false);
       } catch (err) {
-        console.error("Stop recording failed", err);
         alert("Failed to stop recording");
         setIsRecording(false);
       }

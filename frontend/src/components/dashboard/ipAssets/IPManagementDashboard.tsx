@@ -102,7 +102,6 @@ export function IPManagementDashboard() {
           videoThumbnailCache[video.videoUrl] = thumb;
           setVideoThumbnails((prev) => ({ ...prev, [video.id]: thumb }));
         } catch (err) {
-          console.warn(`Thumbnail failed for ${video.id}`, err);
         }
       }
     };
@@ -189,7 +188,6 @@ export function IPManagementDashboard() {
         alert("Failed to delete video: " + result.error);
       }
     } catch (error) {
-      console.error("Error deleting video:", error);
       alert("Error deleting video");
     }
   };
@@ -266,11 +264,9 @@ export function IPManagementDashboard() {
 
           setVideos(videosWithIPData);
         } else {
-          console.error("Invalid response format:", result);
           setVideos([]);
         }
       } catch (err) {
-        console.error("Error fetching videos:", err);
         setVideos([]);
       } finally {
         setLoading(false);
