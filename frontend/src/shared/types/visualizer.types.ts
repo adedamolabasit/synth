@@ -149,10 +149,9 @@ export interface BackgroundCustomization {
   gradientStart?: string;
   gradientEnd?: string;
   opacity?: number;
-  // New image upload fields
   backgroundType?: "color" | "gradient" | "image" | string;
-  image?: string | null; // URL or base64 string for the uploaded image
-  imageFile?: string | null; // Original filename
+  image?: string | null; 
+  imageFile?: string | null; 
   imageScale?: number;
   imageOffsetX?: number;
   imageOffsetY?: number;
@@ -263,4 +262,23 @@ export interface LyricsDisplayConfig {
   animation: "fade" | "slide" | "bounce" | "typewriter";
   showWordHighlight: boolean;
   showLineHighlight: boolean;
+}
+
+
+export interface CustomizationField {
+  key: string;
+  label: string;
+  type: "color" | "slider" | "select" | "checkbox" | "image" | "position";
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: { value: string; label: string }[];
+}
+
+export interface PositionAxis {
+  axis: "x" | "y" | "z";
+  label: string;
+  min: number;
+  max: number;
+  step: number;
 }

@@ -1,10 +1,7 @@
-// creators/liquidMercury.ts
 import * as THREE from "three";
-import { VisualizerParams } from "../../types/visualizer";
 
 export const createLiquidMercuryVisualizer = (
   scene: THREE.Scene,
-  params: VisualizerParams
 ): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const dropletCount = 200;
@@ -25,8 +22,7 @@ export const createLiquidMercuryVisualizer = (
     });
 
     const droplet = new THREE.Mesh(geometry, material);
-    
-    // Distribute in a hemispherical pattern
+
     const phi = Math.acos(2 * Math.random() - 1);
     const theta = Math.random() * Math.PI * 2;
     const distance = Math.random() * 8 + 2;

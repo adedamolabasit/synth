@@ -2,9 +2,6 @@ import dotenv from "dotenv";
 import OpenAI from "openai";
 import fs from "fs";
 import {
-  OpenAITranscriptionResponse,
-  WordTimestamp,
-  SegmentTimestamp,
   LyricsData,
 } from "../types";
 import { validateEnv } from "@/utils/envValidator";
@@ -27,11 +24,9 @@ export class OpenAIService {
     filename: string
   ): Promise<LyricsData> {
     try {
-      // ✅ Write buffer to temp file
       const tempPath = `./tmp-${Date.now()}-${filename}`;
       fs.writeFileSync(tempPath, audioBuffer);
 
-      // ✅ Stream file directly to OpenAI
       const transcription = await this.openai.audio.transcriptions.create({
         file: fs.createReadStream(tempPath),
         model: "whisper-1",
@@ -39,9 +34,6 @@ export class OpenAIService {
         timestamp_granularities: ["word", "segment"],
         language: "en",
       });
-
-      // ✅ Clean up after sending
-      // fs.unlinkSync(tempPath);
 
       return {
         text: transcription.text,
@@ -69,7 +61,6 @@ export class OpenAIService {
         top_k,
       } = requestData;
 
-      // Build final natural language prompt
       const fullPrompt = `
       Create a ${genre || ""} music track.
       Mood: ${mood || ""}.
@@ -89,7 +80,6 @@ export class OpenAIService {
         voice: "echo",
       });
 
-      // Convert ArrayBuffer → Buffer
       const audioBuffer = Buffer.from(await response.arrayBuffer());
 
       return audioBuffer;
@@ -97,16 +87,5 @@ export class OpenAIService {
       console.error("OpenAI music generation error:", error);
       throw new Error("Failed to generate music");
     }
-  }
-
-  private getMimeType(filename: string): string {
-    const ext = filename.split(".").pop()?.toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      mp3: "audio/mpeg",
-      wav: "audio/wav",
-      m4a: "audio/mp4",
-      mp4: "audio/mp4",
-    };
-    return mimeTypes[ext || ""] || "audio/mpeg";
   }
 }

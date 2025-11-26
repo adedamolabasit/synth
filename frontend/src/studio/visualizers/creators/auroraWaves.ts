@@ -6,7 +6,7 @@ export const createAuroraWavesVisualizer = (
   params: VisualizerParams
 ): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
-  const ribbons = Math.floor(3 + params.complexity * 5); // number of ribbons
+  const ribbons = Math.floor(3 + params.complexity * 5); 
   const pointsPerRibbon = 200;
 
   for (let r = 0; r < ribbons; r++) {
@@ -16,9 +16,9 @@ export const createAuroraWavesVisualizer = (
 
     for (let i = 0; i < pointsPerRibbon; i++) {
       const t = i / pointsPerRibbon;
-      positions[i * 3 + 0] = (Math.random() - 0.5) * 10; // x
-      positions[i * 3 + 1] = t * 5;                        // y
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 10; // z
+      positions[i * 3 + 0] = (Math.random() - 0.5) * 10; 
+      positions[i * 3 + 1] = t * 5;                        
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 10; 
 
       const hue = (r / ribbons + t) % 1;
       const color = new THREE.Color().setHSL(hue, 1, 0.5);

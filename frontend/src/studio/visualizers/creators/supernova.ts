@@ -4,7 +4,6 @@ import { VisualizerParams } from "../../types/visualizer";
 export const createSupernovaVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   
-  // Central core
   const coreGeometry = new THREE.SphereGeometry(0.5, 32, 32);
   const coreMaterial = new THREE.MeshPhongMaterial({
     color: 0xffffff,
@@ -16,7 +15,6 @@ export const createSupernovaVisualizer = (scene: THREE.Scene, params: Visualizer
   scene.add(core);
   objects.push(core);
 
-  // Explosion particles
   const particleCount = Math.floor(200 * params.patternDensity);
   for (let i = 0; i < particleCount; i++) {
     const geometry = new THREE.SphereGeometry(0.1, 8, 8);

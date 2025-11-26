@@ -1,6 +1,5 @@
 import mongoose, { Document } from "mongoose";
 import { IUser } from "./userEntry.model";
-import { WordTimestamp, SegmentTimestamp } from "@/types";
 
 export interface AudioMetadata {
   size: number;

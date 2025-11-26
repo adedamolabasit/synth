@@ -21,7 +21,6 @@ export const createFireRingsVisualizer = (scene: THREE.Scene, params: Visualizer
     scene.add(ring);
     objects.push(ring);
 
-    // Flames
     const flameCount = Math.floor(20 * params.patternDensity);
     for (let j = 0; j < flameCount; j++) {
       const angle = (j / flameCount) * Math.PI * 2;

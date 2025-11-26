@@ -4,8 +4,8 @@ import { VisualizerParams } from "../../types/visualizer";
 export const createBiomorphicVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   
-  const branches = Math.min(Math.floor(params.complexity * 3), 8); // Max 8 branches
-  const maxDepth = Math.min(3 + Math.floor(params.complexity / 2), 5); // Max depth 5
+  const branches = Math.min(Math.floor(params.complexity * 3), 8); 
+  const maxDepth = Math.min(3 + Math.floor(params.complexity / 2), 5); 
 
   const geometries: THREE.CylinderGeometry[] = [];
   const materials: THREE.MeshPhongMaterial[] = [];

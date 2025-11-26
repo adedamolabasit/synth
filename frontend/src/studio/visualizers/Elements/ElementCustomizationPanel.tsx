@@ -6,7 +6,6 @@ import {
   Palette,
   Zap,
   Image,
-  Upload,
   Trash2,
   Move3D,
 } from "lucide-react";
@@ -378,7 +377,6 @@ export const ElementCustomizationPanel: React.FC = () => {
     return;
   }
 
-  // Create object URL for the GIF
   const imageUrl = URL.createObjectURL(file);
 
   if (fieldKey === "image" && element.type === "background") {
@@ -386,14 +384,11 @@ export const ElementCustomizationPanel: React.FC = () => {
       [fieldKey]: imageUrl,
       imageFile: file.name,
       backgroundType: "image",
-      // Store the file type to handle GIFs specially
-      imageType: file.type,
     });
   } else {
     updateElementCustomization(element.id, {
       [fieldKey]: imageUrl,
       [`${fieldKey}File`]: file.name,
-      // Store the file type to handle GIFs specially
       [`${fieldKey}Type`]: file.type,
     });
   }

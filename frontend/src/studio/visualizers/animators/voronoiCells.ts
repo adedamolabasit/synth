@@ -1,12 +1,9 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateVoronoiCells = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
   time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
 ): void => {
   const scaledTime = time * 0.001;
   

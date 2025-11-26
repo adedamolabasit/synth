@@ -83,7 +83,6 @@ export class VideoController {
         return;
       }
 
-      // Validate file type
       const allowedVideoTypes = [
         "video/mp4",
         "video/mpeg",
@@ -103,24 +102,16 @@ export class VideoController {
         return;
       }
 
-      console.log("Uploading video to Pinata...");
-      // Upload video to Pinata
       const saveVideoFile = await uploadToPinata(req.file);
 
-      // Generate and upload thumbnail (optional)
       let thumbnailData = null;
       try {
-        thumbnailData = await this.generateThumbnail(req.file.path);
-      } catch (error) {
-        console.warn("Thumbnail generation failed:", error);
-      }
+        thumbnailData = await this.generateThumbnail();
+      } catch (error) {}
 
-      // Clean up temporary file
       this.cleanupFile(req.file.path);
 
-      console.log("Saving video entry to database...");
-      // Save to database
-      const videoEntry = await VideoEntryService.saveVideoEntry({
+      await VideoEntryService.saveVideoEntry({
         userId: this.USER_ID,
         walletAddress: walletAddress,
         videoHash: saveVideoFile.ipfsHash,
@@ -134,8 +125,6 @@ export class VideoController {
         },
       });
 
-      console.log("Video saved successfully:", videoEntry._id);
-
       const response: VideoResponse = {
         success: true,
         videoUrl: saveVideoFile.url,
@@ -145,7 +134,6 @@ export class VideoController {
 
       res.json(response);
     } catch (error) {
-      console.error("Error in uploadVideo:", error);
       if (req.file?.path) {
         this.cleanupFile(req.file.path);
       }
@@ -159,11 +147,9 @@ export class VideoController {
     }
   }
 
-  async getAllVideos(req: Request, res: Response): Promise<void> {
+  async getAllVideos(_req: Request, res: Response): Promise<void> {
     try {
-      console.log("Fetching all videos...");
       const videos = await VideoEntryService.getAllVideos();
-      console.log(`Found ${videos.length} videos`);
 
       const response: VideosResponse = {
         success: true,
@@ -173,7 +159,6 @@ export class VideoController {
 
       res.json(response);
     } catch (error) {
-      console.error("Error in getAllVideos:", error);
       const response: VideosResponse = {
         success: false,
         error: this.getErrorMessage(error),
@@ -186,7 +171,6 @@ export class VideoController {
   async getVideoById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      console.log("Fetching video by ID:", id);
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         const response: VideoDetailResponse = {
@@ -215,7 +199,6 @@ export class VideoController {
 
       res.json(response);
     } catch (error) {
-      console.error("Error in getVideoById:", error);
       const response: VideoDetailResponse = {
         success: false,
         error: this.getErrorMessage(error),
@@ -228,7 +211,6 @@ export class VideoController {
   async getVideosByWallet(req: Request, res: Response): Promise<void> {
     try {
       const { walletAddress } = req.params;
-      console.log("Fetching videos by wallet:", walletAddress);
 
       if (!walletAddress) {
         const response: VideosResponse = {
@@ -240,7 +222,6 @@ export class VideoController {
       }
 
       const videos = await VideoEntryService.getVideosByWallet(walletAddress);
-      console.log(`Found ${videos.length} videos for wallet ${walletAddress}`);
 
       const response: VideosResponse = {
         success: true,
@@ -250,7 +231,6 @@ export class VideoController {
 
       res.json(response);
     } catch (error) {
-      console.error("Error in getVideosByWallet:", error);
       const response: VideosResponse = {
         success: false,
         error: this.getErrorMessage(error),
@@ -263,7 +243,6 @@ export class VideoController {
   async deleteVideo(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      console.log("Deleting video:", id);
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         const response: VideoDetailResponse = {
@@ -285,7 +264,6 @@ export class VideoController {
         return;
       }
 
-      console.log("Video deleted successfully:", id);
       const response: VideoDetailResponse = {
         success: true,
         video: this.formatVideoResponse(video),
@@ -293,7 +271,6 @@ export class VideoController {
 
       res.json(response);
     } catch (error) {
-      console.error("Error in deleteVideo:", error);
       const response: VideoDetailResponse = {
         success: false,
         error: this.getErrorMessage(error),
@@ -303,11 +280,10 @@ export class VideoController {
     }
   }
 
-  private async generateThumbnail(
-    videoPath: string
-  ): Promise<{ ipfsHash: string; url: string } | null> {
-    // Implement thumbnail generation logic here
-    // For now, return null as this is optional
+  private async generateThumbnail(): Promise<{
+    ipfsHash: string;
+    url: string;
+  } | null> {
     return null;
   }
 }

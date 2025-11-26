@@ -1,16 +1,13 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateCosmicWeb = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
   time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
 ): void => {
   const scaledTime = time * 0.001;
   
-  objects.forEach((obj, index) => {
+  objects.forEach((obj) => {
     if (obj.userData.isNode && obj instanceof THREE.Mesh) {
       const nodeIndex = obj.userData.index || 0;
       const dataIndex = Math.floor((nodeIndex / 30) * frequencyData.length);

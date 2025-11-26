@@ -19,7 +19,6 @@ export const createFractalTreeVisualizer = (
     shininess: 50,
   });
 
-  // Create a single instanced mesh
   const instancedMesh = new THREE.InstancedMesh(geometry, material, totalParticles);
   instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
@@ -55,7 +54,6 @@ export const createFractalTreeVisualizer = (
   }
 
   scene.add(instancedMesh);
-  // Attach particle data for animation
   (instancedMesh.userData as any).particleData = particleData;
 
   objects.push(instancedMesh);

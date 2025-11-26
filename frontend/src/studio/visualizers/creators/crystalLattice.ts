@@ -3,7 +3,7 @@ import { VisualizerParams } from "../../types/visualizer";
 
 export const createCrystalLatticeVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
-  const layers = Math.floor(4 + params.patternDensity * 3); // multiple layers
+  const layers = Math.floor(4 + params.patternDensity * 3); 
   const crystalsPerLayer = Math.floor(30 + params.complexity * 20);
 
   for (let layer = 0; layer < layers; layer++) {
@@ -23,7 +23,6 @@ export const createCrystalLatticeVisualizer = (scene: THREE.Scene, params: Visua
 
       const crystal = new THREE.Mesh(geometry, material);
 
-      // Position on a circular layer
       crystal.position.set(
         Math.cos(angle) * radius,
         (Math.random() - 0.5) * 2 + layer * 0.5,

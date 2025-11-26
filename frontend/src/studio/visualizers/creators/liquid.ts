@@ -4,7 +4,6 @@ import type { VisualizerParams } from "../../types/visualizer";
 export const createLiquidVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
 
-  // --- Liquid plane ---
   const resolution = 64;
   const geometry = new THREE.PlaneGeometry(10, 10, resolution - 1, resolution - 1);
   const material = new THREE.MeshStandardMaterial({
@@ -36,7 +35,6 @@ export const createLiquidVisualizer = (scene: THREE.Scene, params: VisualizerPar
   scene.add(liquidSurface);
   objects.push(liquidSurface);
 
-  // --- Particles ---
   const particleCount = Math.min(params.particleCount ?? 500, 1000);
   const particleGeometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
@@ -69,7 +67,6 @@ export const createLiquidVisualizer = (scene: THREE.Scene, params: VisualizerPar
   scene.add(particles);
   objects.push(particles);
 
-  // --- Floating orbs ---
   const orbCount = 5;
   for (let i = 0; i < orbCount; i++) {
     const orbGeometry = new THREE.IcosahedronGeometry(0.15 + Math.random() * 0.1, 16);
@@ -94,7 +91,6 @@ export const createLiquidVisualizer = (scene: THREE.Scene, params: VisualizerPar
     objects.push(orb);
   }
 
-  // --- Grid lines ---
   const lineGeometry = new THREE.BufferGeometry();
   const linePositions: number[] = [];
   for (let i = 0; i < 6; i++) {

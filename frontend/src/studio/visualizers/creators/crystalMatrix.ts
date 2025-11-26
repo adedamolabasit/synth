@@ -1,10 +1,7 @@
-// creators/crystalMatrix.ts
 import * as THREE from "three";
-import { VisualizerParams } from "../../types/visualizer";
 
 export const createCrystalMatrixVisualizer = (
   scene: THREE.Scene,
-  params: VisualizerParams
 ): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const crystalGroup = new THREE.Group();

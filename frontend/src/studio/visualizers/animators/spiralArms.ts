@@ -1,11 +1,10 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
+import { BeatInfo } from "../../types/visualizer";
 
 export const animateSpiralArms = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
   time: number,
-  params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
   const scaledTime = time * 0.001;
@@ -25,10 +24,11 @@ export const animateSpiralArms = (
     const dataIndex = Math.floor(t * frequencyData.length);
     const audioValue = frequencyData[dataIndex] / 255;
 
-    // Spiral motion
-    const angle = t * Math.PI * 6 + (arm / 4) * Math.PI * 2 + scaledTime * (0.5 + mid);
+    const angle =
+      t * Math.PI * 6 + (arm / 4) * Math.PI * 2 + scaledTime * (0.5 + mid);
     const radius = baseRadius * (1 + bass * audioValue);
-    const height = baseY + Math.sin(scaledTime * 2 + index * 0.2) * audioValue * 1.5;
+    const height =
+      baseY + Math.sin(scaledTime * 2 + index * 0.2) * audioValue * 1.5;
 
     obj.position.set(
       Math.cos(angle) * radius,
@@ -36,18 +36,15 @@ export const animateSpiralArms = (
       Math.sin(angle) * radius
     );
 
-    // Audio-reactive scaling
     const scale = 0.5 + audioValue * 1.2;
     obj.scale.set(scale, scale, scale);
 
-    // Color animation with treble influence
     if (obj.material instanceof THREE.MeshPhongMaterial) {
-      const hue = ((arm / 4) + scaledTime * 0.1 + treble * 0.3) % 1;
+      const hue = (arm / 4 + scaledTime * 0.1 + treble * 0.3) % 1;
       obj.material.color.setHSL(hue, 0.9, 0.5 + audioValue * 0.4);
       obj.material.emissiveIntensity = 0.2 + audioValue * 0.5;
     }
 
-    // Add slight rotation for depth effect
     obj.rotation.y = scaledTime * 0.3;
   });
 };

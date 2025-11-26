@@ -35,7 +35,6 @@ export const createLightningStormVisualizer = (scene: THREE.Scene, params: Visua
     scene.add(bolt);
     objects.push(bolt);
 
-    // Add glow spheres at connection points
     const glowGeometry = new THREE.SphereGeometry(0.15, 16, 16);
     const glowMaterial = new THREE.MeshPhongMaterial({
       color: 0xffffff,

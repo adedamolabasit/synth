@@ -8,7 +8,6 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { defaultCustomizations } from "../../../provider/config";
 import { useVisualizer } from "../../../provider/VisualizerContext";
 import { Button } from "../../../components/ui/Button";
 import { VisualElement } from "../../types/visualizer";
@@ -24,38 +23,6 @@ export const VisualElementSelector: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
-
-  const addNewElement = (type: VisualElement["type"]) => {
-    const elementNames = {
-      particle: "Particles",
-      shape: "Shape",
-      light: "Light",
-      grid: "Grid",
-      wave: "Wave",
-      background: "Background",
-      ambient: "Ambient Element",
-    };
-
-    setVisualElements((prev) => {
-      const newElement: VisualElement = {
-        id: `${type}-${Date.now()}`,
-        type,
-        name: `${elementNames[type]} ${
-          prev.filter((el) => el.type === type).length + 1
-        }`,
-        visible: true,
-        position: [0, 0, 0],
-        rotation: [0, 0, 0],
-        scale: [1, 1, 1],
-        customization: defaultCustomizations[type] as any,
-      };
-
-      return [...prev, newElement];
-    });
-
-    setSelectedElement(`${type}-${Date.now()}`);
-    setShowAddMenu(false);
-  };
 
   const addAmbientElement = (ambientType: string) => {
     const ambientNames = {

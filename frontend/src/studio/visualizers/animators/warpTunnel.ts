@@ -1,25 +1,20 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateWarpTunnel = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
+  time: number
 ): void => {
   const scaledTime = time * 0.001;
-  
-  objects.forEach((obj, index) => {
+
+  objects.forEach((obj) => {
     if (obj instanceof THREE.Mesh) {
       const ringIndex = obj.userData.index || 0;
       const dataIndex = Math.floor((ringIndex / 30) * frequencyData.length);
       const audioValue = frequencyData[dataIndex] / 255;
 
-      // Move rings forward
       obj.position.z += 0.05 * (1 + audioValue);
-      
-      // Reset rings that pass through
+
       if (obj.position.z > 15) {
         obj.position.z = -15;
       }

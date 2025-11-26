@@ -5,7 +5,6 @@ export const createElectromagneticFieldVisualizer = (scene: THREE.Scene, params:
   const objects: THREE.Object3D[] = [];
   const fieldLines = Math.floor(12 * params.complexity);
 
-  // Central charge
   const coreGeometry = new THREE.SphereGeometry(0.3, 32, 32);
   const coreMaterial = new THREE.MeshPhongMaterial({
     color: 0xffffff,
@@ -17,7 +16,6 @@ export const createElectromagneticFieldVisualizer = (scene: THREE.Scene, params:
   scene.add(core);
   objects.push(core);
 
-  // Field lines
   for (let i = 0; i < fieldLines; i++) {
     const points: THREE.Vector3[] = [];
     const segments = Math.floor(50 * params.patternDensity);

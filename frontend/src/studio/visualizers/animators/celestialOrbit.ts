@@ -1,16 +1,14 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateCelestialOrbit = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
+  time: number
 ): void => {
   const scaledTime = time * 0.001;
-  const avgAudio = frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length / 255;
-  
+  const avgAudio =
+    frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length / 255;
+
   objects.forEach((obj) => {
     if (obj instanceof THREE.Mesh) {
       if (obj.userData.isStar) {

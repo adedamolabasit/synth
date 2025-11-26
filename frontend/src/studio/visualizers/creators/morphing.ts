@@ -30,7 +30,7 @@ export const createMorphingVisualizer = (scene: THREE.Scene, params: VisualizerP
       morphSpeed: 0.5 + Math.random() * params.morphSpeed,
       originalVertices: geometry.attributes.position.array.slice(),
       phase: Math.random() * Math.PI * 2,
-      flowDirection: 1, // for future beat flow flipping
+      flowDirection: 1, 
     };
 
     scene.add(mesh);

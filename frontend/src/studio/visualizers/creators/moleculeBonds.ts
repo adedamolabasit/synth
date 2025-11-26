@@ -6,7 +6,6 @@ export const createMoleculeBondsVisualizer = (scene: THREE.Scene, params: Visual
   const atoms = Math.floor(15 * params.patternDensity);
   const atomPositions: THREE.Vector3[] = [];
 
-  // Create atoms
   for (let i = 0; i < atoms; i++) {
     const position = new THREE.Vector3(
       (Math.random() - 0.5) * 6,
@@ -28,8 +27,7 @@ export const createMoleculeBondsVisualizer = (scene: THREE.Scene, params: Visual
     scene.add(atom);
     objects.push(atom);
   }
-
-  // Create bonds
+  
   for (let i = 0; i < atoms; i++) {
     for (let j = i + 1; j < atoms; j++) {
       const distance = atomPositions[i].distanceTo(atomPositions[j]);

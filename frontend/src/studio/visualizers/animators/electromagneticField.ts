@@ -1,14 +1,9 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateElectromagneticField = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
 ): void => {
-  const scaledTime = time * 0.001;
   
   objects.forEach((obj) => {
     if (obj.userData.isCore && obj instanceof THREE.Mesh) {

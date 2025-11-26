@@ -1,6 +1,5 @@
 import { AudioEntry } from "@/model/audioEntry.model";
 import mongoose from "mongoose";
-import { SegmentTimestamp, WordTimestamp } from "@/types";
 
 export interface SaveAudioEntryData {
   userId: mongoose.Types.ObjectId;

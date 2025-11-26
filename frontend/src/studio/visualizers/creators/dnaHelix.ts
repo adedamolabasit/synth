@@ -10,7 +10,6 @@ export const createDNAHelixVisualizer = (scene: THREE.Scene, params: VisualizerP
     const t = (i / segments) * Math.PI * 4 * params.complexity;
     const y = (i / segments) * 8 - 4;
 
-    // First strand
     const sphere1 = new THREE.Mesh(
       new THREE.SphereGeometry(0.15, 16, 16),
       new THREE.MeshPhongMaterial({
@@ -25,7 +24,6 @@ export const createDNAHelixVisualizer = (scene: THREE.Scene, params: VisualizerP
     scene.add(sphere1);
     objects.push(sphere1);
 
-    // Second strand
     const sphere2 = new THREE.Mesh(
       new THREE.SphereGeometry(0.15, 16, 16),
       new THREE.MeshPhongMaterial({

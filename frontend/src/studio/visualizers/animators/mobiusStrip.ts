@@ -1,15 +1,12 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateMobiusStrip = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
+  time: number
 ): void => {
   const scaledTime = time * 0.001;
-  
+
   objects.forEach((obj) => {
     if (obj instanceof THREE.Line) {
       const stripIndex = obj.userData.stripIndex || 0;
@@ -19,11 +16,10 @@ export const animateMobiusStrip = (
       const audioValue = frequencyData[dataIndex] / 255;
 
       if (obj.material instanceof THREE.LineBasicMaterial) {
-        const hue = ((stripIndex / 3) + scaledTime * 0.05) % 1;
+        const hue = (stripIndex / 3 + scaledTime * 0.05) % 1;
         obj.material.color.setHSL(hue, 1, 0.5 + audioValue * 0.3);
       }
     } else if (obj.userData.isParticle && obj instanceof THREE.Mesh) {
-      const stripIndex = obj.userData.stripIndex || 0;
       const index = obj.userData.index || 0;
       const dataIndex = Math.floor((index / 30) * frequencyData.length);
       const audioValue = frequencyData[dataIndex] / 255;

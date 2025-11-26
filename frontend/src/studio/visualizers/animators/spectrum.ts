@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
+import { VisualizerParams } from "../../types/visualizer";
 
 export const animateSpectrum = (
   objects: THREE.Object3D[],
@@ -9,13 +9,14 @@ export const animateSpectrum = (
 ) => {
   if (!objects || objects.length === 0) return;
 
-  const group = objects.find(o => o.userData?.isGroup) as THREE.Group | undefined;
+  const group = objects.find((o) => o.userData?.isGroup) as
+    | THREE.Group
+    | undefined;
   if (!group) return;
 
   const { ribbons, particles, core, backgroundSphere } = group.userData;
   const now = time;
 
-  // --- Animate ribbons ---
   ribbons.forEach((ribbon: THREE.Line) => {
     const freqIndex = ribbon.userData.index % frequencyData.length;
     const freq = frequencyData[freqIndex] / 255;
@@ -39,7 +40,6 @@ export const animateSpectrum = (
     );
   });
 
-  // --- Animate particles ---
   const pos = particles.geometry.attributes.position.array as Float32Array;
   const vel = particles.geometry.attributes.velocity.array as Float32Array;
   for (let i = 0; i < pos.length; i += 3) {
@@ -51,17 +51,17 @@ export const animateSpectrum = (
   }
   particles.geometry.attributes.position.needsUpdate = true;
 
-  // --- Animate core ---
   if (core) {
-    const avgFreq = frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length / 255;
+    const avgFreq =
+      frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length / 255;
     const scale = 1 + avgFreq * 2;
     core.scale.setScalar(scale);
     core.material.opacity = 0.25 + avgFreq * 0.5;
   }
 
-  // --- Animate dynamic background ---
   if (backgroundSphere) {
-    const avgFreq = frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length / 255;
+    const avgFreq =
+      frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length / 255;
     (backgroundSphere.material as THREE.MeshBasicMaterial).color.setHSL(
       (now * 0.02 + avgFreq * 0.3) % 1,
       0.5,
@@ -69,6 +69,5 @@ export const animateSpectrum = (
     );
   }
 
-  // --- Rotate group slowly ---
-  group.rotation.y += (params.rotationSpeed ?? 0.0015);
+  group.rotation.y += params.rotationSpeed ?? 0.0015;
 };

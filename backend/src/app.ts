@@ -1,7 +1,5 @@
 import express from "express";
 import cors from "cors";
-import { audioController } from "./controllers/audioController";
-import { upload } from "./middleware/upload";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -13,26 +11,19 @@ import lyricsRoutes from "./routes/audioRoutes";
 import videoRoutes from "./routes/videoRoutes"
 
 const app = express();
-const lyricsController = new audioController();
 
-// Load environment variables if needed
-// import dotenv from 'dotenv'; dotenv.config();
-
-// Middleware
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Whitelist origins
 const allowedOrigins = [
   "https://core-backend-1735.postman.co",
-  "http://localhost:3000", // your local frontend
-  "*", // optionally allow all origins (less secure)
+  "http://localhost:3000", 
+  "*", 
 ];
 
 app.use(cors({
   origin: function (origin: any, callback: any) {
-    // allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
       return callback(null, true);
@@ -44,7 +35,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Create uploads directory if it doesn't exist
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan(config.morgan.format));
 }
@@ -54,17 +44,14 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Routes
 app.use("/api/v1", lyricsRoutes);
 app.use("/api/video", videoRoutes);
 setupSwagger(app);
 
-// Health check
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-// Error handling middleware
 app.use(
   (
     error: any,

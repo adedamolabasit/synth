@@ -9,7 +9,6 @@ export const createDNAOrigamiVisualizer = (scene: THREE.Scene, params: Visualize
     const t = (i / segments) * Math.PI * 6;
     const radius = 2 + Math.sin(t * 2) * 0.5;
 
-    // Create folded structure
     const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.3);
     const material = new THREE.MeshPhongMaterial({
       color: new THREE.Color().setHSL((i / segments), 0.8, 0.5),
@@ -32,7 +31,6 @@ export const createDNAOrigamiVisualizer = (scene: THREE.Scene, params: Visualize
     scene.add(box);
     objects.push(box);
 
-    // Connector
     if (i > 0) {
       const prevBox = objects[objects.length - 2] as THREE.Mesh;
       const points = [prevBox.position.clone(), box.position.clone()];

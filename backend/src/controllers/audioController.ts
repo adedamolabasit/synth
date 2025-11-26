@@ -102,7 +102,6 @@ export class audioController {
     res.json({ success: true, audio });
   }
 
-  // ⭐ GET SINGLE AUDIO BY ID
   async getAudioById(req: any, res: Response): Promise<any> {
     const { id } = req.params;
 
@@ -113,7 +112,6 @@ export class audioController {
     res.json({ success: true, audio });
   }
 
-  // ⭐ DELETE AUDIO BY ID
   async deleteAudio(req: any, res: Response): Promise<any> {
     const { id } = req.params;
 

@@ -13,7 +13,6 @@ export const createSpectrumVisualizer = (
   const bars = 64;
   const radius = 6;
 
-  // --- Circular wave ribbons ---
   const ribbons: THREE.Line[] = [];
   for (let i = 0; i < bars; i++) {
     const points: THREE.Vector3[] = [];
@@ -44,7 +43,6 @@ export const createSpectrumVisualizer = (
     objects.push(ribbon);
   }
 
-  // --- Floating neon particles ---
   const particleCount = params.particleCount ?? 800;
   const particleGeometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
@@ -90,7 +88,6 @@ export const createSpectrumVisualizer = (
   group.add(particles);
   objects.push(particles);
 
-  // --- Central glowing core ---
   const coreGeo = new THREE.SphereGeometry(1.5 * (params.scale ?? 1), 32, 32);
   const coreMat = new THREE.MeshBasicMaterial({
     color: new THREE.Color(0x00ffff),
@@ -103,7 +100,6 @@ export const createSpectrumVisualizer = (
   group.add(core);
   objects.push(core);
 
-  // --- Background sphere for gradient ---
   const bgGeo = new THREE.SphereGeometry(50, 32, 32);
   const bgMat = new THREE.MeshBasicMaterial({
     color: new THREE.Color(0x000000),
@@ -116,7 +112,6 @@ export const createSpectrumVisualizer = (
   group.add(bg);
   objects.push(bg);
 
-  // --- Group state ---
   group.userData = {
     isGroup: true,
     ribbons,

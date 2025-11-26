@@ -1,5 +1,3 @@
-import { createAuroraWavesVisualizer } from "./auroraWaves";
-
 export { createSpectrumVisualizer } from "./spectrum";
 export { createParticleWaveVisualizer } from "./particleWave";
 export { createGeometricVisualizer } from "./geometric";
@@ -39,7 +37,6 @@ export { createMoleculeBondsVisualizer } from "./moleculeBonds";
 export { createLightningStormVisualizer } from "./lightningStorm";
 export { createQuantumFoamVisualizer } from "./quantumFoam";
 export { createCelestialOrbitVisualizer } from "./celestialOrbit";
-
 export { createCrystalMatrixVisualizer } from "./crystalMatrix";
 export { createLiquidMercuryVisualizer } from "./liquidMercury";
 export { createCyberGrid2Visualizer } from "./cyberGrid2";

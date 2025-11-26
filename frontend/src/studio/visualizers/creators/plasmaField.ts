@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { VisualizerParams } from "../../types/visualizer";
 
-export const createPlasmaFieldVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
+export const createPlasmaFieldVisualizer = (
+  scene: THREE.Scene,
+  params: VisualizerParams
+): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const particleCount = Math.floor(300 * params.patternDensity);
 
@@ -24,8 +27,8 @@ export const createPlasmaFieldVisualizer = (scene: THREE.Scene, params: Visualiz
     colors[i3 + 2] = Math.random();
   }
 
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
     size: 0.15,

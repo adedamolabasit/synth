@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-  Play,
-  Pause,
-  Wand2,
-  Trash2,
-  Volume2,
-  Music,
-  Video,
-} from "lucide-react";
+import { Play, Pause, Music, Video } from "lucide-react";
 import { BeatInfo } from "../../../shared/types/visualizer.types";
 import { Button } from "../../ui/Button";
 import * as THREE from "three";
@@ -64,7 +56,6 @@ export const LivePreviewCanvas: React.FC = () => {
   const [videoName, setVideoName] = useState(`visualizer-${Date.now()}`);
   const [isUploading, setIsUploading] = useState(false);
 
-
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -85,7 +76,6 @@ export const LivePreviewCanvas: React.FC = () => {
   const directionalLightRef = useRef<THREE.DirectionalLight | null>(null);
   const pointLightsRef = useRef<THREE.PointLight[]>([]);
   const backgroundRef = useRef<THREE.Color | THREE.Texture | null>(null);
-
 
   useEffect(() => {
     if (duration > 0) {
@@ -871,13 +861,6 @@ export const LivePreviewCanvas: React.FC = () => {
     seekTo(newTime);
   };
 
-  const handleClearAudio = () => {
-    pauseAudio();
-    setAudioName("");
-    setAudioError("");
-    setHasDefaultAudio(false);
-  };
-
   useEffect(() => {
     const loadLyrics = async () => {
       if (currentAudio?.lyrics) {
@@ -936,7 +919,7 @@ export const LivePreviewCanvas: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
         {isConnected && (
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl px-8 py-4 shadow-2xl">
+          <div className="absolute bottom-32 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl px-8 py-4 shadow-2xl">
             {audioName && (
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="flex items-center gap-3 bg-slate-800/50 rounded-xl px-4 py-2 border border-slate-700/30">

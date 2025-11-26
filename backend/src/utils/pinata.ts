@@ -13,16 +13,11 @@ export interface PinataResult {
   ipfsHash: string;
   url: string;
 }
-/**
- * Upload a file to Pinata using the provided Multer file.
- * @param file - The Multer file object from req.file
- */
+
 export const uploadToPinata = async (file: Express.Multer.File): Promise<PinataResult> => {
   if (!file) throw new Error("No file provided");
 
-  console.log(file.path,"pathh")
-
-  const filePath = file.path; // ✅ use Multer’s actual file path
+  const filePath = file.path; 
   if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
 
   const formData = new FormData();
@@ -37,15 +32,12 @@ export const uploadToPinata = async (file: Express.Multer.File): Promise<PinataR
       },
     });
 
-    // ✅ Delete the temp file after upload succeeds
-    // fs.unlinkSync(filePath);
 
     const ipfsHash = res.data.IpfsHash;
     const gatewayUrl = `${PINATA_GATEWAY}/ipfs/${ipfsHash}?pinataGatewayToken=${PINATA_KEY}`;
 
     return { ipfsHash, url: gatewayUrl };
   } catch (err: any) {
-    // Ensure temp file is removed even on error
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     throw new Error(err.message || "Failed to upload file to Pinata");
   }

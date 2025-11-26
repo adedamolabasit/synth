@@ -1,23 +1,17 @@
-// creators/neuralCosmos.ts
 import * as THREE from "three";
-import { VisualizerParams } from "../../types/visualizer";
 
 export const createNeuralCosmosVisualizer = (
   scene: THREE.Scene,
-  params: VisualizerParams
 ): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const neuralCosmosGroup = new THREE.Group();
   
-  // Create cosmic neural network
   const neuronCount = 200;
   const neurons: THREE.Mesh[] = [];
   const axons: THREE.Line[] = [];
   const synapticFields: THREE.Points[] = [];
 
-  // Generate neurons in cosmic distribution
   for (let i = 0; i < neuronCount; i++) {
-    // Fibonacci sphere distribution for cosmic feel
     const goldenRatio = (1 + Math.sqrt(5)) / 2;
     const y = 1 - (i / (neuronCount - 1)) * 2;
     const radius = Math.sqrt(1 - y * y);
@@ -29,7 +23,6 @@ export const createNeuralCosmosVisualizer = (
     
     const position = new THREE.Vector3(x, y, z).multiplyScalar(12);
 
-    // Create neuron node
     const neuronGeometry = new THREE.DodecahedronGeometry(0.4, 1);
     const neuronMaterial = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color().setHSL(i * 0.005, 0.9, 0.6),
@@ -46,7 +39,6 @@ export const createNeuralCosmosVisualizer = (
     neuralCosmosGroup.add(neuron);
     neurons.push(neuron);
 
-    // Create synaptic field around neuron
     const synapticCount = 30;
     const synapticGeometry = new THREE.BufferGeometry();
     const synapticPositions = new Float32Array(synapticCount * 3);
@@ -85,9 +77,7 @@ export const createNeuralCosmosVisualizer = (
     synapticFields.push(synapticField);
   }
 
-  // Create neural connections (axons)
   for (let i = 0; i < neuronCount; i++) {
-    // Connect to nearest neighbors
     const connectionCount = 4;
     for (let j = 0; j < connectionCount; j++) {
       const targetIndex = (i + Math.floor(Math.random() * 20) + 1) % neuronCount;
@@ -116,7 +106,6 @@ export const createNeuralCosmosVisualizer = (
     }
   }
 
-  // Create neural impulse particles
   const impulseCount = 100;
   const impulseGeometry = new THREE.BufferGeometry();
   const impulsePositions = new Float32Array(impulseCount * 3);
@@ -131,7 +120,7 @@ export const createNeuralCosmosVisualizer = (
     
     impulsePaths[i3] = startNeuron;
     impulsePaths[i3 + 1] = endNeuron;
-    impulsePaths[i3 + 2] = Math.random(); // Speed variation
+    impulsePaths[i3 + 2] = Math.random();
     
     impulsePositions[i3] = neurons[startNeuron].position.x;
     impulsePositions[i3 + 1] = neurons[startNeuron].position.y;

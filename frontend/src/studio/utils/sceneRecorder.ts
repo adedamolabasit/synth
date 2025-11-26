@@ -15,13 +15,8 @@ export class SceneRecorder {
       const audioTracks = audioStream.getAudioTracks();
       if (audioTracks.length) {
         audioTracks.forEach(t => combined.addTrack(t));
-        console.log('✅ Added audio tracks from processed audio stream');
-      } else {
-        console.warn('⚠️ audioStream has no audio tracks');
-      }
-    } else {
-      console.warn('⚠️ No audioStream provided; recording will be silent');
-    }
+      } 
+    } 
 
     const mimeTypes = [
       'video/webm;codecs=vp8,opus',

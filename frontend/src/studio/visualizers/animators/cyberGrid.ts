@@ -8,10 +8,8 @@ export const animateCyberGrid = (
   params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
-  // Protect against empty frequency data
   if (!frequencyData || frequencyData.length === 0) return;
 
-  // Extract frequency bands safely
   const clampSlice = (from: number, to: number) => {
     const start = Math.max(0, Math.min(frequencyData.length, from));
     const end = Math.max(start, Math.min(frequencyData.length, to));
@@ -19,14 +17,10 @@ export const animateCyberGrid = (
     return slice.length ? slice.reduce((a, b) => a + b, 0) / slice.length : 0;
   };
 
-  const bass = clampSlice(0, Math.floor(frequencyData.length * 0.125)); // low band
-  const mids = clampSlice(
-    Math.floor(frequencyData.length * 0.125),
-    Math.floor(frequencyData.length * 0.5)
-  );
+  const bass = clampSlice(0, Math.floor(frequencyData.length * 0.125)); 
+  
   const highs = clampSlice(Math.floor(frequencyData.length * 0.5), frequencyData.length);
 
-  // Behavior multipliers
   const speed = params.speed * 0.2;
   const rotationSpeed = params.rotationSpeed * 0.002;
   const morphSpeed = params.morphSpeed * 0.5;
@@ -34,11 +28,8 @@ export const animateCyberGrid = (
   const fluidity = params.fluidity * 0.4;
   const reactionSpeed = params.reactionSpeed * 0.8;
 
-  // Walk through objects; keep index for mapping to frequency data
   objects.forEach((obj, i) => {
-    // === GRID BEHAVIOR ===
     if (obj.userData && obj.userData.type === "cyberGrid") {
-      // The grid should be a LineSegments with BufferGeometry
       if (obj instanceof THREE.LineSegments && obj.geometry instanceof THREE.BufferGeometry) {
         const posAttr = obj.geometry.getAttribute("position");
         const positions = posAttr.array as Float32Array;
@@ -72,7 +63,6 @@ export const animateCyberGrid = (
         }
 
         if (obj.material instanceof THREE.LineBasicMaterial) {
-          // highs is 0..255; normalize to 0..1
           const normHighs = Math.min(1, highs / 255);
           obj.material.opacity = 0.5 + normHighs * 0.5 * reactionSpeed;
           obj.material.needsUpdate = true;
@@ -80,14 +70,11 @@ export const animateCyberGrid = (
       }
     }
 
-    // === NODES BEHAVIOR (spheres etc) ===
     if (obj instanceof THREE.Mesh && obj.userData && obj.userData.basePosition) {
       const base = obj.userData.basePosition as THREE.Vector3;
-      // prefer per-node speed if provided
       const nodeSpeed = typeof obj.userData.floatSpeed === "number" ? obj.userData.floatSpeed : 0.1;
       const idx = typeof obj.userData.index === "number" ? obj.userData.index : i;
 
-      // Mode selector
       const mode = intensity < 0.3 ? "float" : intensity < 0.7 ? "wave" : "pulse";
 
       if (mode === "float") {
@@ -100,32 +87,25 @@ export const animateCyberGrid = (
         obj.position.y = base.y + Math.sin(time * nodeSpeed * 2.0 + idx * 0.3) * 0.8 * beat;
       }
 
-      // frequency mapping: use the loop index, not objects.length (safer)
       const dataIndex = Math.floor((i / Math.max(1, objects.length)) * frequencyData.length);
       const freq = Math.min(1, (frequencyData[dataIndex] ?? 0) / 255);
 
       const scale = 1 + freq * 0.6 * (1 + reactionSpeed * 0.5);
       obj.scale.set(scale, scale, scale);
 
-      // Safely handle material: check runtime type before accessing color/opacity
       if (obj.material instanceof THREE.MeshBasicMaterial || obj.material instanceof THREE.MeshStandardMaterial || obj.material instanceof THREE.MeshPhongMaterial) {
         const mat = obj.material as THREE.MeshBasicMaterial | THREE.MeshStandardMaterial | THREE.MeshPhongMaterial;
 
-        // Opacity only exists on materials that support transparency; enable if needed
         if (typeof mat.opacity === "number") {
           mat.transparent = true;
           mat.opacity = 0.5 + freq * 0.4;
         }
 
-        // color exists on these materials
         if (mat.color) {
-          // hue shift slightly with freq
           const hue = 0.55 + freq * 0.25;
-          // convert hue to HSL via setHSL
           mat.color.setHSL(hue, 1.0, 0.6);
         }
 
-        // mark for update where appropriate
         if ("needsUpdate" in mat) mat.needsUpdate = true;
       }
     }

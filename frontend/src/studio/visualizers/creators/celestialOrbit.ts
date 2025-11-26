@@ -5,7 +5,6 @@ export const createCelestialOrbitVisualizer = (scene: THREE.Scene, params: Visua
   const objects: THREE.Object3D[] = [];
   const planets = Math.floor(8 * params.complexity);
 
-  // Central star
   const starGeometry = new THREE.SphereGeometry(0.8, 32, 32);
   const starMaterial = new THREE.MeshPhongMaterial({
     color: 0xffff00,
@@ -17,7 +16,6 @@ export const createCelestialOrbitVisualizer = (scene: THREE.Scene, params: Visua
   scene.add(star);
   objects.push(star);
 
-  // Planets
   for (let i = 0; i < planets; i++) {
     const orbitRadius = 1.5 + i * 0.8;
     const planetSize = 0.1 + Math.random() * 0.3;
@@ -40,7 +38,6 @@ export const createCelestialOrbitVisualizer = (scene: THREE.Scene, params: Visua
     scene.add(planet);
     objects.push(planet);
 
-    // Orbit path
     const orbitGeometry = new THREE.RingGeometry(orbitRadius - 0.02, orbitRadius + 0.02, 64);
     const orbitMaterial = new THREE.MeshBasicMaterial({
       color: 0x444444,

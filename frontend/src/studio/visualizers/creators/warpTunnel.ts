@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { VisualizerParams } from "../../types/visualizer";
 
-export const createWarpTunnelVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
+export const createWarpTunnelVisualizer = (
+  scene: THREE.Scene,
+  params: VisualizerParams
+): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const rings = Math.floor(30 * params.complexity);
   const segments = 32;
@@ -12,7 +15,7 @@ export const createWarpTunnelVisualizer = (scene: THREE.Scene, params: Visualize
 
     const geometry = new THREE.TorusGeometry(radius, 0.1, 16, segments);
     const material = new THREE.MeshPhongMaterial({
-      color: new THREE.Color().setHSL(0.6 + i / rings * 0.4, 1, 0.5),
+      color: new THREE.Color().setHSL(0.6 + (i / rings) * 0.4, 1, 0.5),
       transparent: true,
       opacity: 0.7,
       wireframe: i % 2 === 0,

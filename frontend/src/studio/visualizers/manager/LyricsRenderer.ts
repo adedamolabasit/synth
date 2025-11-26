@@ -155,7 +155,6 @@ export class LyricsRenderer {
 
       return mesh;
     } catch (err) {
-      console.error("❌ Text mesh error", err);
       return null;
     }
   }

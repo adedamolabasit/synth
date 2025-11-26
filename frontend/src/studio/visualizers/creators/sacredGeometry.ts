@@ -8,7 +8,6 @@ export const createSacredGeometryVisualizer = (
   const objects: THREE.Object3D[] = [];
   const layers = Math.floor(5 * params.complexity);
 
-  // --- Flower of Life rings ---
   for (let layer = 0; layer < layers; layer++) {
     const radius = 1 + layer * 0.8;
     const circles = 6;
@@ -41,7 +40,6 @@ export const createSacredGeometryVisualizer = (
     }
   }
 
-  // --- Metatron's Cube vertices ---
   const vertices = [
     [0, 0, 0],
     [1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1],

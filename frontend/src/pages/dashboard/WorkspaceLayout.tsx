@@ -3,7 +3,6 @@ import { AudioUploadPanel } from "../../components/dashboard/audio/AudioUploadPa
 import { VisualizerLibrary } from "../../components/dashboard/workspace/VisualizerLibrary";
 import { LivePreviewCanvas } from "../../components/dashboard/workspace/LivePreviewCanvas";
 import { IPManagementDashboard } from "../../components/dashboard/ipAssets/IPManagementDashboard";
-import { ExportPanel } from "../../components/dashboard/exports/ExportPanel";
 import { VideoPlayer } from "../../components/dashboard/video/VideoPlayer";
 
 interface WorkspaceLayoutProps {
@@ -47,6 +46,7 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
 
   return (
     <div className="flex-1 flex overflow-hidden">
+      
       {!isMobile && (
         <div
           className="
@@ -78,6 +78,8 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
           <VisualizerLibrary />
         </div>
       )}
+      
     </div>
+    
   );
 }

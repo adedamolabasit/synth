@@ -1,4 +1,3 @@
-// animations/crystalResonance.ts
 import * as THREE from "three";
 import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
@@ -14,7 +13,6 @@ export const animateCrystalResonance = (
   const mid = frequencyData[72] / 255;
   const treble = frequencyData[136] / 255;
 
-  // Crystal chamber camera - orbiting the resonance field
   if (camera) {
     camera.position.x = Math.sin(time * 0.06) * 18;
     camera.position.y = Math.sin(time * 0.04) * 6;
@@ -31,41 +29,35 @@ export const animateCrystalResonance = (
     const phaseOffsets = obj.userData.phaseOffsets as number[];
     const energyLevels = obj.userData.energyLevels as number[];
 
-    const resonanceIntensity = params.intensity * 0.025;
     const harmonicSpeed = params.speed * 0.001;
 
-    // Animate resonance crystals
     resonanceCrystals.forEach((crystal, index) => {
       const frequency = resonanceFrequencies[index];
       const phase = phaseOffsets[index];
       let energy = energyLevels[index];
-      const freqIndex = Math.floor((index / resonanceCrystals.length) * frequencyData.length);
+      const freqIndex = Math.floor(
+        (index / resonanceCrystals.length) * frequencyData.length
+      );
       const signal = frequencyData[freqIndex] / 255;
 
-      // Crystal resonance oscillation
       const resonance = Math.sin(time * frequency + phase) * signal;
       crystal.scale.setScalar(1 + resonance * 0.3 + bass * 0.2);
 
-      // Energy accumulation and release
       energy = (energy + signal * 0.1) % 1;
       energyLevels[index] = energy;
 
-      // Crystal rotation
       crystal.rotation.y += harmonicSpeed * (1 + mid);
       crystal.rotation.x += Math.sin(time * 0.5 + index) * 0.01;
 
-      // Dynamic material properties
       const material = crystal.material as THREE.MeshPhysicalMaterial;
       const hue = (index * 0.08 + energy * 0.2 + time * 0.005) % 1;
       material.color.setHSL(hue, 0.8, 0.4 + signal * 0.3);
       material.transmission = 0.3 + signal * 0.3;
       material.roughness = Math.max(0.05, 0.2 - signal * 0.15);
 
-      // Position floating
       crystal.position.y += Math.sin(time * 1.2 + index) * 0.02 * treble;
     });
 
-    // Animate harmonic fields
     harmonicFields.forEach((field, index) => {
       const geometry = field.geometry as THREE.BufferGeometry;
       const posAttr = geometry.getAttribute("position");
@@ -79,21 +71,21 @@ export const animateCrystalResonance = (
 
       for (let i = 0; i < positions.length; i += 3) {
         const particleIndex = i / 3;
-        
-        // Harmonic orbital motion
+
         const orbitSpeed = 1 + Math.sin(time + particleIndex) * 0.5;
         const angle = time * orbitSpeed + particleIndex * 0.1 + phase;
-        
+
         positions[i] = Math.cos(angle) * (2 + Math.sin(time * 2) * 1);
-        positions[i + 1] = Math.sin(angle * 1.3) * (2 + Math.cos(time * 1.7) * 1);
+        positions[i + 1] =
+          Math.sin(angle * 1.3) * (2 + Math.cos(time * 1.7) * 1);
         positions[i + 2] = Math.sin(angle) * (2 + Math.cos(time * 1.5) * 1);
 
-        // Harmonic color waves
-        const colorPhase = (particleIndex / (positions.length / 3) + time * 0.1) % 1;
+        const colorPhase =
+          (particleIndex / (positions.length / 3) + time * 0.1) % 1;
         const hue = (index * 0.08 + colorPhase * 0.3) % 1;
         const saturation = 0.8 + mid * 0.2;
         const brightness = 0.5 + Math.sin(time * 2 + particleIndex) * 0.2;
-        
+
         const color = new THREE.Color().setHSL(hue, saturation, brightness);
         colors[i] = color.r;
         colors[i + 1] = color.g;
@@ -103,36 +95,29 @@ export const animateCrystalResonance = (
       posAttr.needsUpdate = true;
       colorAttr.needsUpdate = true;
 
-      // Field follows crystal
       field.position.copy(crystalPos);
 
-      // Field properties
       const fieldMaterial = field.material as THREE.PointsMaterial;
       fieldMaterial.size = 0.1 + bass * 0.08;
       fieldMaterial.opacity = 0.4 + treble * 0.3;
     });
 
-    // Global resonance field rotation
     obj.rotation.y += harmonicSpeed * bass;
     obj.rotation.x += harmonicSpeed * mid * 0.4;
 
-    // Resonance cascade on beat
     if (beatInfo?.isBeat) {
-      // Energy discharge through all crystals
       resonanceCrystals.forEach((crystal, index) => {
         const material = crystal.material as THREE.MeshPhysicalMaterial;
         material.emissive = new THREE.Color().setHSL(index * 0.08, 0.8, 0.3);
         crystal.scale.setScalar(1.8);
-        
-        // Progressive discharge
+
         setTimeout(() => {
           material.emissive = new THREE.Color(0, 0, 0);
           crystal.scale.setScalar(1);
         }, index * 30 + 100);
       });
 
-      // Harmonic field expansion
-      harmonicFields.forEach(field => {
+      harmonicFields.forEach((field) => {
         const material = field.material as THREE.PointsMaterial;
         material.size = 0.25;
         material.opacity = 0.8;

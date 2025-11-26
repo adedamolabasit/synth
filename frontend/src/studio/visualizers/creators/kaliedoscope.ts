@@ -29,7 +29,6 @@ export const createKaleidoscopeVisualizer = (
 
       const mesh = new THREE.Mesh(geometry, material);
 
-      // Radial placement with slight randomness
       const r = radius + (Math.random() - 0.5) * 0.2;
       mesh.position.set(
         Math.cos(angle) * r,
@@ -37,7 +36,6 @@ export const createKaleidoscopeVisualizer = (
         (layer - layers / 2) * 0.3 + (Math.random() - 0.5) * 0.1
       );
 
-      // Store rotation info and base radius
       mesh.userData = { angle, layer, segment: i, radius: r, rotationOffset: Math.random() * Math.PI * 2 };
 
       scene.add(mesh);

@@ -6,7 +6,6 @@ export const createCosmicWebVisualizer = (scene: THREE.Scene, params: Visualizer
   const nodes = Math.floor(30 * params.patternDensity);
   const nodePositions: THREE.Vector3[] = [];
 
-  // Create nodes
   for (let i = 0; i < nodes; i++) {
     const position = new THREE.Vector3(
       (Math.random() - 0.5) * 10,
@@ -30,7 +29,6 @@ export const createCosmicWebVisualizer = (scene: THREE.Scene, params: Visualizer
     objects.push(node);
   }
 
-  // Create connections
   const connectionMaterial = new THREE.LineBasicMaterial({
     color: 0x4488ff,
     transparent: true,

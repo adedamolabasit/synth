@@ -1,16 +1,13 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateFibonacciSpiral = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
+  time: number
 ): void => {
   const scaledTime = time * 0.001;
-  
-  objects.forEach((obj, index) => {
+
+  objects.forEach((obj) => {
     if (obj instanceof THREE.Mesh) {
       const objIndex = obj.userData.index || 0;
       const dataIndex = Math.floor((objIndex / 500) * frequencyData.length);
@@ -24,7 +21,6 @@ export const animateFibonacciSpiral = (
         obj.material.color.setHSL(hue, 1, 0.5 + audioValue * 0.3);
       }
 
-      // Rotate entire spiral
       const theta = obj.userData.theta + scaledTime * 0.5;
       const r = obj.userData.r;
       obj.position.x = Math.cos(theta) * r;

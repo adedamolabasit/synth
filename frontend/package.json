@@ -1,8 +1,9 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "synth",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "developer": "Adedamola Akinpelu",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

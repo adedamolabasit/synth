@@ -33,7 +33,6 @@ export class VideoEntryService {
       const savedEntry = await newEntry.save();
       return savedEntry;
     } catch (error) {
-      console.error('Error saving video entry:', error);
       throw error;
     }
   }
@@ -43,7 +42,6 @@ export class VideoEntryService {
       const videos = await VideoEntry.find().sort({ createdAt: -1 });
       return videos;
     } catch (error) {
-      console.error('Error getting all videos:', error);
       throw error;
     }
   }
@@ -53,7 +51,6 @@ export class VideoEntryService {
       const videos = await VideoEntry.find({ walletAddress }).sort({ createdAt: -1 });
       return videos;
     } catch (error) {
-      console.error('Error getting videos by wallet:', error);
       throw error;
     }
   }
@@ -63,7 +60,6 @@ export class VideoEntryService {
       const video = await VideoEntry.findById(id);
       return video;
     } catch (error) {
-      console.error('Error getting video by ID:', error);
       throw error;
     }
   }
@@ -73,7 +69,6 @@ export class VideoEntryService {
       const video = await VideoEntry.findByIdAndDelete(id);
       return video;
     } catch (error) {
-      console.error('Error deleting video:', error);
       throw error;
     }
   }

@@ -1,14 +1,9 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateSupernova = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
 ): void => {
-  const scaledTime = time * 0.001;
   const avgAudio = frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length / 255;
   
   objects.forEach((obj) => {
@@ -29,7 +24,6 @@ export const animateSupernova = (
 
         obj.position.add(direction.clone().multiplyScalar(0.05 * speed * (1 + audioValue)));
 
-        // Reset particles that go too far
         if (obj.position.length() > 10) {
           obj.position.set(0, 0, 0);
         }

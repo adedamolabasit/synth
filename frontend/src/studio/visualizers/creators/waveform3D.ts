@@ -1,9 +1,7 @@
 import * as THREE from "three";
-import { VisualizerParams } from "../../types/visualizer";
 
 export const createWaveform3DVisualizer = (
-  scene: THREE.Scene,
-  params: VisualizerParams
+  scene: THREE.Scene
 ): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const points = 128;
@@ -15,11 +13,15 @@ export const createWaveform3DVisualizer = (
 
   for (let i = 0; i < points; i++) {
     const i3 = i * 3;
-    positions[i3] = (i - points / 2) * 0.1; // X-axis spacing
+    positions[i3] = (i - points / 2) * 0.1;
     positions[i3 + 1] = 0;
     positions[i3 + 2] = 0;
 
-    const c = new THREE.Color().setHSL(baseHue + Math.random() * 0.05, 0.8, 0.5);
+    const c = new THREE.Color().setHSL(
+      baseHue + Math.random() * 0.05,
+      0.8,
+      0.5
+    );
     colors[i3] = c.r;
     colors[i3 + 1] = c.g;
     colors[i3 + 2] = c.b;
@@ -40,7 +42,10 @@ export const createWaveform3DVisualizer = (
     type: "waveform3D",
     points,
     originalPositions: positions.slice(),
-    phaseOffsets: Array.from({ length: points }, () => Math.random() * Math.PI * 2),
+    phaseOffsets: Array.from(
+      { length: points },
+      () => Math.random() * Math.PI * 2
+    ),
     baseHue,
     colorShiftSpeed: 0.002 + Math.random() * 0.004,
     flowDirection: 1,

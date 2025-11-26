@@ -1,4 +1,3 @@
-// createParticleWaveVisualizer.ts
 import * as THREE from "three";
 import { VisualizerParams } from "../../types/visualizer";
 
@@ -6,9 +5,11 @@ export const createParticleWaveVisualizer = (
   scene: THREE.Scene,
   params: VisualizerParams
 ) => {
-  // Dynamically adjust particle count based on base intensity
   const baseCount = params.particleCount || 3000;
-  const particleCount = Math.min(baseCount + Math.floor(Math.random() * 2000), 15000);
+  const particleCount = Math.min(
+    baseCount + Math.floor(Math.random() * 2000),
+    15000
+  );
 
   const positions = new Float32Array(particleCount * 3);
   const originalPositions = new Float32Array(particleCount * 3);

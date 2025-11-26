@@ -1,11 +1,10 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
+import { BeatInfo } from "../../types/visualizer";
 
 export const animateMandala = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
   time: number,
-  params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
   const scaledTime = time * 0.001;
@@ -25,18 +24,19 @@ export const animateMandala = (
 
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
-      const freq = frequencyData[Math.floor((i / particleCount) * frequencyData.length)] / 255;
+      const freq =
+        frequencyData[Math.floor((i / particleCount) * frequencyData.length)] /
+        255;
 
-      // Spiral vortex movement
       const angle = angleArray[i] + scaledTime * (0.5 + mid * 2);
       const radius = radiusArray[i] * (1 + bass * freq * 0.8);
-      const height = heightArray[i] + Math.sin(scaledTime * 2 + i) * 0.2 * treble;
+      const height =
+        heightArray[i] + Math.sin(scaledTime * 2 + i) * 0.2 * treble;
 
       positions[i3] = Math.cos(angle) * radius;
       positions[i3 + 1] = height;
       positions[i3 + 2] = Math.sin(angle) * radius;
 
-      // Neon color shift
       const hue = (i / particleCount + treble * 0.5 + scaledTime * 0.2) % 1;
       const color = new THREE.Color().setHSL(hue, 0.9, 0.5 + freq * 0.5);
       colors[i3] = color.r;
@@ -47,7 +47,6 @@ export const animateMandala = (
     obj.geometry.attributes.position.needsUpdate = true;
     obj.geometry.attributes.color.needsUpdate = true;
 
-    // Rotate the vortex
     obj.rotation.y += 0.001 + mid * 0.01;
     obj.rotation.x += 0.0005 + treble * 0.005;
   });

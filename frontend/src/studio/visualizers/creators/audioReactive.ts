@@ -1,168 +1,28 @@
-// import * as THREE from "three";
-// import { VisualizerParams } from "../../../shared/types/visualizer.types";
-
-// export const createAudioReactiveVisualizer = (
-//   scene: THREE.Scene,
-//   params: VisualizerParams
-// ): THREE.Object3D[] => {
-//   const count = 5000;
-
-//   const baseGeometry = new THREE.ConeGeometry(0.02, 0.2, 6, 1, true);
-//   const instancedGeometry = new THREE.InstancedBufferGeometry();
-//   instancedGeometry.index = baseGeometry.index;
-//   instancedGeometry.attributes.position = baseGeometry.attributes.position;
-//   instancedGeometry.attributes.normal = baseGeometry.attributes.normal;
-//   instancedGeometry.attributes.uv = baseGeometry.attributes.uv;
-
-//   const offsets = new Float32Array(count * 3);
-//   const scales = new Float32Array(count);
-//   const angles = new Float32Array(count);
-//   const rings = new Float32Array(count);
-
-//   let i = 0;
-//   for (let a = 0; a < 100; a++) {
-//     for (let b = 0; b < 50; b++) {
-//       const theta = (a / 100) * Math.PI * 2;
-//       const radius = 2 + b * 0.05;
-
-//       offsets[i * 3 + 0] = Math.cos(theta) * radius;
-//       offsets[i * 3 + 1] = (b - 25) * 0.02;
-//       offsets[i * 3 + 2] = Math.sin(theta) * radius;
-
-//       scales[i] = 0.5 + Math.random() * 0.8;
-//       angles[i] = Math.random() * Math.PI * 2;
-//       rings[i] = b;
-
-//       i++;
-//     }
-//   }
-
-//   instancedGeometry.setAttribute("offset", new THREE.InstancedBufferAttribute(offsets, 3));
-//   instancedGeometry.setAttribute("scale", new THREE.InstancedBufferAttribute(scales, 1));
-//   instancedGeometry.setAttribute("angle", new THREE.InstancedBufferAttribute(angles, 1));
-//   instancedGeometry.setAttribute("ring", new THREE.InstancedBufferAttribute(rings, 1));
-
-//   const material = new THREE.ShaderMaterial({
-//     uniforms: {
-//       uTime: { value: 0 },
-//       uIntensity: { value: params.intensity },
-//       uBass: { value: 0 },
-//       uMid: { value: 0 },
-//       uTreble: { value: 0 },
-//     },
-//     vertexShader: /* glsl */ `
-//       attribute vec3 offset;
-//       attribute float scale;
-//       attribute float angle;
-//       attribute float ring;
-
-//       uniform float uTime;
-//       uniform float uBass;
-//       uniform float uMid;
-//       uniform float uTreble;
-
-//       varying float vRing;
-//       varying float vHeight;
-
-//       float rand(float n) {
-//         return fract(sin(n) * 43758.5453123);
-//       }
-
-//       void main() {
-//         vRing = ring / 50.0;
-
-//         vec3 pos = position;
-
-//         // Pulse outwards (bass)
-//         float bassPulse = sin(uTime * 2.0 + ring * 0.1) * uBass * 0.6;
-//         pos.x += cos(angle) * bassPulse;
-//         pos.z += sin(angle) * bassPulse;
-
-//         // Wobble (mid)
-//         float wobble = sin(uTime * 1.5 + ring) * uMid * 0.1;
-//         pos.x += wobble;
-//         pos.z += wobble;
-
-//         // Twist (treble)
-//         float twist = sin(uTime + ring) * uTreble * 0.3;
-//         float xNew = pos.x * cos(twist) - pos.z * sin(twist);
-//         float zNew = pos.x * sin(twist) + pos.z * cos(twist);
-//         pos.x = xNew;
-//         pos.z = zNew;
-
-//         // Scale by bass
-//         pos.y *= 1.0 + uBass * 1.0;
-
-//         // Random jitter
-//         pos.x += (rand(angle) - 0.5) * uTreble * 0.05;
-//         pos.z += (rand(angle + 1.0) - 0.5) * uTreble * 0.05;
-
-//         vHeight = pos.y;
-
-//         vec4 mvPosition = modelViewMatrix * vec4(pos + offset, 1.0);
-//         gl_Position = projectionMatrix * mvPosition;
-//       }
-//     `,
-//     fragmentShader: /* glsl */ `
-//       uniform float uTime;
-//       uniform float uBass;
-//       uniform float uTreble;
-
-//       varying float vRing;
-//       varying float vHeight;
-
-//       void main() {
-//         float hue = mod(vRing + uTime * 0.15 + uTreble * 0.5, 1.0);
-//         float brightness = 0.3 + uBass * 0.6;
-
-//         vec3 color = vec3(
-//           abs(sin(hue * 6.283)),
-//           abs(sin((hue + 0.33) * 6.283)),
-//           abs(sin((hue + 0.66) * 6.283))
-//         );
-
-//         gl_FragColor = vec4(color * brightness, 1.0);
-//       }
-//     `,
-//     transparent: false,
-//   });
-
-//   const mesh = new THREE.Mesh(instancedGeometry, material);
-//   mesh.frustumCulled = false;
-//   scene.add(mesh);
-
-//   return [mesh];
-// };
-
-
 import * as THREE from "three";
-import { VisualizerParams } from "../../types/visualizer";
 
-export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
+export const createAudioReactiveVisualizer = (
+  scene: THREE.Scene
+): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const neuralCosmosGroup = new THREE.Group();
-  
-  // Create cosmic neural network
+
   const neuronCount = 200;
   const neurons: THREE.Mesh[] = [];
   const axons: THREE.Line[] = [];
   const synapticFields: THREE.Points[] = [];
 
-  // Generate neurons in cosmic distribution
   for (let i = 0; i < neuronCount; i++) {
-    // Fibonacci sphere distribution for cosmic feel
     const goldenRatio = (1 + Math.sqrt(5)) / 2;
     const y = 1 - (i / (neuronCount - 1)) * 2;
     const radius = Math.sqrt(1 - y * y);
     const goldenAngle = Math.PI * 2 * goldenRatio;
     const theta = goldenAngle * i;
-    
+
     const x = Math.cos(theta) * radius;
     const z = Math.sin(theta) * radius;
-    
+
     const position = new THREE.Vector3(x, y, z).multiplyScalar(12);
 
-    // Create neuron node
     const neuronGeometry = new THREE.DodecahedronGeometry(0.4, 1);
     const neuronMaterial = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color().setHSL(i * 0.005, 0.9, 0.6),
@@ -171,7 +31,7 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
       metalness: 0.3,
       roughness: 0.4,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.9,
     });
 
     const neuron = new THREE.Mesh(neuronGeometry, neuronMaterial);
@@ -179,7 +39,6 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
     neuralCosmosGroup.add(neuron);
     neurons.push(neuron);
 
-    // Create synaptic field around neuron
     const synapticCount = 30;
     const synapticGeometry = new THREE.BufferGeometry();
     const synapticPositions = new Float32Array(synapticCount * 3);
@@ -190,9 +49,11 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
       const synapticRadius = 1.5 + Math.random() * 2;
       const synapticTheta = Math.random() * Math.PI * 2;
       const synapticPhi = Math.acos(2 * Math.random() - 1);
-      
-      synapticPositions[i3] = Math.sin(synapticPhi) * Math.cos(synapticTheta) * synapticRadius;
-      synapticPositions[i3 + 1] = Math.sin(synapticPhi) * Math.sin(synapticTheta) * synapticRadius;
+
+      synapticPositions[i3] =
+        Math.sin(synapticPhi) * Math.cos(synapticTheta) * synapticRadius;
+      synapticPositions[i3 + 1] =
+        Math.sin(synapticPhi) * Math.sin(synapticTheta) * synapticRadius;
       synapticPositions[i3 + 2] = Math.cos(synapticPhi) * synapticRadius;
 
       const color = new THREE.Color().setHSL(i * 0.005, 0.8, 0.7);
@@ -201,15 +62,21 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
       synapticColors[i3 + 2] = color.b;
     }
 
-    synapticGeometry.setAttribute("position", new THREE.BufferAttribute(synapticPositions, 3));
-    synapticGeometry.setAttribute("color", new THREE.BufferAttribute(synapticColors, 3));
+    synapticGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(synapticPositions, 3)
+    );
+    synapticGeometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(synapticColors, 3)
+    );
 
     const synapticMaterial = new THREE.PointsMaterial({
       size: 0.1,
       vertexColors: true,
       transparent: true,
       opacity: 0.6,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
     });
 
     const synapticField = new THREE.Points(synapticGeometry, synapticMaterial);
@@ -218,13 +85,12 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
     synapticFields.push(synapticField);
   }
 
-  // Create neural connections (axons)
   for (let i = 0; i < neuronCount; i++) {
-    // Connect to nearest neighbors
     const connectionCount = 4;
     for (let j = 0; j < connectionCount; j++) {
-      const targetIndex = (i + Math.floor(Math.random() * 20) + 1) % neuronCount;
-      
+      const targetIndex =
+        (i + Math.floor(Math.random() * 20) + 1) % neuronCount;
+
       const geometry = new THREE.BufferGeometry();
       const positions = new Float32Array(6);
       positions[0] = neurons[i].position.x;
@@ -234,13 +100,20 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
       positions[4] = neurons[targetIndex].position.y;
       positions[5] = neurons[targetIndex].position.z;
 
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+      );
+
       const material = new THREE.LineBasicMaterial({
-        color: new THREE.Color().setHSL((i * 0.005 + targetIndex * 0.005) / 2, 0.8, 0.5),
+        color: new THREE.Color().setHSL(
+          (i * 0.005 + targetIndex * 0.005) / 2,
+          0.8,
+          0.5
+        ),
         transparent: true,
         opacity: 0.2,
-        blending: THREE.AdditiveBlending
+        blending: THREE.AdditiveBlending,
       });
 
       const axon = new THREE.Line(geometry, material);
@@ -249,7 +122,6 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
     }
   }
 
-  // Create neural impulse particles
   const impulseCount = 100;
   const impulseGeometry = new THREE.BufferGeometry();
   const impulsePositions = new Float32Array(impulseCount * 3);
@@ -260,16 +132,17 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
   for (let i = 0; i < impulseCount; i++) {
     const i3 = i * 3;
     const startNeuron = Math.floor(Math.random() * neuronCount);
-    const endNeuron = (startNeuron + Math.floor(Math.random() * 20) + 1) % neuronCount;
-    
+    const endNeuron =
+      (startNeuron + Math.floor(Math.random() * 20) + 1) % neuronCount;
+
     impulsePaths[i3] = startNeuron;
     impulsePaths[i3 + 1] = endNeuron;
-    impulsePaths[i3 + 2] = Math.random(); // Speed variation
-    
+    impulsePaths[i3 + 2] = Math.random();
+
     impulsePositions[i3] = neurons[startNeuron].position.x;
     impulsePositions[i3 + 1] = neurons[startNeuron].position.y;
     impulsePositions[i3 + 2] = neurons[startNeuron].position.z;
-    
+
     impulseProgress[i] = 0;
 
     const color = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.9, 0.7);
@@ -278,10 +151,22 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
     impulseColors[i3 + 2] = color.b;
   }
 
-  impulseGeometry.setAttribute("position", new THREE.BufferAttribute(impulsePositions, 3));
-  impulseGeometry.setAttribute("color", new THREE.BufferAttribute(impulseColors, 3));
-  impulseGeometry.setAttribute("path", new THREE.BufferAttribute(impulsePaths, 3));
-  impulseGeometry.setAttribute("progress", new THREE.BufferAttribute(impulseProgress, 1));
+  impulseGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(impulsePositions, 3)
+  );
+  impulseGeometry.setAttribute(
+    "color",
+    new THREE.BufferAttribute(impulseColors, 3)
+  );
+  impulseGeometry.setAttribute(
+    "path",
+    new THREE.BufferAttribute(impulsePaths, 3)
+  );
+  impulseGeometry.setAttribute(
+    "progress",
+    new THREE.BufferAttribute(impulseProgress, 1)
+  );
 
   const impulseMaterial = new THREE.PointsMaterial({
     size: 0.3,
@@ -289,7 +174,7 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
     transparent: true,
     opacity: 0.9,
     blending: THREE.AdditiveBlending,
-    sizeAttenuation: true
+    sizeAttenuation: true,
   });
 
   const neuralImpulses = new THREE.Points(impulseGeometry, impulseMaterial);
@@ -306,7 +191,7 @@ export const createAudioReactiveVisualizer  = (scene: THREE.Scene, params: Visua
     impulseData: {
       positions: impulsePositions,
       paths: impulsePaths,
-      progress: impulseProgress
+      progress: impulseProgress,
     },
     cosmicTime: 0,
     isLyrics: false,

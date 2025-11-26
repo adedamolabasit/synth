@@ -1,4 +1,4 @@
-import { Home, Video, Box, FileText } from "lucide-react";
+import { Home, Video, Box } from "lucide-react";
 import { ReactNode } from "react";
 
 interface NavItem {

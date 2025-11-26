@@ -1,16 +1,13 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateDNAOrigami = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
+  time: number
 ): void => {
   const scaledTime = time * 0.001;
-  
-  objects.forEach((obj, index) => {
+
+  objects.forEach((obj) => {
     if (obj instanceof THREE.Mesh && !obj.userData.isConnector) {
       const objIndex = obj.userData.index || 0;
       const dataIndex = Math.floor((objIndex / 40) * frequencyData.length);

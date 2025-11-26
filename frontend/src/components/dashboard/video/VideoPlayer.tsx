@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import {
   Play,
   Download,
-  Trash2,
   Eye,
   Clock,
   FileVideo,
@@ -133,7 +132,6 @@ export const VideoPlayer = () => {
     const fetchVideos = async () => {
       setLoading(true);
       try {
-        // If trying to access "your" videos but not connected, show empty
         if (activeTab === "your" && !isConnected) {
           setVideos([]);
           setLoading(false);
@@ -167,7 +165,6 @@ export const VideoPlayer = () => {
 
   const handleTabChange = (tab: "all" | "your") => {
     if (tab === "your" && !isConnected) {
-      // Don't switch to "your" tab if not connected
       return;
     }
     setActiveTab(tab);
@@ -218,34 +215,6 @@ export const VideoPlayer = () => {
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
-    }
-  };
-
-  const handleDeleteVideo = async (videoId: string) => {
-    if (!isConnected) return;
-
-    if (!confirm("Are you sure you want to delete this video?")) return;
-
-    try {
-      const response = await fetch(
-        `http://localhost:8000/api/video/${videoId}`,
-        {
-          method: "DELETE",
-        }
-      );
-      const result = await response.json();
-
-      if (result.success) {
-        setVideos((prev) => prev.filter((v) => v.id !== videoId));
-        if (selectedVideo?.id === videoId) {
-          handleCloseVideo();
-        }
-      } else {
-        alert("Failed to delete video: " + result.error);
-      }
-    } catch (error) {
-      console.error("Error deleting video:", error);
-      alert("Error deleting video");
     }
   };
 
@@ -331,7 +300,6 @@ export const VideoPlayer = () => {
               </Button>
             </div>
 
-            {/* Video Player Section - Full size with overflow */}
             <div className="flex-1 bg-black rounded-xl overflow-hidden shadow-2xl mb-6 min-h-0">
               <video
                 ref={videoRef}
@@ -345,7 +313,6 @@ export const VideoPlayer = () => {
               />
             </div>
 
-            {/* Video Information Section */}
             <div className="h-48 flex-shrink-0">
               <Card className="h-full flex flex-col">
                 <div className="p-4 border-b  flex-shrink-0">
@@ -420,16 +387,6 @@ export const VideoPlayer = () => {
                     >
                       View Original
                     </Button>
-                    {/* {isConnected && (
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        icon={<Trash2 size={16} />}
-                        onClick={() => handleDeleteVideo(selectedVideo.id)}
-                      >
-                        Delete
-                      </Button>
-                    )} */}
                   </div>
                 </div>
               </Card>
@@ -469,9 +426,7 @@ export const VideoPlayer = () => {
                     onMouseLeave={() => handleVideoHoverEnd(video.id)}
                   >
                     <div className="aspect-video bg-slate-800 relative overflow-hidden">
-                      {/* Thumbnail or Preview Video */}
                       {hoveredVideo === video.id ? (
-                        // Show video preview on hover
                         <video
                           ref={(el) => (previewRefs.current[video.id] = el)}
                           src={video.videoUrl}
@@ -481,7 +436,6 @@ export const VideoPlayer = () => {
                           playsInline
                         />
                       ) : (
-                        // Show static thumbnail
                         <>
                           {video.thumbnailUrl || videoThumbnails[video.id] ? (
                             <img
@@ -502,7 +456,6 @@ export const VideoPlayer = () => {
                         </>
                       )}
 
-                      {/* Hover Overlay with Play Button */}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
                         <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300 shadow-2xl">
                           <Play
@@ -513,7 +466,6 @@ export const VideoPlayer = () => {
                         </div>
                       </div>
 
-                      {/* Duration Badge */}
                       {video.metadata.duration && (
                         <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
                           {formatDuration(video.metadata.duration)}

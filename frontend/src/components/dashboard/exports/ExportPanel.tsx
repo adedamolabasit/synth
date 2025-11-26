@@ -49,7 +49,7 @@ export function ExportPanel() {
     }
   };
 
-  const handleUpload = async () => {
+  const handleSaveVideo = async () => {
     if (!selectedFile) return;
 
     setIsUploading(true);
@@ -203,7 +203,7 @@ export function ExportPanel() {
                 <Button
                   variant="primary"
                   className="w-full"
-                  onClick={handleUpload}
+                  onClick={handleSaveVideo}
                   icon={<Upload size={16} />}
                 >
                   Upload Video

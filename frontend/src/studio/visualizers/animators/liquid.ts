@@ -8,11 +8,15 @@ export const animateLiquid = (
   params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
-  const avgFrequency = Array.from(frequencyData).reduce((a, b) => a + b, 0) / frequencyData.length;
+  const avgFrequency =
+    Array.from(frequencyData).reduce((a, b) => a + b, 0) / frequencyData.length;
 
   objects.forEach((obj) => {
-    // --- Liquid plane ---
-    if (obj.userData.type === "liquid" && obj instanceof THREE.Mesh && obj.geometry instanceof THREE.PlaneGeometry) {
+    if (
+      obj.userData.type === "liquid" &&
+      obj instanceof THREE.Mesh &&
+      obj.geometry instanceof THREE.PlaneGeometry
+    ) {
       const geometry = obj.geometry;
       const positions = geometry.attributes.position.array as Float32Array;
       const originalVertices = obj.userData.originalVertices as Float32Array;
@@ -25,7 +29,10 @@ export const animateLiquid = (
         let waveHeight = 0;
         obj.userData.waveCenters.forEach((center: any) => {
           const dist = Math.sqrt((x - center.x) ** 2 + (z - center.y) ** 2);
-          waveHeight += Math.sin(dist * 2 - (time + center.time) * center.frequency) * center.amplitude * (1 + Math.sin(time * 0.5) * 0.4);
+          waveHeight +=
+            Math.sin(dist * 2 - (time + center.time) * center.frequency) *
+            center.amplitude *
+            (1 + Math.sin(time * 0.5) * 0.4);
         });
 
         if (beatInfo?.isBeat && Math.random() < 0.08) {
@@ -35,30 +42,52 @@ export const animateLiquid = (
           waveHeight += Math.exp(-dist * 2) * 1.5;
         }
 
-        const audioInfluence = (frequencyData[Math.floor((vertexIndex / positions.length) * frequencyData.length)] / 255) * params.fluidity * 0.02;
-        positions[i + 1] = originalVertices[i + 1] + waveHeight + audioInfluence * 2 + Math.sin(time * 0.3 + vertexIndex * 0.01) * 0.12;
+        const audioInfluence =
+          (frequencyData[
+            Math.floor((vertexIndex / positions.length) * frequencyData.length)
+          ] /
+            255) *
+          params.fluidity *
+          0.02;
+        positions[i + 1] =
+          originalVertices[i + 1] +
+          waveHeight +
+          audioInfluence * 2 +
+          Math.sin(time * 0.3 + vertexIndex * 0.01) * 0.12;
       }
       geometry.attributes.position.needsUpdate = true;
 
       if (obj.material instanceof THREE.MeshStandardMaterial) {
         obj.material.emissiveIntensity = 0.2 + avgFrequency * 0.6;
-        obj.material.color.setHSL(0.55 + Math.sin(time) * 0.05, 0.75, 0.45 + avgFrequency * 0.2);
+        obj.material.color.setHSL(
+          0.55 + Math.sin(time) * 0.05,
+          0.75,
+          0.45 + avgFrequency * 0.2
+        );
       }
     }
 
-    // --- Particles ---
-    if (obj.userData.type === "liquidParticles" && obj instanceof THREE.Points) {
+    if (
+      obj.userData.type === "liquidParticles" &&
+      obj instanceof THREE.Points
+    ) {
       const geometry = obj.geometry;
       const positions = geometry.attributes.position.array as Float32Array;
       const velocities = geometry.userData.velocities as Float32Array;
 
       for (let i = 0; i < positions.length; i += 3) {
-        const audioForce = (frequencyData[Math.floor((i / positions.length) * frequencyData.length)] / 255) * 0.03;
+        const audioForce =
+          (frequencyData[
+            Math.floor((i / positions.length) * frequencyData.length)
+          ] /
+            255) *
+          0.03;
         positions[i] += velocities[i] + Math.sin(time + i * 0.01) * audioForce;
-        positions[i + 1] += velocities[i + 1] + Math.cos(time + i * 0.02) * audioForce * 0.5;
-        positions[i + 2] += velocities[i + 2] + Math.sin(time * 0.5 + i * 0.01) * audioForce;
+        positions[i + 1] +=
+          velocities[i + 1] + Math.cos(time + i * 0.02) * audioForce * 0.5;
+        positions[i + 2] +=
+          velocities[i + 2] + Math.sin(time * 0.5 + i * 0.01) * audioForce;
 
-        // Wrap around
         if (positions[i] > 5.5) positions[i] = -5.5;
         if (positions[i] < -5.5) positions[i] = 5.5;
         if (positions[i + 1] > 3.5) positions[i + 1] = -0.5;
@@ -68,7 +97,6 @@ export const animateLiquid = (
       geometry.attributes.position.needsUpdate = true;
     }
 
-    // --- Floating orbs ---
     if (obj.userData.type === "floatingOrb") {
       const { speed, orbitRadius, bobOffset } = obj.userData;
       obj.userData.orbitAngle += speed * 0.003;
@@ -83,7 +111,6 @@ export const animateLiquid = (
       obj.scale.set(scale, scale, scale);
     }
 
-    // --- Grid lines ---
     if (obj.userData.type === "gridLine") {
       const mat = (obj as THREE.Line).material as THREE.LineBasicMaterial;
       mat.opacity = 0.2 + Math.sin(time * 0.5) * 0.2 + avgFrequency * 0.1;

@@ -1,11 +1,10 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
+import { BeatInfo } from "../../types/visualizer";
 
 export const animateSacredGeometry = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
   time: number,
-  params: VisualizerParams,
   beatInfo?: BeatInfo
 ): void => {
   const scaledTime = time * 0.001;
@@ -18,7 +17,6 @@ export const animateSacredGeometry = (
     if (!(obj instanceof THREE.Mesh)) return;
 
     if (obj.userData.type === "vertex") {
-      // --- Bounce vertices with bass ---
       const index = obj.userData.index;
       const dataIndex = Math.floor((index / 9) * frequencyData.length);
       const audioValue = frequencyData[dataIndex] / 255;
@@ -30,9 +28,7 @@ export const animateSacredGeometry = (
         obj.material.emissiveIntensity = 0.5 + bass * audioValue;
         obj.material.emissive.setHSL(audioValue * 0.1, 1, 0.5);
       }
-
     } else if (obj.userData.type === "ring") {
-      // --- Rotate and pulse rings ---
       const layer = obj.userData.layer;
       const index = obj.userData.index;
       const baseRadius = obj.userData.baseRadius;

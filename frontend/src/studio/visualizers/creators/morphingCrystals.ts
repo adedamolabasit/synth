@@ -1,10 +1,7 @@
-// creators/morphingCrystals.ts
 import * as THREE from "three";
-import { VisualizerParams } from "../../types/visualizer";
 
 export const createMorphingCrystalsVisualizer = (
   scene: THREE.Scene,
-  params: VisualizerParams
 ): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const crystalGroup = new THREE.Group();
@@ -36,7 +33,6 @@ export const createMorphingCrystalsVisualizer = (
 
     const crystal = new THREE.Mesh(geometry, material);
     
-    // Distribute in clustered formation
     const cluster = Math.floor(i / 10);
     const angle = (i % 10) * (Math.PI * 2 / 10);
     const radius = 2 + cluster * 3;

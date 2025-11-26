@@ -22,19 +22,12 @@ export function AudioUploadPanel({
   onToggleCollapse,
   position = "left",
 }: AudioUploadPanelProps) {
-  const {
-    currentAudio,
-    isPlaying,
-    isLoading,
-    playAudio,
-    pauseAudio,
-    resumeAudio,
-  } = useAudio();
+  const { currentAudio, isPlaying, playAudio, pauseAudio, resumeAudio } =
+    useAudio();
 
   const { user, setShowAuthFlow, primaryWallet } = useDynamicContext();
   const isConnected = !!user;
 
-  // Persist wallet address in state
   const [walletAddr, setWalletAddr] = useState<string | null>(null);
   useEffect(() => {
     if (isConnected && primaryWallet?.address) {
@@ -55,7 +48,6 @@ export function AudioUploadPanel({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Switch active tab depending on audio library
   useEffect(() => {
     if (audioFiles.length > 0) {
       setActiveTab("library");
@@ -64,7 +56,6 @@ export function AudioUploadPanel({
     }
   }, [audioFiles.length]);
 
-  // Reset file input to allow selecting the same file again
   const handleFileInputClick = () => {
     if (!isConnected) {
       setShowAuthFlow(true);
@@ -144,7 +135,6 @@ export function AudioUploadPanel({
         const formData = new FormData();
         formData.append("audio", file);
 
-        // Simulate upload progress
         const progressInterval = setInterval(() => {
           setUploadProgress((prev) => {
             if (prev >= 90) {
@@ -166,13 +156,11 @@ export function AudioUploadPanel({
         clearInterval(progressInterval);
         setUploadProgress(100);
 
-        if (!response.ok)
-          throw new Error(`Upload failed: ${response.status}`);
+        if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
 
         const data = await response.json();
         if (!data.success) throw new Error(data.error || "Upload failed");
 
-        // Short pause to show completion animation
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
@@ -206,13 +194,12 @@ export function AudioUploadPanel({
       day: "numeric",
     });
 
-  // Fetch audio library sequentially for smooth loading
   const fetchAudioLibrarySequential = async () => {
     if (!isConnected || !walletAddr) return;
 
     setIsAnalyzing(true);
     setFetchError("");
-    setAudioFiles([]); // reset first
+    setAudioFiles([]);
 
     try {
       const response = await fetch(
@@ -227,7 +214,6 @@ export function AudioUploadPanel({
       if (!data.success || !Array.isArray(data.audio))
         throw new Error("Invalid response format");
 
-      // Sequentially append audio files
       for (const audio of data.audio) {
         const mapped = {
           ...audio,
@@ -245,7 +231,7 @@ export function AudioUploadPanel({
           type: audio.type || audio.metadata?.type,
         };
         setAudioFiles((prev) => [...prev, mapped]);
-        await new Promise((resolve) => setTimeout(resolve, 50)); // sequential load
+        await new Promise((resolve) => setTimeout(resolve, 50));
       }
     } catch (err) {
       console.error("Error fetching audio files:", err);
@@ -257,7 +243,6 @@ export function AudioUploadPanel({
     }
   };
 
-  // Fetch library when connected
   useEffect(() => {
     if (isConnected && walletAddr) fetchAudioLibrarySequential();
     else {
@@ -266,7 +251,6 @@ export function AudioUploadPanel({
     }
   }, [isConnected, walletAddr]);
 
-  // Render collapsed
   if (isCollapsed) {
     return (
       <div className="h-full flex items-center justify-center p-2">
@@ -285,7 +269,6 @@ export function AudioUploadPanel({
     );
   }
 
-  // Main render
   return (
     <div
       className="h-full flex flex-col gap-4 p-4 transition-all duration-300 ease-in-out"
@@ -303,7 +286,6 @@ export function AudioUploadPanel({
         disabled={isUploading || !isConnected}
       />
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button
@@ -325,7 +307,6 @@ export function AudioUploadPanel({
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-700/50 pb-2">
         <Button
           variant="ghost"
@@ -358,7 +339,6 @@ export function AudioUploadPanel({
         </Button>
       </div>
 
-      {/* Wallet not connected */}
       {!isConnected && (
         <Card className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-800/50 border-slate-700/50">
           <div className="w-20 h-20 rounded-full bg-slate-700/50 flex items-center justify-center mb-4">
@@ -381,7 +361,6 @@ export function AudioUploadPanel({
         </Card>
       )}
 
-      {/* Wallet connected */}
       {isConnected && (
         <>
           {fetchError && (
@@ -399,7 +378,6 @@ export function AudioUploadPanel({
             </div>
           )}
 
-          {/* Upload or Library tab */}
           {activeTab === "upload" ? (
             <Card
               className={`flex-1 flex flex-col items-center justify-center p-8 transition-all duration-300 ${
@@ -408,7 +386,9 @@ export function AudioUploadPanel({
                   : isUploading
                   ? "border-purple-500 bg-purple-500/10"
                   : "hover:scale-[0.995] hover:shadow-lg hover:shadow-cyan-500/10"
-              } ${isUploading ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
+              } ${
+                isUploading ? "cursor-not-allowed opacity-80" : "cursor-pointer"
+              }`}
               onClick={() => !isUploading && handleFileInputClick()}
             >
               {isUploading ? (
@@ -497,7 +477,6 @@ export function AudioUploadPanel({
                       } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
                       onClick={() => !isUploading && handlePlayPause(audioFile)}
                     >
-                      {/* Active indicator bar */}
                       {currentAudio?._id === audioFile._id && (
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 rounded-l-md" />
                       )}

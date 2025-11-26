@@ -26,7 +26,6 @@ export const createCyberGridVisualizer = (
       Math.random() * areaSize - areaSize / 2
     );
 
-    // 🔥 Add the missing metadata here
     sphere.userData = {
       type: "node",
       index: i,
@@ -40,7 +39,6 @@ export const createCyberGridVisualizer = (
     objects.push(sphere);
   }
 
-  // Glow sphere
   const glowGeometry = new THREE.SphereGeometry(areaSize * 0.6, 32, 32);
   const glowMaterial = new THREE.MeshBasicMaterial({
     color: new THREE.Color(0x00ffff),

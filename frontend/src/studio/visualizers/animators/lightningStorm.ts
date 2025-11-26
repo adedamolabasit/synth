@@ -1,14 +1,9 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateLightningStorm = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
 ): void => {
-  const scaledTime = time * 0.001;
   
   objects.forEach((obj) => {
     if (obj.userData.isBolt && obj instanceof THREE.Line) {
@@ -16,7 +11,6 @@ export const animateLightningStorm = (
       const dataIndex = Math.floor((index / 10) * frequencyData.length);
       const audioValue = frequencyData[dataIndex] / 255;
 
-      // Regenerate bolt points with audio influence
       const startPos = obj.userData.startPos;
       const endPos = obj.userData.endPos;
       const points: THREE.Vector3[] = [];

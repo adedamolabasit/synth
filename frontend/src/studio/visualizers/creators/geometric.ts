@@ -39,7 +39,6 @@ export const createGeometricVisualizer = (
 
     const mesh = new THREE.Mesh(geometry, material);
 
-    // Orbit parameters
     const angle = (i / count) * Math.PI * 2;
     const radius = 2 + Math.random() * 2;
 

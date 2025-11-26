@@ -1,12 +1,9 @@
 import * as THREE from "three";
-import { VisualizerParams, BeatInfo } from "../../types/visualizer";
 
 export const animateAuroraWaves = (
   objects: THREE.Object3D[],
   frequencyData: Uint8Array,
-  time: number,
-  params: VisualizerParams,
-  beatInfo?: BeatInfo
+  time: number
 ): void => {
   const scaledTime = time * 0.001;
 
@@ -25,18 +22,27 @@ export const animateAuroraWaves = (
       const i3 = i * 3;
       const t = i / pointsPerRibbon;
 
-      const dataIndex = Math.floor((i / pointsPerRibbon) * frequencyData.length);
+      const dataIndex = Math.floor(
+        (i / pointsPerRibbon) * frequencyData.length
+      );
       const audioValue = frequencyData[dataIndex] / 255;
 
-      // Wave motion with twist & random offsets
       positions[i3 + 0] =
-        Math.sin(scaledTime * speed + i * 0.1 + offset) * 5 * (0.3 + audioValue);
-      positions[i3 + 1] = t * 5 + audioValue * 2; // lift by audio
+        Math.sin(scaledTime * speed + i * 0.1 + offset) *
+        5 *
+        (0.3 + audioValue);
+      positions[i3 + 1] = t * 5 + audioValue * 2;
       positions[i3 + 2] =
-        Math.cos(scaledTime * speed + i * 0.1 + offset) * 5 * (0.3 + audioValue);
+        Math.cos(scaledTime * speed + i * 0.1 + offset) *
+        5 *
+        (0.3 + audioValue);
 
-      // Animate color along spectrum
-      const hue = (ribbonIndex / objects.length + t + scaledTime * 0.05 + audioValue * 0.1) % 1;
+      const hue =
+        (ribbonIndex / objects.length +
+          t +
+          scaledTime * 0.05 +
+          audioValue * 0.1) %
+        1;
       const color = new THREE.Color().setHSL(hue, 1, 0.5 + audioValue * 0.3);
       colors[i3 + 0] = color.r;
       colors[i3 + 1] = color.g;

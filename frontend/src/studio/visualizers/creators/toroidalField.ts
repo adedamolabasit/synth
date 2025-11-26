@@ -1,14 +1,17 @@
 import * as THREE from "three";
 import { VisualizerParams } from "../../types/visualizer";
 
-export const createToroidalFieldVisualizer = (scene: THREE.Scene, params: VisualizerParams): THREE.Object3D[] => {
+export const createToroidalFieldVisualizer = (
+  scene: THREE.Scene,
+  params: VisualizerParams
+): THREE.Object3D[] => {
   const objects: THREE.Object3D[] = [];
   const toruses = Math.floor(3 * params.complexity);
 
   for (let i = 0; i < toruses; i++) {
     const radius = 2 - i * 0.5;
     const tube = 0.3 + i * 0.1;
-    
+
     const geometry = new THREE.TorusGeometry(radius, tube, 32, 64);
     const material = new THREE.MeshPhongMaterial({
       color: new THREE.Color().setHSL(i / toruses, 1, 0.5),
@@ -23,7 +26,6 @@ export const createToroidalFieldVisualizer = (scene: THREE.Scene, params: Visual
     scene.add(torus);
     objects.push(torus);
 
-    // Energy particles flowing through torus
     const particleCount = Math.floor(30 * params.patternDensity);
     const particlesGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
@@ -36,8 +38,11 @@ export const createToroidalFieldVisualizer = (scene: THREE.Scene, params: Visual
       positions[j3 + 2] = 0;
     }
 
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    
+    particlesGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3)
+    );
+
     const particlesMaterial = new THREE.PointsMaterial({
       size: 0.1,
       color: new THREE.Color().setHSL(i / toruses, 1, 0.7),

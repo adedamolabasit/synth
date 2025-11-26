@@ -8,7 +8,6 @@ export const createSolarFlareVisualizer = (
   const objects: THREE.Object3D[] = [];
   const flareCount = Math.floor(12 + params.complexity * 20);
 
-  // --- Central Sun ---
   const sunGeometry = new THREE.SphereGeometry(1, 32, 32);
   const sunMaterial = new THREE.MeshPhongMaterial({
     color: 0xffcc33,
@@ -20,7 +19,6 @@ export const createSolarFlareVisualizer = (
   scene.add(sun);
   objects.push(sun);
 
-  // --- Dynamic Flares ---
   for (let i = 0; i < flareCount; i++) {
     const angle = Math.random() * Math.PI * 2;
     const flareGeometry = new THREE.ConeGeometry(

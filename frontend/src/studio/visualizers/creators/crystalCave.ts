@@ -29,7 +29,6 @@ export const createCrystalCaveVisualizer = (scene: THREE.Scene, params: Visualiz
     scene.add(crystal);
     objects.push(crystal);
 
-    // Add glowing tip
     const tipGeometry = new THREE.SphereGeometry(0.1, 16, 16);
     const tipMaterial = new THREE.MeshPhongMaterial({
       color: 0x00ffff,

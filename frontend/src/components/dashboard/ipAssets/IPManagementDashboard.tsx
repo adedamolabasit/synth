@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useRef } from "react";
 import {
   Box,
@@ -7,12 +6,12 @@ import {
   Users,
   DollarSign,
   Shield,
-  Plus,
   Eye,
   FileText,
   Clock,
   Wallet,
   Play,
+  Trash,
 } from "lucide-react";
 import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
@@ -75,7 +74,6 @@ export function IPManagementDashboard() {
 
   const videoThumbnailCache: Record<string, string> = {};
 
-  // Stats
   const totalVideos = videos.length;
   const registeredVideos = videos.filter((v) => v.ipRegistered).length;
   const totalRevenue = videos.reduce((sum, v) => sum + (v.revenue || 0), 0);
@@ -84,14 +82,16 @@ export function IPManagementDashboard() {
     0
   );
 
-  // Thumbnail generation - same approach as VideoPlayer
   useEffect(() => {
     let isMounted = true;
 
     const generateThumbnailsSequentially = async () => {
       for (const video of videos) {
-        // Skip if already has thumbnail or already processed
-        if (video.thumbnailUrl || videoThumbnailCache[video.videoUrl] || videoThumbnails[video.id]) {
+        if (
+          video.thumbnailUrl ||
+          videoThumbnailCache[video.videoUrl] ||
+          videoThumbnails[video.id]
+        ) {
           continue;
         }
 
@@ -124,7 +124,7 @@ export function IPManagementDashboard() {
       video.muted = true;
 
       video.addEventListener("loadedmetadata", () => {
-        video.currentTime = Math.min(video.duration * 0.1, 10); // Get thumbnail at 10% of video or 10 seconds
+        video.currentTime = Math.min(video.duration * 0.1, 10);
       });
 
       video.addEventListener("seeked", () => {
@@ -169,7 +169,31 @@ export function IPManagementDashboard() {
     }
   };
 
-  // Fetch user videos
+  const handleDeleteVideo = async (videoId: string) => {
+    if (!isConnected) return;
+
+    if (!confirm("Are you sure you want to delete this video?")) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/video/${videoId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const result = await response.json();
+
+      if (result.success) {
+        setVideos((prev) => prev.filter((v) => v.id !== videoId));
+      } else {
+        alert("Failed to delete video: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      alert("Error deleting video");
+    }
+  };
+
   useEffect(() => {
     const fetchUserVideos = async () => {
       if (!isConnected) {
@@ -177,25 +201,24 @@ export function IPManagementDashboard() {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       try {
         const response = await fetch(
           `http://localhost:8000/api/video/wallet/${walletAddress}`
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        
+
         if (result.success && Array.isArray(result.videos)) {
-          // Transform API response to include IP data
           const videosWithIPData = result.videos.map((video: any) => ({
             id: video.id,
             videoUrl: video.videoUrl,
-            thumbnailUrl: video.thumbnailUrl, // Use the thumbnail from API if available
+            thumbnailUrl: video.thumbnailUrl,
             videoHash: video.videoHash,
             walletAddress: video.walletAddress,
             metadata: {
@@ -206,7 +229,6 @@ export function IPManagementDashboard() {
               description: video.metadata?.description,
             },
             createdAt: video.createdAt,
-            // Mock IP data for demonstration
             ipRegistered: Math.random() > 0.3,
             ipStatus: ["draft", "published", "pending"][
               Math.floor(Math.random() * 3)
@@ -216,7 +238,8 @@ export function IPManagementDashboard() {
                 ? [
                     {
                       id: "1",
-                      walletAddress: "0x" + Math.random().toString(16).slice(2, 10) + "...",
+                      walletAddress:
+                        "0x" + Math.random().toString(16).slice(2, 10) + "...",
                       role: ["audio", "visual", "both"][
                         Math.floor(Math.random() * 3)
                       ] as "audio" | "visual" | "both",
@@ -240,7 +263,7 @@ export function IPManagementDashboard() {
                 : [],
             revenue: Math.floor(Math.random() * 1000),
           }));
-          
+
           setVideos(videosWithIPData);
         } else {
           console.error("Invalid response format:", result);
@@ -328,7 +351,6 @@ export function IPManagementDashboard() {
 
   return (
     <div className="h-full flex flex-col gap-4 p-4 overflow-y-auto">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white flex items-center gap-2">
           <Box className="text-blue-400" size={20} /> IP Assets Management
@@ -338,7 +360,6 @@ export function IPManagementDashboard() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
@@ -370,7 +391,6 @@ export function IPManagementDashboard() {
         </Card>
       </div>
 
-      {/* Wallet Info */}
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -388,12 +408,12 @@ export function IPManagementDashboard() {
         </div>
       </Card>
 
-      {/* Videos Grid */}
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-          <FileVideo size={16} className="text-cyan-400" /> Your Video Assets ({videos.length})
+          <FileVideo size={16} className="text-cyan-400" /> Your Video Assets (
+          {videos.length})
         </h3>
-        
+
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="text-slate-400">Loading videos...</div>
@@ -409,16 +429,14 @@ export function IPManagementDashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {videos.map((video) => (
-              <Card 
-                key={video.id} 
+              <Card
+                key={video.id}
                 className="overflow-hidden group cursor-pointer hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
                 onMouseEnter={() => handleVideoHover(video.id)}
                 onMouseLeave={() => handleVideoHoverEnd(video.id)}
               >
                 <div className="aspect-video bg-slate-800 relative overflow-hidden">
-                  {/* Thumbnail or Preview Video */}
                   {hoveredVideo === video.id ? (
-                    // Show video preview on hover
                     <video
                       ref={(el) => (previewRefs.current[video.id] = el)}
                       src={video.videoUrl}
@@ -428,7 +446,6 @@ export function IPManagementDashboard() {
                       playsInline
                     />
                   ) : (
-                    // Show static thumbnail
                     <>
                       {video.thumbnailUrl || videoThumbnails[video.id] ? (
                         <img
@@ -447,7 +464,6 @@ export function IPManagementDashboard() {
                     </>
                   )}
 
-                  {/* Status Badge */}
                   <div className="absolute top-2 left-2">
                     <Badge
                       variant={
@@ -463,7 +479,6 @@ export function IPManagementDashboard() {
                     </Badge>
                   </div>
 
-                  {/* Hover Overlay with Play Button */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
                     <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300 shadow-2xl">
                       <Play
@@ -475,12 +490,21 @@ export function IPManagementDashboard() {
                   </div>
                 </div>
 
-                {/* Video Info */}
                 <div className="p-4">
-                  <h4 className="font-semibold text-white text-sm line-clamp-2 mb-2">
-                    {video.metadata.name}
-                  </h4>
-                  
+                  <div className="w-full flex justify-between mb-4">
+                    <h4 className="font-semibold text-white text-sm line-clamp-2 mb-2">
+                      {video.metadata.name}
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteVideo(video.id)}
+                      className="text-red-600"
+                    >
+                      <Trash size={14} />
+                    </Button>
+                  </div>
+
                   <div className="space-y-2 text-xs text-slate-400 mb-3">
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1">
@@ -493,7 +517,9 @@ export function IPManagementDashboard() {
                     {video.collaborators && video.collaborators.length > 0 && (
                       <div className="flex items-center gap-1">
                         <Users size={12} />
-                        <span>{video.collaborators.length} collaborator(s)</span>
+                        <span>
+                          {video.collaborators.length} collaborator(s)
+                        </span>
                       </div>
                     )}
 
@@ -512,12 +538,11 @@ export function IPManagementDashboard() {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex gap-2">
                     {video.ipRegistered ? (
                       <>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           className="flex-1"
                           onClick={() => {
@@ -528,12 +553,14 @@ export function IPManagementDashboard() {
                           <FileText size={14} />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           className="flex-1"
                           onClick={() => togglePublishStatus(video)}
                         >
-                          {video.ipStatus === "published" ? "Unpublish" : "Publish"}
+                          {video.ipStatus === "published"
+                            ? "Unpublish"
+                            : "Publish"}
                         </Button>
                         <Button
                           variant="ghost"
@@ -564,21 +591,28 @@ export function IPManagementDashboard() {
         )}
       </div>
 
-      {/* Register IP Modal */}
       {showRegisterModal && selectedVideo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Register IP Asset</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Register IP Asset
+              </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm text-slate-300 mb-2 block">Video</label>
+                  <label className="text-sm text-slate-300 mb-2 block">
+                    Video
+                  </label>
                   <div className="p-3 bg-slate-800 rounded border border-slate-600">
-                    <p className="text-white font-medium">{selectedVideo.metadata.name}</p>
-                    <p className="text-slate-400 text-sm">{formatDate(selectedVideo.createdAt)}</p>
+                    <p className="text-white font-medium">
+                      {selectedVideo.metadata.name}
+                    </p>
+                    <p className="text-slate-400 text-sm">
+                      {formatDate(selectedVideo.createdAt)}
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3 pt-4">
                   <Button
                     variant="primary"
@@ -588,7 +622,7 @@ export function IPManagementDashboard() {
                     Register IP Asset
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     className="flex-1"
                     onClick={() => setShowRegisterModal(false)}
                   >
@@ -601,7 +635,6 @@ export function IPManagementDashboard() {
         </div>
       )}
 
-      {/* License Terms Modal */}
       {showLicenseModal && selectedVideo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -609,14 +642,19 @@ export function IPManagementDashboard() {
               <h3 className="text-lg font-semibold text-white mb-4">
                 License Terms - {selectedVideo.metadata.name}
               </h3>
-              
-              {selectedVideo.licenseTerms && selectedVideo.licenseTerms.length > 0 ? (
+
+              {selectedVideo.licenseTerms &&
+              selectedVideo.licenseTerms.length > 0 ? (
                 <div className="space-y-3 mb-6">
                   {selectedVideo.licenseTerms.map((license) => (
                     <Card key={license.id} className="p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-white">{license.name}</h4>
-                        <Badge variant="outline" size="sm">{license.type}</Badge>
+                        <h4 className="font-semibold text-white">
+                          {license.name}
+                        </h4>
+                        <Badge variant="info" size="sm">
+                          {license.type}
+                        </Badge>
                       </div>
                       <div className="text-sm text-slate-400 space-y-1">
                         <p>Duration: {license.duration}</p>
@@ -651,7 +689,7 @@ export function IPManagementDashboard() {
                   Attach License Terms
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   className="flex-1"
                   onClick={() => setShowLicenseModal(false)}
                 >
