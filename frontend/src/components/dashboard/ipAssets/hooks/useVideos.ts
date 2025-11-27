@@ -1,0 +1,136 @@
+import { useState, useEffect } from "react";
+import type { Video } from "../types";
+
+
+export function useVideos(walletAddress: string, isConnected: boolean) {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchUserVideos = async () => {
+    if (!isConnected) {
+      setVideos([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/video/wallet/${walletAddress}`
+      );
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const result = await response.json();
+
+      if (result.success && Array.isArray(result.videos)) {
+        const videosWithIPData = result.videos.map((video: any) => ({
+          id: video.id,
+          videoUrl: video.videoUrl,
+          thumbnailUrl: video.thumbnailUrl,
+          videoHash: video.videoHash,
+          walletAddress: video.walletAddress,
+          metadata: {
+            name: video.metadata?.name || "Untitled Video",
+            size: video.metadata?.size || 0,
+            type: video.metadata?.type || "video/mp4",
+            duration: video.metadata?.duration,
+            description: video.metadata?.description,
+          },
+          createdAt: video.createdAt,
+          ipRegistered: Math.random() > 0.3,
+          publication: video.publication,
+          collaborators: Math.random() > 0.5 ? generateMockCollaborators() : [],
+          licenseTerms: Math.random() > 0.6 ? generateMockLicenses() : [],
+          revenue: Math.floor(Math.random() * 1000),
+        }));
+
+        setVideos(videosWithIPData);
+      } else {
+        setVideos([]);
+      }
+    } catch (err) {
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateVideoPublication = async (video: Video, status: "draft" | "published") => {
+    setVideos(prev => prev.map(v => v.id === video.id ? { ...v, publication: status } : v));
+
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/video/publication/${video.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publication: status }),
+        }
+      );
+
+      const data = await res.json();
+      if (!data.success) {
+        fetchUserVideos();
+      }
+    } catch (err) {
+      fetchUserVideos();
+    }
+  };
+
+  const deleteVideo = async (videoId: string) => {
+    if (!confirm("Are you sure you want to delete this video?")) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/video/${videoId}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        setVideos(prev => prev.filter(v => v.id !== videoId));
+      } else {
+        alert("Failed to delete video: " + result.error);
+      }
+    } catch (error) {
+      alert("Error deleting video");
+    }
+  };
+
+  useEffect(() => {
+    fetchUserVideos();
+  }, [walletAddress, isConnected]);
+
+  return {
+    videos,
+    loading,
+    fetchUserVideos,
+    updateVideoPublication,
+    deleteVideo,
+  };
+}
+
+function generateMockCollaborators() {
+  return [
+    {
+      id: "1",
+      walletAddress: "0x" + Math.random().toString(16).slice(2, 10) + "...",
+      role: ["audio", "visual", "both"][Math.floor(Math.random() * 3)] as "audio" | "visual" | "both",
+      revenueShare: Math.floor(Math.random() * 40) + 10,
+      contribution: "Audio mixing & mastering",
+    },
+  ];
+}
+
+function generateMockLicenses() {
+  return [
+    {
+      id: "1",
+      name: "Commercial License",
+      type: "commercial",
+      duration: "1 year",
+      terms: "Full commercial rights for distribution",
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}

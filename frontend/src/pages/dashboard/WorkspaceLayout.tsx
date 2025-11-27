@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { AudioUploadPanel } from "../../components/dashboard/audio/AudioUploadPanel";
-import { VisualizerLibrary } from "../../components/dashboard/workspace/VisualizerLibrary";
-import { LivePreviewCanvas } from "../../components/dashboard/workspace/LivePreviewCanvas";
-import { IPManagementDashboard } from "../../components/dashboard/ipAssets/IPManagementDashboard";
-import { VideoPlayer } from "../../components/dashboard/video/VideoPlayer";
+import { VisualizerLibrary } from "../../components/dashboard/workspace/components/VisualizerLibrary";
+import { LivePreviewCanvas } from "../../components/dashboard/workspace";
+import { IPManagementDashboard } from "../../components/dashboard/ipAssets";
+import { VideoPlayer } from "../../components/dashboard/video";
+
 
 interface WorkspaceLayoutProps {
   activeView: string;

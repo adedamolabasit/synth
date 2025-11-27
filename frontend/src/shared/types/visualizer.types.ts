@@ -15,7 +15,7 @@ export interface VisualizerContextType {
   selectedElement: string | null;
   setSelectedElement: (id: string | null) => void;
   audioData: AudioData;
-  setAudioData: (data: AudioData) => void;
+  setAudioData: (data: any) => void;
   showDownloadModal: boolean;
 
   showVisualizerLibrary: boolean;
@@ -80,6 +80,7 @@ export interface VisualizerParams {
   fluidity: number;
   glowIntensity: number;
   reactionSpeed: number;
+  showLyrics?: boolean;
 }
 
 export interface Visualizer {
@@ -150,8 +151,8 @@ export interface BackgroundCustomization {
   gradientEnd?: string;
   opacity?: number;
   backgroundType?: "color" | "gradient" | "image" | string;
-  image?: string | null; 
-  imageFile?: string | null; 
+  image?: string | null;
+  imageFile?: string | null;
   imageScale?: number;
   imageOffsetX?: number;
   imageOffsetY?: number;
@@ -263,7 +264,6 @@ export interface LyricsDisplayConfig {
   showWordHighlight: boolean;
   showLineHighlight: boolean;
 }
-
 
 export interface CustomizationField {
   key: string;

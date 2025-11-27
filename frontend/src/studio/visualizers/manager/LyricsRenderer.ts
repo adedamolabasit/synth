@@ -13,6 +13,7 @@ export class LyricsRenderer {
   private upcomingLinesMesh: THREE.Mesh | null = null;
   private lyricsLayer: THREE.Group;
   private config: LyricsDisplayConfig;
+  private isVisible: boolean = true;
 
   constructor(scene: THREE.Scene, lyricsManager: LyricsManager) {
     this.scene = scene;
@@ -26,7 +27,36 @@ export class LyricsRenderer {
     lyricsManager.onUpdate(this.handleLyricsUpdate.bind(this));
   }
 
+  // Add show method
+  public show(): void {
+    this.isVisible = true;
+    this.lyricsLayer.visible = true;
+    // Re-render lyrics if there's current state
+    const currentState = this.lyricsManager.getCurrentState();
+    if (currentState.isActive && currentState.currentLine) {
+      this.renderAllLyrics(currentState, this.config);
+    }
+  }
+
+  // Add hide method
+  public hide(): void {
+    this.isVisible = false;
+    this.lyricsLayer.visible = false;
+    this.clearAllLyrics();
+  }
+
+  // Add toggle method for convenience
+  public toggle(visible: boolean): void {
+    if (visible) {
+      this.show();
+    } else {
+      this.hide();
+    }
+  }
+
   private handleLyricsUpdate(state: LyricsState) {
+    if (!this.isVisible) return;
+    
     if (!state.isActive || !state.currentLine) {
       this.clearAllLyrics();
       return;
@@ -37,6 +67,8 @@ export class LyricsRenderer {
   }
 
   private renderAllLyrics(state: LyricsState, config: LyricsDisplayConfig) {
+    if (!this.isVisible) return;
+    
     this.clearAllLyrics();
 
     const upcoming = this.lyricsManager.getUpcomingLines(1);
