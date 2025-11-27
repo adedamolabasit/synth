@@ -16,6 +16,7 @@ import {
 import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
 import { Badge } from "../../ui/Badge";
+import { Switch } from "../../ui/Switch";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 interface Collaborator {
@@ -50,7 +51,7 @@ interface Video {
   };
   createdAt: string;
   ipRegistered?: boolean;
-  ipStatus?: "draft" | "published" | "pending";
+  publication: "draft" | "published";
   collaborators?: Collaborator[];
   licenseTerms?: LicenseTerm[];
   revenue?: number;
@@ -101,8 +102,7 @@ export function IPManagementDashboard() {
 
           videoThumbnailCache[video.videoUrl] = thumb;
           setVideoThumbnails((prev) => ({ ...prev, [video.id]: thumb }));
-        } catch (err) {
-        }
+        } catch (err) {}
       }
     };
 
@@ -192,87 +192,85 @@ export function IPManagementDashboard() {
     }
   };
 
+  const fetchUserVideos = async () => {
+    if (!isConnected) {
+      setVideos([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/video/wallet/${walletAddress}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && Array.isArray(result.videos)) {
+        const videosWithIPData = result.videos.map((video: any) => ({
+          id: video.id,
+          videoUrl: video.videoUrl,
+          thumbnailUrl: video.thumbnailUrl,
+          videoHash: video.videoHash,
+          walletAddress: video.walletAddress,
+          metadata: {
+            name: video.metadata?.name || "Untitled Video",
+            size: video.metadata?.size || 0,
+            type: video.metadata?.type || "video/mp4",
+            duration: video.metadata?.duration,
+            description: video.metadata?.description,
+          },
+          createdAt: video.createdAt,
+          ipRegistered: Math.random() > 0.3,
+          publication: video.publication,
+          collaborators:
+            Math.random() > 0.5
+              ? [
+                  {
+                    id: "1",
+                    walletAddress:
+                      "0x" + Math.random().toString(16).slice(2, 10) + "...",
+                    role: ["audio", "visual", "both"][
+                      Math.floor(Math.random() * 3)
+                    ] as "audio" | "visual" | "both",
+                    revenueShare: Math.floor(Math.random() * 40) + 10,
+                    contribution: "Audio mixing & mastering",
+                  },
+                ]
+              : [],
+          licenseTerms:
+            Math.random() > 0.6
+              ? [
+                  {
+                    id: "1",
+                    name: "Commercial License",
+                    type: "commercial",
+                    duration: "1 year",
+                    terms: "Full commercial rights for distribution",
+                    createdAt: new Date().toISOString(),
+                  },
+                ]
+              : [],
+          revenue: Math.floor(Math.random() * 1000),
+        }));
+
+        setVideos(videosWithIPData);
+      } else {
+        setVideos([]);
+      }
+    } catch (err) {
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchUserVideos = async () => {
-      if (!isConnected) {
-        setVideos([]);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `http://localhost:8000/api/video/wallet/${walletAddress}`
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (result.success && Array.isArray(result.videos)) {
-          const videosWithIPData = result.videos.map((video: any) => ({
-            id: video.id,
-            videoUrl: video.videoUrl,
-            thumbnailUrl: video.thumbnailUrl,
-            videoHash: video.videoHash,
-            walletAddress: video.walletAddress,
-            metadata: {
-              name: video.metadata?.name || "Untitled Video",
-              size: video.metadata?.size || 0,
-              type: video.metadata?.type || "video/mp4",
-              duration: video.metadata?.duration,
-              description: video.metadata?.description,
-            },
-            createdAt: video.createdAt,
-            ipRegistered: Math.random() > 0.3,
-            ipStatus: ["draft", "published", "pending"][
-              Math.floor(Math.random() * 3)
-            ] as "draft" | "published" | "pending",
-            collaborators:
-              Math.random() > 0.5
-                ? [
-                    {
-                      id: "1",
-                      walletAddress:
-                        "0x" + Math.random().toString(16).slice(2, 10) + "...",
-                      role: ["audio", "visual", "both"][
-                        Math.floor(Math.random() * 3)
-                      ] as "audio" | "visual" | "both",
-                      revenueShare: Math.floor(Math.random() * 40) + 10,
-                      contribution: "Audio mixing & mastering",
-                    },
-                  ]
-                : [],
-            licenseTerms:
-              Math.random() > 0.6
-                ? [
-                    {
-                      id: "1",
-                      name: "Commercial License",
-                      type: "commercial",
-                      duration: "1 year",
-                      terms: "Full commercial rights for distribution",
-                      createdAt: new Date().toISOString(),
-                    },
-                  ]
-                : [],
-            revenue: Math.floor(Math.random() * 1000),
-          }));
-
-          setVideos(videosWithIPData);
-        } else {
-          setVideos([]);
-        }
-      } catch (err) {
-        setVideos([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserVideos();
   }, [walletAddress, isConnected]);
 
@@ -296,17 +294,35 @@ export function IPManagementDashboard() {
     }
   };
 
-  const togglePublishStatus = (video: Video) => {
-    setVideos(
-      videos.map((v) =>
-        v.id === video.id
-          ? {
-              ...v,
-              ipStatus: v.ipStatus === "published" ? "draft" : "published",
-            }
-          : v
-      )
+  const togglePublishStatus = async (
+    video: any,
+    status: "draft" | "published"
+  ) => {
+    setVideos((prev) =>
+      prev.map((v) => (v.id === video.id ? { ...v, publication: status } : v))
     );
+
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/video/publication/${video.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ publication: status }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.success) {
+        console.log("Server rejected update → rolling back...");
+        fetchUserVideos();
+      }
+    } catch (err) {
+      fetchUserVideos();
+    }
   };
 
   const handleRegisterIP = (video: Video) => {
@@ -464,14 +480,16 @@ export function IPManagementDashboard() {
                     <Badge
                       variant={
                         video.ipRegistered
-                          ? video.ipStatus === "published"
+                          ? video.publication === "published"
                             ? "success"
                             : "warning"
                           : "default"
                       }
                       size="sm"
                     >
-                      {video.ipRegistered ? video.ipStatus : "Not Registered"}
+                      {video.ipRegistered
+                        ? video.publication
+                        : "Not Registered"}
                     </Badge>
                   </div>
 
@@ -491,14 +509,34 @@ export function IPManagementDashboard() {
                     <h4 className="font-semibold text-white text-sm line-clamp-2 mb-2">
                       {video.metadata.name}
                     </h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteVideo(video.id)}
-                      className="text-red-600"
-                    >
-                      <Trash size={14} />
-                    </Button>
+                    <div className="flex gap-2">
+                      <div className="flex items-center space-x-3">
+                        <Switch
+                          checked={video.publication === "published"}
+                          onChange={(val) =>
+                            togglePublishStatus(
+                              video,
+                              val ? "published" : "draft"
+                            )
+                          }
+                        />
+
+                        <span className="text-sm font-medium text-cyan-400">
+                          {video.publication === "published"
+                            ? "Published"
+                            : "Draft"}
+                        </span>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteVideo(video.id)}
+                        className="text-red-600"
+                      >
+                        <Trash size={14} />
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-2 text-xs text-slate-400 mb-3">
@@ -547,16 +585,6 @@ export function IPManagementDashboard() {
                           }}
                         >
                           <FileText size={14} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => togglePublishStatus(video)}
-                        >
-                          {video.ipStatus === "published"
-                            ? "Unpublish"
-                            : "Publish"}
                         </Button>
                         <Button
                           variant="ghost"

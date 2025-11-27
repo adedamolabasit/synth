@@ -9,6 +9,12 @@ export interface VideoMetadata {
   resolution?: string;
 }
 
+export type PilFlavoursType =
+  | "nonCommercialSocialRemix"
+  | "commercialUse"
+  | "commercialRemix"
+  | "creativeCommonAttribution";
+
 export interface IVideoEntry extends Document {
   user: mongoose.Types.ObjectId | IUser;
   walletAddress: string;
@@ -17,6 +23,20 @@ export interface IVideoEntry extends Document {
   thumbnailHash?: string;
   thumbnailUrl?: string;
   metadata: VideoMetadata;
+  ipRegistration?: {
+    ip: {
+      ipId: string;
+      status: "registered" | "notRegistered" | "pending";
+      licenseTermsIds: string;
+      tokenId: string;
+      fee: number;
+      revShare: number;
+      license: {
+        pilFlavors: PilFlavoursType;
+      };
+    }[];
+  };
+  publication: "draft" | "published";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +72,44 @@ const VideoEntrySchema = new mongoose.Schema<IVideoEntry>(
       type: { type: String, required: true },
       duration: { type: Number },
       resolution: { type: String },
+    },
+    ipRegistration: {
+      ip: [
+        {
+          type: {
+            ipId: { type: String, required: true },
+            status: {
+              type: String,
+              enum: ["registered", "notRegistered", "pending"],
+              required: true,
+            },
+            licenseTermsIds: { type: String, required: true },
+            tokenId: { type: String, required: true },
+            fee: { type: Number, required: false },
+            revShare: { type: Number, required: false },
+            license: {
+              pilFlavors: {
+                type: String,
+                enum: [
+                  "nonCommercialSocialRemix",
+                  "commercialUse",
+                  "commercialRemix",
+                  "creativeCommonAttribution",
+                ],
+                required: false,
+              },
+            },
+          },
+          required: false,
+          default: null,
+        },
+      ],
+    },
+    publication: {
+      type: String,
+      enum: ["draft", "published"],
+      default: "draft",
+      required: true,
     },
   },
   { timestamps: true }

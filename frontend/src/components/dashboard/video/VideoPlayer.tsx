@@ -8,6 +8,7 @@ import {
   X,
   ArrowLeft,
   Lock,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
@@ -25,6 +26,7 @@ interface Video {
     type: string;
     duration?: number;
   };
+  publication: "draft" | "published";
   createdAt: string;
 }
 
@@ -157,13 +159,24 @@ export const VideoPlayer = () => {
     };
 
     fetchVideos();
-  }, [activeTab, isConnected]);
+  }, [activeTab, isConnected, walletAddress]);
 
   const handleTabChange = (tab: "all" | "your") => {
     if (tab === "your" && !isConnected) {
       return;
     }
     setActiveTab(tab);
+  };
+
+  // Filter videos based on active tab
+  const getFilteredVideos = () => {
+    if (activeTab === "all") {
+      // Show only published videos for "All Videos" tab
+      return videos.filter(video => video.publication === "published");
+    } else {
+      // Show ALL videos (both draft and published) for "Your Videos" tab
+      return videos;
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -221,6 +234,8 @@ export const VideoPlayer = () => {
       </div>
     );
   }
+
+  const filteredVideos = getFilteredVideos();
 
   return (
     <div className="h-full overflow-y-scroll bg-slate-900/50">
@@ -281,9 +296,17 @@ export const VideoPlayer = () => {
                 >
                   Back
                 </Button>
-                <h3 className="text-xl font-bold text-white truncate">
-                  {selectedVideo.metadata.name}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-white truncate">
+                    {selectedVideo.metadata.name}
+                  </h3>
+                  {selectedVideo.publication === "draft" && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-500/20 text-amber-300 rounded-full text-xs border border-amber-500/30">
+                      <EyeOff size={12} />
+                      Draft
+                    </span>
+                  )}
+                </div>
               </div>
               <Button
                 variant="ghost"
@@ -318,6 +341,16 @@ export const VideoPlayer = () => {
                 </div>
                 <div className="flex-1 p-4 bg-slate-800/50 ">
                   <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 text-sm">Status:</span>
+                      <span className={`text-sm font-medium ${
+                        selectedVideo.publication === "published" 
+                          ? "text-green-400" 
+                          : "text-amber-400"
+                      }`}>
+                        {selectedVideo.publication === "published" ? "Published" : "Draft"}
+                      </span>
+                    </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400 text-sm">Size:</span>
                       <span className="text-white text-sm">
@@ -401,19 +434,19 @@ export const VideoPlayer = () => {
                 </p>
                 <Button variant="primary">Connect Wallet</Button>
               </div>
-            ) : videos.length === 0 ? (
+            ) : filteredVideos.length === 0 ? (
               <div className="text-center py-12">
                 <FileVideo className="mx-auto text-slate-400 mb-4" size={48} />
                 <h3 className="text-lg text-slate-300 mb-2">No videos found</h3>
                 <p className="text-slate-500">
                   {activeTab === "all"
-                    ? "No videos have been uploaded yet."
+                    ? "No published videos available."
                     : "You haven't uploaded any videos yet."}
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {videos.map((video) => (
+                {filteredVideos.map((video) => (
                   <Card
                     key={video.id}
                     className="overflow-hidden group cursor-pointer hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
@@ -462,6 +495,13 @@ export const VideoPlayer = () => {
                         </div>
                       </div>
 
+                      {video.publication === "draft" && (
+                        <div className="absolute top-2 left-2 bg-amber-500/90 text-amber-50 text-xs px-2 py-1 rounded flex items-center gap-1">
+                          <EyeOff size={10} />
+                          Draft
+                        </div>
+                      )}
+
                       {video.metadata.duration && (
                         <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
                           {formatDuration(video.metadata.duration)}
@@ -495,13 +535,13 @@ export const VideoPlayer = () => {
           <div className="w-80 border-l border-slate-800/50 bg-slate-900/95 backdrop-blur-xl overflow-y-auto">
             <div className="p-4 border-b border-slate-800/50">
               <h4 className="text-lg font-semibold text-white mb-2">
-                More Videos ({videos.length - 1})
+                More Videos ({filteredVideos.length - 1})
               </h4>
               <p className="text-slate-400 text-sm">Click any video to play</p>
             </div>
 
             <div className="p-4 space-y-4">
-              {videos
+              {filteredVideos
                 .filter((video) => video.id !== selectedVideo.id)
                 .map((video) => (
                   <Card
@@ -551,6 +591,13 @@ export const VideoPlayer = () => {
                           />
                         </div>
                       </div>
+
+                      {video.publication === "draft" && (
+                        <div className="absolute top-1 left-1 bg-amber-500/90 text-amber-50 text-xs px-1 py-0.5 rounded flex items-center gap-1">
+                          <EyeOff size={8} />
+                          Draft
+                        </div>
+                      )}
 
                       {video.metadata.duration && (
                         <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 py-0.5 rounded">

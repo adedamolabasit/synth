@@ -8,7 +8,7 @@ import config from "./config/config";
 import helmet from "helmet";
 import morgan from "morgan";
 import lyricsRoutes from "./routes/audioRoutes";
-import videoRoutes from "./routes/videoRoutes"
+import videoRoutes from "./routes/videoRoutes";
 
 const app = express();
 
@@ -18,22 +18,25 @@ app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   "https://core-backend-1735.postman.co",
-  "http://localhost:3000", 
-  "*", 
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "*",
 ];
 
-app.use(cors({
-  origin: function (origin: any, callback: any) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-      return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: function (origin: any, callback: any) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan(config.morgan.format));
@@ -59,7 +62,6 @@ app.use(
     res: express.Response,
     _next: express.NextFunction
   ) => {
-
     if (error instanceof multer.MulterError) {
       if (error.code === "LIMIT_FILE_SIZE") {
         return res.status(400).json({

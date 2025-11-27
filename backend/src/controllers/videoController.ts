@@ -55,6 +55,8 @@ export class VideoController {
       thumbnailHash: video.thumbnailHash,
       thumbnailUrl: video.thumbnailUrl,
       metadata: video.metadata,
+      publication: video.publication,
+      ipRegistration: video.ipRegistration,
       createdAt: video.createdAt,
       updatedAt: video.updatedAt,
     };
@@ -123,6 +125,8 @@ export class VideoController {
           type: req.file.mimetype,
           name: req.file.originalname,
         },
+        ipRegistration: { ip: [] },
+        publication: "draft",
       });
 
       const response: VideoResponse = {
@@ -237,6 +241,36 @@ export class VideoController {
       };
 
       res.status(500).json(response);
+    }
+  }
+
+  async updateVideo(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        res.status(400).json({ success: false, error: "Invalid video ID" });
+        return;
+      }
+
+      const updates = req.body;
+
+      const updatedVideo = await VideoEntryService.updateVideo(id, updates);
+
+      if (!updatedVideo) {
+        res.status(404).json({ success: false, error: "Video not found" });
+        return;
+      }
+
+      res.json({
+        success: true,
+        video: updatedVideo,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: this.getErrorMessage(error),
+      });
     }
   }
 
