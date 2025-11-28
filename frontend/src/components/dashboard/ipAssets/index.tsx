@@ -10,7 +10,7 @@ import { LicenseModal } from "./components/LicenseModal";
 import { useVideos } from "./hooks/useVideos";
 import { useVideoThumbnails } from "./hooks/useVideoThumbnails";
 import { Shield } from "lucide-react";
-import type { Video, LicenseTerm } from "./types";
+import type { Video} from "./types";
 
 export function IPManagementDashboard() {
   const { user, primaryWallet } = useDynamicContext();
@@ -40,14 +40,14 @@ export function IPManagementDashboard() {
     0
   );
 
-  const handleRegisterIP = (video: Video) => {
-    // Update local state - in real app, this would be an API call
-    fetchUserVideos(); // Refresh data
-    setShowRegisterModal(false);
-    setSelectedVideo(null);
-  };
+//   const handleRegisterIP = (video: Video) => {
+//     // Update local state - in real app, this would be an API call
+//     fetchUserVideos(); // Refresh data
+//     setShowRegisterModal(false);
+//     setSelectedVideo(null);
+//   };
 
-  const handleAddLicense = (video: Video, license: LicenseTerm) => {
+  const handleAddLicense = (video: Video, license: any) => {
     // Update local state - in real app, this would be an API call
     fetchUserVideos(); // Refresh data
     setShowLicenseModal(false);
@@ -85,7 +85,6 @@ export function IPManagementDashboard() {
       {showRegisterModal && selectedVideo && (
         <RegisterIPModal
           video={selectedVideo}
-          onRegister={handleRegisterIP}
           onClose={() => setShowRegisterModal(false)}
         />
       )}

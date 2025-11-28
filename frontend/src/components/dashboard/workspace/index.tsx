@@ -101,42 +101,42 @@ export const LivePreviewCanvas: React.FC = () => {
     }
   }, [currentAudio, hasDefaultAudio]);
 
-  useEffect(() => {
-    audioSyncCountRef.current++;
+useEffect(() => {
+  // Prevent running before data exists
+  if (!frequencyData || !timeData) return;
 
-    if (audioSyncCountRef.current > 100) {
-      console.warn("Possible infinite loop detected in audio sync");
-      return;
-    }
+  const convertedTimeData =
+    timeData instanceof Uint8Array
+      ? Float32Array.from(timeData, v => (v - 128) / 128)
+      : timeData;
 
-    const convertedTimeData =
-      timeData instanceof Uint8Array
-        ? new Float32Array(timeData.length).map(
-            (_, i) => (timeData[i] - 128) / 128
-          )
-        : timeData;
-
-    setAudioData((prev: any) => {
-      const newData = {
+  setAudioData((prev: any) => {
+    if (!prev) {
+      return {
         frequencyData,
         timeData: convertedTimeData,
         beatInfo,
         audioLevel,
       };
+    }
 
-      if (
-        prev &&
-        prev.frequencyData === newData.frequencyData &&
-        prev.timeData === newData.timeData &&
-        prev.beatInfo === newData.beatInfo &&
-        prev.audioLevel === newData.audioLevel
-      ) {
-        return prev;
-      }
+    // Shallow compare array lengths + beat strength
+    const same =
+      prev.frequencyData?.length === frequencyData.length &&
+      prev.timeData?.length === convertedTimeData.length &&
+      prev.beatInfo?.strength === beatInfo.strength &&
+      prev.audioLevel === audioLevel;
 
-      return newData;
-    });
-  }, [frequencyData, timeData, beatInfo, audioLevel, setAudioData]);
+    if (same) return prev;
+
+    return {
+      frequencyData,
+      timeData: convertedTimeData,
+      beatInfo,
+      audioLevel,
+    };
+  });
+}, [frequencyData, timeData, beatInfo.strength, audioLevel]);
 
   useEffect(() => {
     const loadLyrics = async () => {

@@ -1,14 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "../../../ui/Card";
 import { Button } from "../../../ui/Button";
-import { Input } from "../../../ui/Input";
-import { Textarea } from "../../../ui/Input";
+import { Input, Textarea } from "../../../ui/Input2";
 import { formatDate } from "../utils/formatter";
 import { RegisterIPModalProps, IPRegistrationData } from "../types";
-import type { Video } from "../types";
+import {
+  NonCommercialSocialRemixingTerms,
+  createCommercialRemixTerms,
+} from "../../../../story/utils";
+import { RegisterIpAsset } from "../actions/RegisterIpAsset";
+import { useStoryClient } from "../../../../story/client/storyClient";
+import { useDynamicContext} from '@dynamic-labs/sdk-react-core';
+import { client } from "../../../../story/config";
 
 
-export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalProps) {
+
+
+export function RegisterIPModal({ video, onClose }: RegisterIPModalProps) {
+  const [licenseType, setLicenseType] = useState<
+    "nonCommercial" | "commercial"
+  >("nonCommercial");
+const { primaryWallet } = useDynamicContext();
+
+  // const client = useStoryClient()
+
+  const [commercialTerms, setCommercialTerms] = useState({
+    commercialRevShare: 5,
+    defaultMintingFee: "1",
+  });
+
   const [formData, setFormData] = useState<IPRegistrationData>({
     title: video.metadata.name,
     video: video,
@@ -16,55 +36,70 @@ export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalP
     creators: [
       {
         name: "",
-        address: "",
+        address: "" as `0x${string}`,
         contributionPercent: 100,
       },
     ],
-    licenseTerms: {
-      commercialRevShare: 5,
-      defaultMintingFee: "1",
-      currency: "0x", // Will be replaced with actual token address
-    },
+    licenseTerms: NonCommercialSocialRemixingTerms,
   });
 
   const updateField = (field: string, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
-  const updateNestedField = (parent: string, field: string, value: any) => {
-    setFormData(prev => ({
+  const updateCreatorField = (
+    index: number,
+    field: string,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [parent]: {
-        ...prev[parent as keyof IPRegistrationData],
-        [field]: value
-      }
-    }));
-  };
-
-  const updateCreatorField = (index: number, field: string, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      creators: prev.creators?.map((creator, i) => 
+      creators: prev.creators?.map((creator, i) =>
         i === index ? { ...creator, [field]: value } : creator
-      )
+      ),
+    }));
+  };
+
+  const updateCommercialTerms = (field: string, value: any) => {
+    setCommercialTerms((prev) => ({
+      ...prev,
+      [field]: value,
     }));
   };
 
   const addCreator = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      creators: [...(prev.creators || []), { name: "", address: "", contributionPercent: 0 }]
+      creators: [
+        ...(prev.creators || []),
+        { name: "", address: "" as `0x${string}`, contributionPercent: 0 },
+      ],
     }));
   };
 
   const removeCreator = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      creators: prev.creators?.filter((_, i) => i !== index)
+      creators: prev.creators?.filter((_, i) => i !== index),
     }));
+  };
+
+  const handleLicenseTypeChange = (type: "nonCommercial" | "commercial") => {
+    setLicenseType(type);
+
+    if (type === "commercial") {
+      const terms = createCommercialRemixTerms({
+        commercialRevShare: commercialTerms.commercialRevShare,
+        defaultMintingFee: parseFloat(commercialTerms.defaultMintingFee) || 1,
+      });
+      setFormData((prev) => ({
+        ...prev,
+        licenseTerms: terms,
+      }));
+    }
   };
 
   const handleSubmit = () => {
@@ -73,37 +108,17 @@ export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalP
       return;
     }
 
-    if (formData.creators && formData.creators.length > 0) {
-      const totalContribution = formData.creators.reduce((sum, creator) => sum + creator.contributionPercent, 0);
-      if (totalContribution !== 100) {
-        alert("Total contribution percentage must equal 100%");
-        return;
-      }
-    }
-
     const registrationData: IPRegistrationData = {
       ...formData,
-      createdAt: Math.floor(Date.now() / 1000).toString(),
-      image: video.thumbnailUrl || "",
-      imageHash: "",
-      mediaHash: "",
-      mediaType: video.metadata.type || "video/mp4",
-      
-      // Static NFT Metadata
-      nftName: formData.title,
-      nftDescription: `This NFT represents ownership of the IP Asset for ${formData.title}`,
-      nftAttributes: [
-        { key: "Source", value: "Visualizer App" },
-        { key: "File Type", value: video.metadata.type?.split("/")[1] || "video" },
-        { key: "File Size", value: `${(video.metadata.size / (1024 * 1024)).toFixed(2)} MB` },
-        { key: "Original Video", value: video.metadata.name },
-      ],
     };
-
-    onRegister(registrationData);
+    RegisterIpAsset(client!, registrationData);
   };
 
-  const totalContribution = formData.creators?.reduce((sum, creator) => sum + creator.contributionPercent, 0) || 0;
+  const totalContribution =
+    formData.creators?.reduce(
+      (sum, creator) => sum + creator.contributionPercent,
+      0
+    ) || 0;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -124,15 +139,21 @@ export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalP
           <div className="space-y-6">
             {/* Video Information */}
             <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-              <h4 className="text-sm font-medium text-slate-300 mb-3">Video Information</h4>
+              <h4 className="text-sm font-medium text-slate-300 mb-3">
+                Video Information
+              </h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-slate-400">Name:</span>
-                  <p className="text-white font-medium">{video.metadata.name}</p>
+                  <p className="text-white font-medium">
+                    {video.metadata.name}
+                  </p>
                 </div>
                 <div>
                   <span className="text-slate-400">Size:</span>
-                  <p className="text-white">{formatFileSize(video.metadata.size)}</p>
+                  <p className="text-white">
+                    {formatFileSize(video.metadata.size)}
+                  </p>
                 </div>
                 <div>
                   <span className="text-slate-400">Type:</span>
@@ -147,8 +168,10 @@ export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalP
 
             {/* Basic Information */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-slate-300">Basic Information</h4>
-              
+              <h4 className="text-sm font-medium text-slate-300">
+                Basic Information
+              </h4>
+
               <Input
                 label="Title *"
                 value={formData.title}
@@ -159,7 +182,7 @@ export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalP
 
               <Textarea
                 label="Description"
-                value={formData.description}
+                value={formData.description as string}
                 onChange={(value) => updateField("description", value)}
                 placeholder="Describe your IP asset"
                 rows={3}
@@ -170,35 +193,44 @@ export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalP
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium text-slate-300">Creators</h4>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={addCreator}
-                >
+                <Button variant="ghost" size="sm" onClick={addCreator}>
                   Add Creator
                 </Button>
               </div>
 
               {formData.creators?.map((creator, index) => (
-                <div key={index} className="flex gap-3 items-start p-3 bg-slate-800/30 rounded-lg">
+                <div
+                  key={index}
+                  className="flex gap-3 items-start p-3 bg-slate-800/30 rounded-lg"
+                >
                   <div className="flex-1 grid grid-cols-3 gap-3">
                     <Input
                       label="Name"
                       value={creator.name}
-                      onChange={(value) => updateCreatorField(index, "name", value)}
+                      onChange={(value) =>
+                        updateCreatorField(index, "name", value)
+                      }
                       placeholder="Creator name"
                     />
                     <Input
                       label="Address"
                       value={creator.address}
-                      onChange={(value) => updateCreatorField(index, "address", value)}
+                      onChange={(value) =>
+                        updateCreatorField(index, "address", value)
+                      }
                       placeholder="0x..."
                     />
                     <Input
                       label="Contribution %"
                       type="number"
                       value={creator.contributionPercent.toString()}
-                      onChange={(value) => updateCreatorField(index, "contributionPercent", parseInt(value) || 0)}
+                      onChange={(value) =>
+                        updateCreatorField(
+                          index,
+                          "contributionPercent",
+                          parseInt(value) || 0
+                        )
+                      }
                       placeholder="100"
                       min="0"
                       max="100"
@@ -225,36 +257,142 @@ export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalP
             </div>
 
             {/* License Terms */}
-            {/* <div className="space-y-4">
-              <h4 className="text-sm font-medium text-slate-300">License Terms</h4>
-              
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-slate-300">
+                License Terms
+              </h4>
+
               <div className="space-y-4 p-4 bg-slate-800/30 rounded-lg border border-slate-700">
-                <Input
-                  label="Commercial Revenue Share %"
-                  type="number"
-                  value={formData.licenseTerms?.commercialRevShare.toString() || "5"}
-                  onChange={(value) => updateNestedField("licenseTerms", "commercialRevShare", parseInt(value) || 0)}
-                  placeholder="5"
-                  min="0"
-                  max="100"
-                />
+                {/* License Type Selection */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-slate-200">
+                    License Type
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      className={`p-3 rounded-lg border transition-all ${
+                        licenseType === "nonCommercial"
+                          ? "border-blue-500 bg-blue-500/10 text-blue-400"
+                          : "border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500"
+                      }`}
+                      onClick={() => handleLicenseTypeChange("nonCommercial")}
+                    >
+                      <div className="text-sm font-medium">Non-Commercial</div>
+                      <div className="text-xs mt-1">Social Remixing</div>
+                    </button>
+                    <button
+                      type="button"
+                      className={`p-3 rounded-lg border transition-all ${
+                        licenseType === "commercial"
+                          ? "border-blue-500 bg-blue-500/10 text-blue-400"
+                          : "border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500"
+                      }`}
+                      onClick={() => handleLicenseTypeChange("commercial")}
+                    >
+                      <div className="text-sm font-medium">Commercial</div>
+                      <div className="text-xs mt-1">Remix License</div>
+                    </button>
+                  </div>
+                </div>
 
-                <Input
-                  label="Default Minting Fee"
-                  value={formData.licenseTerms?.defaultMintingFee || "1"}
-                  onChange={(value) => updateNestedField("licenseTerms", "defaultMintingFee", value)}
-                  placeholder="1"
-                />
+                {/* License Details */}
+                <div className="space-y-3 pt-2">
+                  <h5 className="text-sm font-medium text-slate-200">
+                    License Details
+                  </h5>
 
-                <Input
-                  label="Currency Address"
-                  value={formData.licenseTerms?.currency || "0x"}
-                  onChange={(value) => updateNestedField("licenseTerms", "currency", value)}
-                  placeholder="0x..."
-                />
+                  {licenseType === "nonCommercial" ? (
+                    <div className="space-y-2 text-sm text-slate-300">
+                      <div className="flex justify-between">
+                        <span>Commercial Use:</span>
+                        <span className="text-red-400">Not Allowed</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Derivatives:</span>
+                        <span className="text-green-400">Allowed</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Attribution Required:</span>
+                        <span className="text-green-400">Yes</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Reciprocal Licensing:</span>
+                        <span className="text-green-400">Yes</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Minting Fee:</span>
+                        <span className="text-slate-400">Free</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <Input
+                          label="Commercial Revenue Share %"
+                          type="number"
+                          value={commercialTerms.commercialRevShare.toString()}
+                          onChange={(value) =>
+                            updateCommercialTerms(
+                              "commercialRevShare",
+                              parseInt(value) || 0
+                            )
+                          }
+                          placeholder="5"
+                          min="0"
+                          max="100"
+                        />
+                        <Input
+                          label="Default Minting Fee (WIP)"
+                          type="number"
+                          value={commercialTerms.defaultMintingFee}
+                          onChange={(value) =>
+                            updateCommercialTerms("defaultMintingFee", value)
+                          }
+                          placeholder="1"
+                          min="0"
+                        />
+                      </div>
+
+                      <div className="space-y-2 text-sm text-slate-300">
+                        <div className="flex justify-between">
+                          <span>Commercial Use:</span>
+                          <span className="text-green-400">Allowed</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Derivatives:</span>
+                          <span className="text-green-400">Allowed</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Attribution Required:</span>
+                          <span className="text-green-400">Yes</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Reciprocal Licensing:</span>
+                          <span className="text-green-400">Yes</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Currency:</span>
+                          <span className="text-slate-400">WIP Token</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* License Summary */}
+                <div className="p-3 bg-slate-800/50 rounded border border-slate-600">
+                  <h6 className="text-xs font-medium text-slate-300 mb-2">
+                    Summary
+                  </h6>
+                  <p className="text-xs text-slate-400">
+                    {licenseType === "nonCommercial"
+                      ? "This license allows non-commercial sharing and remixing with attribution. Derivatives must be shared under similar terms."
+                      : "This license allows commercial use and remixing. Revenue sharing and minting fees apply to commercial derivatives."}
+                  </p>
+                </div>
               </div>
-            </div> */}
-
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4 border-t border-slate-700">
@@ -266,11 +404,7 @@ export function RegisterIPModal({ video, onRegister, onClose }: RegisterIPModalP
               >
                 Register IP Asset
               </Button>
-              <Button
-                variant="ghost"
-                className="flex-1"
-                onClick={onClose}
-              >
+              <Button variant="ghost" className="flex-1" onClick={onClose}>
                 Cancel
               </Button>
             </div>
