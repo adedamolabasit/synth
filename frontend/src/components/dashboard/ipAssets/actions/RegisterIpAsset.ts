@@ -2,14 +2,13 @@ import { LicenseTerms, StoryClient } from "@story-protocol/core-sdk";
 import { uploadJSONToIPFS } from "../../../../shared/utils/pinata";
 import { SPGNFTContractAddress } from "../../../../story/utils";
 import { IpMetadata } from "@story-protocol/core-sdk";
-import { IPRegistrationData } from "../types";
+import { IPRegistrationData, RegisteredIpAssetParams } from "../types";
 import { sha256Hash } from "../utils/hash";
-import { QueryClient } from "@tanstack/react-query";
 
 export const RegisterIpAsset = async (
   client: StoryClient,
   registrationData: IPRegistrationData
-) => {
+): Promise<RegisteredIpAssetParams> => {
   const {
     title,
     description,
@@ -83,9 +82,10 @@ export const RegisterIpAsset = async (
       nftMetadataHash: `0x${nftHash}`,
     },
   });
-  console.log("Root IPA created:", {
-    "Transaction Hash": response?.txHash,
-    "IPA ID": response?.ipId,
-    "License Terms IDs": response,
-  });
+
+  return {
+    ipId: response.ipId,
+    status: "registered",
+    tokenId: response.tokenId,
+  };
 };

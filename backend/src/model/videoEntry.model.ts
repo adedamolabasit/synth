@@ -24,17 +24,9 @@ export interface IVideoEntry extends Document {
   thumbnailUrl?: string;
   metadata: VideoMetadata;
   ipRegistration?: {
-    ip: {
-      ipId: string;
-      status: "registered" | "notRegistered" | "pending";
-      licenseTermsIds: string;
-      tokenId: string;
-      fee: number;
-      revShare: number;
-      license: {
-        pilFlavors: PilFlavoursType;
-      };
-    }[];
+    ipId: string;
+    status: "registered" | "notRegistered";
+    tokenId: string;
   };
   publication: "draft" | "published";
   createdAt: Date;
@@ -74,36 +66,17 @@ const VideoEntrySchema = new mongoose.Schema<IVideoEntry>(
       resolution: { type: String },
     },
     ipRegistration: {
-      ip: [
-        {
-          type: {
-            ipId: { type: String, required: true },
-            status: {
-              type: String,
-              enum: ["registered", "notRegistered", "pending"],
-              required: true,
-            },
-            licenseTermsIds: { type: String, required: true },
-            tokenId: { type: String, required: true },
-            fee: { type: Number, required: false },
-            revShare: { type: Number, required: false },
-            license: {
-              pilFlavors: {
-                type: String,
-                enum: [
-                  "nonCommercialSocialRemix",
-                  "commercialUse",
-                  "commercialRemix",
-                  "creativeCommonAttribution",
-                ],
-                required: false,
-              },
-            },
-          },
-          required: false,
-          default: null,
+      type: {
+        ipId: { type: String, required: false },
+        status: {
+          type: String,
+          enum: ["registered", "notRegistered"],
+          required: true,
         },
-      ],
+        tokenId: { type: String, required: false },
+      },
+      required: false,
+      default: null,
     },
     publication: {
       type: String,

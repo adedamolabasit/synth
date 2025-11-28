@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import type { Video } from "../types";
-
+import type { Video as VideoParams, RegisteredIpAssetParams } from "../types";
 
 export function useVideos(walletAddress: string, isConnected: boolean) {
-  const [videos, setVideos] = useState<Video[]>([]);
+  const [videos, setVideos] = useState<VideoParams[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchUserVideos = async () => {
@@ -19,12 +18,13 @@ export function useVideos(walletAddress: string, isConnected: boolean) {
         `http://localhost:8000/api/video/wallet/${walletAddress}`
       );
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
 
       const result = await response.json();
 
       if (result.success && Array.isArray(result.videos)) {
-        const videosWithIPData = result.videos.map((video: any) => ({
+        const videosWithIPData = result.videos.map((video: VideoParams) => ({
           id: video.id,
           videoUrl: video.videoUrl,
           thumbnailUrl: video.thumbnailUrl,
@@ -38,7 +38,7 @@ export function useVideos(walletAddress: string, isConnected: boolean) {
             description: video.metadata?.description,
           },
           createdAt: video.createdAt,
-          ipRegistered: Math.random() > 0.3,
+          ipRegistration: video.ipRegistration,
           publication: video.publication,
           collaborators: Math.random() > 0.5 ? generateMockCollaborators() : [],
           licenseTerms: Math.random() > 0.6 ? generateMockLicenses() : [],
@@ -56,8 +56,13 @@ export function useVideos(walletAddress: string, isConnected: boolean) {
     }
   };
 
-  const updateVideoPublication = async (video: Video, status: "draft" | "published") => {
-    setVideos(prev => prev.map(v => v.id === video.id ? { ...v, publication: status } : v));
+  const updateVideoPublication = async (
+    video: VideoParams,
+    status: "draft" | "published"
+  ) => {
+    setVideos((prev) =>
+      prev.map((v) => (v.id === video.id ? { ...v, publication: status } : v))
+    );
 
     try {
       const res = await fetch(
@@ -77,18 +82,53 @@ export function useVideos(walletAddress: string, isConnected: boolean) {
       fetchUserVideos();
     }
   };
+  const updateVideoIpRegistration = async (
+    video: VideoParams,
+    ipRegistration: RegisteredIpAssetParams
+  ) => {
+    console.log(ipRegistration, "ayyyyyyyyy");
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/video/ip/${video.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ipRegistration: {
+              ipId: ipRegistration.ipId,
+              status: ipRegistration.status,
+              tokenId: ipRegistration.tokenId
+                ? ipRegistration.tokenId.toString()
+                : undefined,
+            },
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!data.success) {
+        fetchUserVideos();
+      }
+    } catch (err) {
+      console.log(err, "error>>");
+      fetchUserVideos();
+    }
+  };
 
   const deleteVideo = async (videoId: string) => {
     if (!confirm("Are you sure you want to delete this video?")) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/video/${videoId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8000/api/video/${videoId}`,
+        {
+          method: "DELETE",
+        }
+      );
       const result = await response.json();
 
       if (result.success) {
-        setVideos(prev => prev.filter(v => v.id !== videoId));
+        setVideos((prev) => prev.filter((v) => v.id !== videoId));
       } else {
         alert("Failed to delete video: " + result.error);
       }
@@ -106,6 +146,7 @@ export function useVideos(walletAddress: string, isConnected: boolean) {
     loading,
     fetchUserVideos,
     updateVideoPublication,
+    updateVideoIpRegistration,
     deleteVideo,
   };
 }
@@ -115,7 +156,10 @@ function generateMockCollaborators() {
     {
       id: "1",
       walletAddress: "0x" + Math.random().toString(16).slice(2, 10) + "...",
-      role: ["audio", "visual", "both"][Math.floor(Math.random() * 3)] as "audio" | "visual" | "both",
+      role: ["audio", "visual", "both"][Math.floor(Math.random() * 3)] as
+        | "audio"
+        | "visual"
+        | "both",
       revenueShare: Math.floor(Math.random() * 40) + 10,
       contribution: "Audio mixing & mastering",
     },

@@ -135,7 +135,6 @@ export function VisualizerLibrary() {
         <div className="flex-1">
           <Input
             placeholder="Search visualizers..."
-            icon={<Search size={16} />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

@@ -21,20 +21,12 @@ export interface SaveVideoEntryData {
     duration?: number;
     resolution?: string;
   };
-    ipRegistration?: {
-      ip: {
-        ipId: string;
-        status: "registered" | "notRegistered" | "pending";
-        licenseTermsIds: string;
-        tokenId: string;
-        fee: number;
-        revShare: number;
-        license: {
-          pilFlavors: PilFlavoursType;
-        };
-      }[];
-    };
-    publication: "draft" | "published";
+  ipRegistration?: {
+    ipId: string;
+    status: "registered" | "notRegistered";
+    tokenId: string;
+  };
+  publication: "draft" | "published";
 }
 
 export class VideoEntryService {

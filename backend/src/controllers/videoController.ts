@@ -125,7 +125,11 @@ export class VideoController {
           type: req.file.mimetype,
           name: req.file.originalname,
         },
-        ipRegistration: { ip: [] },
+        ipRegistration: {
+          ipId: "",
+          status: "notRegistered",
+          tokenId: "",
+        },
         publication: "draft",
       });
 

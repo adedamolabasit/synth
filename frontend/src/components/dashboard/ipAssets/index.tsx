@@ -10,16 +10,23 @@ import { LicenseModal } from "./components/LicenseModal";
 import { useVideos } from "./hooks/useVideos";
 import { useVideoThumbnails } from "./hooks/useVideoThumbnails";
 import { Shield } from "lucide-react";
-import type { Video} from "./types";
+import type { Video } from "./types";
 
 export function IPManagementDashboard() {
   const { user, primaryWallet } = useDynamicContext();
   const walletAddress = primaryWallet?.address || "";
   const isConnected = !!user;
 
-  const { videos, loading, fetchUserVideos, updateVideoPublication, deleteVideo } = useVideos(walletAddress, isConnected);
+  const {
+    videos,
+    loading,
+    fetchUserVideos,
+    updateVideoPublication,
+    updateVideoIpRegistration,
+    deleteVideo,
+  } = useVideos(walletAddress, isConnected);
   const { videoThumbnails, generateThumbnails } = useVideoThumbnails();
-  
+
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLicenseModal, setShowLicenseModal] = useState(false);
@@ -33,19 +40,21 @@ export function IPManagementDashboard() {
 
   // Stats calculations
   const totalVideos = videos.length;
-  const registeredVideos = videos.filter((v) => v.ipRegistered).length;
+  const registeredVideos = videos.filter(
+    (v) => v.ipRegistration?.status === "registered"
+  ).length;
   const totalRevenue = videos.reduce((sum, v) => sum + (v.revenue || 0), 0);
   const totalCollaborators = videos.reduce(
     (sum, v) => sum + (v.collaborators?.length || 0),
     0
   );
 
-//   const handleRegisterIP = (video: Video) => {
-//     // Update local state - in real app, this would be an API call
-//     fetchUserVideos(); // Refresh data
-//     setShowRegisterModal(false);
-//     setSelectedVideo(null);
-//   };
+  //   const handleRegisterIP = (video: Video) => {
+  //     // Update local state - in real app, this would be an API call
+  //     fetchUserVideos(); // Refresh data
+  //     setShowRegisterModal(false);
+  //     setSelectedVideo(null);
+  //   };
 
   const handleAddLicense = (video: Video, license: any) => {
     // Update local state - in real app, this would be an API call
@@ -61,8 +70,8 @@ export function IPManagementDashboard() {
   return (
     <div className="h-full flex flex-col gap-4 p-4 overflow-y-auto">
       <DashboardHeader />
-      
-      <StatsGrid 
+
+      <StatsGrid
         totalVideos={totalVideos}
         registeredVideos={registeredVideos}
         totalRevenue={totalRevenue}
@@ -86,6 +95,7 @@ export function IPManagementDashboard() {
         <RegisterIPModal
           video={selectedVideo}
           onClose={() => setShowRegisterModal(false)}
+          updateVideoIpRegistration={updateVideoIpRegistration}
         />
       )}
 

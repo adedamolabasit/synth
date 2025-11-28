@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "../../../ui/Card";
 import { Button } from "../../../ui/Button";
 import { Input, Textarea } from "../../../ui/Input2";
@@ -9,20 +9,16 @@ import {
   createCommercialRemixTerms,
 } from "../../../../story/utils";
 import { RegisterIpAsset } from "../actions/RegisterIpAsset";
-import { useStoryClient } from "../../../../story/client/storyClient";
-import { useDynamicContext} from '@dynamic-labs/sdk-react-core';
 import { client } from "../../../../story/config";
 
-
-
-
-export function RegisterIPModal({ video, onClose }: RegisterIPModalProps) {
+export function RegisterIPModal({
+  video,
+  onClose,
+  updateVideoIpRegistration,
+}: RegisterIPModalProps) {
   const [licenseType, setLicenseType] = useState<
     "nonCommercial" | "commercial"
   >("nonCommercial");
-const { primaryWallet } = useDynamicContext();
-
-  // const client = useStoryClient()
 
   const [commercialTerms, setCommercialTerms] = useState({
     commercialRevShare: 5,
@@ -102,7 +98,7 @@ const { primaryWallet } = useDynamicContext();
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.title.trim()) {
       alert("Title is required");
       return;
@@ -111,7 +107,30 @@ const { primaryWallet } = useDynamicContext();
     const registrationData: IPRegistrationData = {
       ...formData,
     };
-    RegisterIpAsset(client!, registrationData);
+
+    try {
+      const response = await RegisterIpAsset(client!, registrationData);
+
+      console.log(response, "respons");
+
+      const ipRegistration = {
+        ipId: response.ipId,
+        tokenId: response.tokenId,
+        status: response.status,
+      };
+
+      if (response?.status === "registered") {
+        await updateVideoIpRegistration(video, ipRegistration);
+
+        alert("IP Asset registered successfully!");
+      }
+
+      return response;
+    } catch (error: any) {
+      console.error("IP registration failed:", error);
+
+      alert(error?.message || "IP registration failed. Please try again.");
+    }
   };
 
   const totalContribution =

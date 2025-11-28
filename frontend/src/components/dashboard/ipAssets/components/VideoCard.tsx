@@ -55,12 +55,13 @@ export function VideoCard({
   };
 
   const getBadgeVariant = () => {
-    if (!video.ipRegistered) return "default";
+    if (video.ipRegistration?.status === 'notRegistered') return "default";
     return video.publication === "published" ? "success" : "warning";
   };
+  console.log(video, "ll");
 
   const getBadgeText = () => {
-    if (!video.ipRegistered) return "Not Registered";
+    if (video.ipRegistration?.status === 'notRegistered') return "Not Registered";
     return video.publication;
   };
 
@@ -173,7 +174,7 @@ export function VideoCard({
         </div>
 
         <div className="flex gap-2">
-          {video.ipRegistered ? (
+          {video.ipRegistration?.status === "registered" ? (
             <>
               <Button
                 variant="ghost"

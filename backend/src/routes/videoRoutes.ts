@@ -26,6 +26,9 @@ router.get("/wallet/:walletAddress", (req, res) =>
 router.patch("/publication/:id", (req, res) =>
   videoController.updateVideo(req, res)
 );
+router.patch("/ip/:id", (req, res) =>
+  videoController.updateVideo(req, res)
+);
 
 router.delete("/:id", (req, res) => videoController.deleteVideo(req, res));
 

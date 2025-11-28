@@ -1,4 +1,4 @@
-import { LicenseTerms , IpCreator} from "@story-protocol/core-sdk";
+import { LicenseTerms, IpCreator } from "@story-protocol/core-sdk";
 
 export interface Collaborator {
   id: string;
@@ -8,14 +8,11 @@ export interface Collaborator {
   contribution?: string;
 }
 
-// export interface LicenseTerm {
-//   id: string;
-//   name: string;
-//   type: string;
-//   duration: string;
-//   terms: string;
-//   createdAt: string;
-// }
+export interface RegisteredIpAssetParams {
+  ipId: `0x${string}` | undefined;
+  status: "registered" | "notRegistered";
+  tokenId: bigint | undefined;
+}
 
 export interface Video {
   id: string;
@@ -31,7 +28,7 @@ export interface Video {
     description?: string;
   };
   createdAt: string;
-  ipRegistered?: boolean;
+  ipRegistration?: RegisteredIpAssetParams;
   publication: "draft" | "published";
   collaborators?: Collaborator[];
   licenseTerms?: LicenseTerms[];
@@ -41,12 +38,16 @@ export interface Video {
 export interface RegisterIPModalProps {
   video: Video;
   onClose: () => void;
+  updateVideoIpRegistration: (
+    video: Video,
+    ipRegistration: RegisteredIpAssetParams
+  ) => void;
 }
 
 export interface IPRegistrationData {
   title: string;
   video: Video;
   description?: string;
-  creators?: IpCreator[]
+  creators?: IpCreator[];
   licenseTerms?: LicenseTerms;
 }
