@@ -19,7 +19,6 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
         style={{ background: '#0a0a0a' }}
       />
       
-      {/* Debug overlay */}
       {!sceneReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-900/80">
           <div className="text-white text-lg">Initializing Visualizer...</div>

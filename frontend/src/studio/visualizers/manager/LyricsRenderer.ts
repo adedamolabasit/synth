@@ -56,7 +56,7 @@ export class LyricsRenderer {
 
   private handleLyricsUpdate(state: LyricsState) {
     if (!this.isVisible) return;
-    
+
     if (!state.isActive || !state.currentLine) {
       this.clearAllLyrics();
       return;
@@ -67,8 +67,16 @@ export class LyricsRenderer {
   }
 
   private renderAllLyrics(state: LyricsState, config: LyricsDisplayConfig) {
+    const isXL = window.innerWidth >= 1440;
+
+    const getY = (small: number, large: number) => {
+      const aspect = window.innerWidth / window.innerHeight;
+      // ultrawide screens usually have aspect > 1.8
+      return aspect > 1.8 ? large : small;
+    };
+
     if (!this.isVisible) return;
-    
+
     this.clearAllLyrics();
 
     const upcoming = this.lyricsManager.getUpcomingLines(1);
@@ -79,7 +87,8 @@ export class LyricsRenderer {
         fontSize: 16,
         opacity: 0.5,
         color: "#d1d5db",
-        y: -9.2,
+       y: getY(-2.2, -9.2),
+        // y: -9.2,
       });
       if (this.previousLinesMesh) this.lyricsLayer.add(this.previousLinesMesh);
     }
@@ -88,7 +97,8 @@ export class LyricsRenderer {
       fontSize: 22,
       opacity: 1,
       color: config.color,
-      y: -11.5,
+      y: getY(-4.5, -11.5),
+      // y: -11.5,
       scale: config.showLineHighlight ? 1.1 : 1,
       isCurrent: true,
     });
@@ -101,7 +111,8 @@ export class LyricsRenderer {
         fontSize: 16,
         opacity: 0.7,
         color: "#e2e8f0",
-        y: -12.8,
+        y: getY(-5.8, -12.8),
+        // y: -12.8,
       });
       if (this.upcomingLinesMesh) this.lyricsLayer.add(this.upcomingLinesMesh);
     }
