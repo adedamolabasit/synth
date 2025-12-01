@@ -1,13 +1,12 @@
 import { useState, useRef } from "react";
 import {
   FileVideo,
-  Users,
   FileText,
-  DollarSign,
   Clock,
   Play,
   Trash,
   Eye,
+  Plus,
 } from "lucide-react";
 import { Card } from "../../../ui/Card";
 import { Button } from "../../../ui/Button";
@@ -15,6 +14,7 @@ import { Badge } from "../../../ui/Badge";
 import { Switch } from "../../../ui/Switch";
 import { formatFileSize, formatDate } from "../utils/formatter";
 import type { Video } from "../types";
+import { useIp } from "../../../../provider/IpContext";
 
 interface VideoCardProps {
   video: Video;
@@ -37,6 +37,7 @@ export function VideoCard({
 }: VideoCardProps) {
   const [hovered, setHovered] = useState(false);
   const previewRef = useRef<HTMLVideoElement>(null);
+  const { setIpId } = useIp();
 
   const handleVideoHover = () => {
     setHovered(true);
@@ -54,15 +55,42 @@ export function VideoCard({
     }
   };
 
-  const getBadgeVariant = () => {
-    if (video.ipRegistration?.status === 'notRegistered') return "default";
+  const getStatusBadgeVariant = () => {
+    if (video.ipRegistration?.status === "notRegistered") return "default";
     return video.publication === "published" ? "success" : "warning";
   };
-  console.log(video, "ll");
 
-  const getBadgeText = () => {
-    if (video.ipRegistration?.status === 'notRegistered') return "Not Registered";
+  const getStatusBadgeText = () => {
+    if (video.ipRegistration?.status === "notRegistered")
+      return "Not Registered";
     return video.publication;
+  };
+
+  const getIpBadgeVariant = () => {
+    return video.ipRegistration?.status === "registered"
+      ? "success"
+      : "default";
+  };
+
+  const getIpBadgeText = () => {
+    return video.ipRegistration?.status === "registered"
+      ? "IP Registered"
+      : "IP Not Registered";
+  };
+
+  const handleViewLicense = () => {
+    onSelect(video);
+    onShowLicenseModal(true);
+    console.log(video, "video>>");
+    if (video.ipRegistration?.ipId) {
+      setIpId(video.ipRegistration?.ipId);
+    } else {
+      setIpId("");
+    }
+  };
+
+  const handleAttachLicense = () => {
+    onSelect(video);
   };
 
   return (
@@ -100,10 +128,16 @@ export function VideoCard({
           </>
         )}
 
-        <div className="absolute top-2 left-2">
-          <Badge variant={getBadgeVariant()} size="sm">
-            {getBadgeText()}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          <Badge variant={getIpBadgeVariant()} size="sm">
+            {getIpBadgeText()}
           </Badge>
+
+          {video.ipRegistration?.status === "registered" && (
+            <Badge variant={getStatusBadgeVariant()} size="sm">
+              {getStatusBadgeText()}
+            </Badge>
+          )}
         </div>
 
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
@@ -119,17 +153,19 @@ export function VideoCard({
             {video.metadata.name}
           </h4>
           <div className="flex gap-2">
-            <div className="flex items-center space-x-3">
-              <Switch
-                checked={video.publication === "published"}
-                onChange={(val) =>
-                  onTogglePublishStatus(video, val ? "published" : "draft")
-                }
-              />
-              <span className="text-sm font-medium text-cyan-400">
-                {video.publication === "published" ? "Published" : "Draft"}
-              </span>
-            </div>
+            {video.ipRegistration?.status === "registered" && (
+              <div className="flex items-center space-x-3">
+                <Switch
+                  checked={video.publication === "published"}
+                  onChange={(val) =>
+                    onTogglePublishStatus(video, val ? "published" : "draft")
+                  }
+                />
+                <span className="text-sm font-medium text-cyan-400">
+                  {video.publication === "published" ? "Published" : "Draft"}
+                </span>
+              </div>
+            )}
 
             <Button
               variant="ghost"
@@ -150,27 +186,6 @@ export function VideoCard({
             </span>
             <span>{formatFileSize(video.metadata.size)}</span>
           </div>
-
-          {video.collaborators && video.collaborators.length > 0 && (
-            <div className="flex items-center gap-1">
-              <Users size={12} />
-              <span>{video.collaborators.length} collaborator(s)</span>
-            </div>
-          )}
-
-          {video.licenseTerms && video.licenseTerms.length > 0 && (
-            <div className="flex items-center gap-1">
-              <FileText size={12} />
-              <span>{video.licenseTerms.length} license(s)</span>
-            </div>
-          )}
-
-          {video.revenue && video.revenue > 0 && (
-            <div className="flex items-center gap-1">
-              <DollarSign size={12} />
-              <span>${video.revenue} revenue</span>
-            </div>
-          )}
         </div>
 
         <div className="flex gap-2">
@@ -179,14 +194,23 @@ export function VideoCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1"
-                onClick={() => {
-                  onSelect(video);
-                  onShowLicenseModal(true);
-                }}
+                className="flex-1 flex items-center gap-1"
+                onClick={handleViewLicense}
               >
                 <FileText size={14} />
+                View License
               </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={handleAttachLicense}
+              >
+                <Plus size={14} />
+                Attach
+              </Button>
+
               <Button
                 variant="ghost"
                 size="sm"

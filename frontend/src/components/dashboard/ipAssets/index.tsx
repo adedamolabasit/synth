@@ -1,4 +1,3 @@
-"use client";
 import { useState, useEffect } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { DashboardHeader } from "./components/DashboardHeader";
@@ -20,7 +19,6 @@ export function IPManagementDashboard() {
   const {
     videos,
     loading,
-    fetchUserVideos,
     updateVideoPublication,
     updateVideoIpRegistration,
     deleteVideo,
@@ -31,14 +29,12 @@ export function IPManagementDashboard() {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLicenseModal, setShowLicenseModal] = useState(false);
 
-  // Generate thumbnails when videos change
   useEffect(() => {
     if (videos.length > 0) {
       generateThumbnails(videos);
     }
   }, [videos, generateThumbnails]);
 
-  // Stats calculations
   const totalVideos = videos.length;
   const registeredVideos = videos.filter(
     (v) => v.ipRegistration?.status === "registered"
@@ -48,20 +44,6 @@ export function IPManagementDashboard() {
     (sum, v) => sum + (v.collaborators?.length || 0),
     0
   );
-
-  //   const handleRegisterIP = (video: Video) => {
-  //     // Update local state - in real app, this would be an API call
-  //     fetchUserVideos(); // Refresh data
-  //     setShowRegisterModal(false);
-  //     setSelectedVideo(null);
-  //   };
-
-  const handleAddLicense = (video: Video, license: any) => {
-    // Update local state - in real app, this would be an API call
-    fetchUserVideos(); // Refresh data
-    setShowLicenseModal(false);
-    setSelectedVideo(null);
-  };
 
   if (!isConnected) {
     return <ConnectWalletPrompt />;
@@ -102,7 +84,6 @@ export function IPManagementDashboard() {
       {showLicenseModal && selectedVideo && (
         <LicenseModal
           video={selectedVideo}
-          onAddLicense={handleAddLicense}
           onClose={() => setShowLicenseModal(false)}
         />
       )}
@@ -110,7 +91,6 @@ export function IPManagementDashboard() {
   );
 }
 
-// Separate component for connect wallet state
 function ConnectWalletPrompt() {
   return (
     <div className="h-full flex flex-col items-center justify-center p-8 text-center">

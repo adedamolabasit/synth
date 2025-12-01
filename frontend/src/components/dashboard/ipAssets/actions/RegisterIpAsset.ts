@@ -14,7 +14,7 @@ export const RegisterIpAsset = async (
     description,
     creators,
     video,
-    licenseTerms: terms,
+    licenseTerms,
   } = registrationData;
 
   console.log(registrationData, "registration data");
@@ -63,7 +63,7 @@ export const RegisterIpAsset = async (
   const ipHash = await sha256Hash(ipMetadata);
 
   const nftHash = await sha256Hash(nftMetadata);
-
+console.log(licenseTerms,"pppppp")
   const response = await client?.ipAsset.registerIpAsset({
     spgNftContract: SPGNFTContractAddress,
     nft: {
@@ -72,7 +72,7 @@ export const RegisterIpAsset = async (
     },
     licenseTermsData: [
       {
-        terms: terms as LicenseTerms,
+        terms: licenseTerms as LicenseTerms,
       },
     ],
     ipMetadata: {

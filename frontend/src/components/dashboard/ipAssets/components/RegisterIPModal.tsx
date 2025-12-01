@@ -1,15 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "../../../ui/Card";
 import { Button } from "../../../ui/Button";
 import { Input, Textarea } from "../../../ui/Input2";
 import { formatDate } from "../utils/formatter";
 import { RegisterIPModalProps, IPRegistrationData } from "../types";
-import {
-  NonCommercialSocialRemixingTerms,
-  createCommercialRemixTerms,
-} from "../../../../story/utils";
+import { PILFlavor, WIP_TOKEN_ADDRESS } from "@story-protocol/core-sdk";
 import { RegisterIpAsset } from "../actions/RegisterIpAsset";
 import { client } from "../../../../story/config";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { parseEther } from "viem";
 
 export function RegisterIPModal({
   video,
@@ -19,10 +18,22 @@ export function RegisterIPModal({
   const [licenseType, setLicenseType] = useState<
     "nonCommercial" | "commercial"
   >("nonCommercial");
+  const { user, primaryWallet } = useDynamicContext();
+  const isConnected = !!user;
+
+  const [walletAddr, setWalletAddr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isConnected && primaryWallet?.address) {
+      setWalletAddr(primaryWallet.address);
+    } else {
+      setWalletAddr(null);
+    }
+  }, [isConnected, primaryWallet]);
 
   const [commercialTerms, setCommercialTerms] = useState({
     commercialRevShare: 5,
-    defaultMintingFee: "1",
+    defaultMintingFee: 1,
   });
 
   const [formData, setFormData] = useState<IPRegistrationData>({
@@ -32,12 +43,27 @@ export function RegisterIPModal({
     creators: [
       {
         name: "",
-        address: "" as `0x${string}`,
+        address: walletAddr as `0x${string}`,
         contributionPercent: 100,
       },
     ],
-    licenseTerms: NonCommercialSocialRemixingTerms,
+    licenseTerms: PILFlavor.nonCommercialSocialRemixing(),
   });
+
+  useEffect(() => {
+    if (licenseType === "commercial") {
+      const terms = PILFlavor.commercialRemix({
+        commercialRevShare: commercialTerms.commercialRevShare,
+        defaultMintingFee:
+          BigInt(parseEther(commercialTerms.defaultMintingFee.toString())) || 1,
+        currency: WIP_TOKEN_ADDRESS,
+      });
+      setFormData((prev) => ({
+        ...prev,
+        licenseTerms: terms,
+      }));
+    }
+  }, [commercialTerms, licenseType]);
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -85,12 +111,20 @@ export function RegisterIPModal({
 
   const handleLicenseTypeChange = (type: "nonCommercial" | "commercial") => {
     setLicenseType(type);
-
     if (type === "commercial") {
-      const terms = createCommercialRemixTerms({
+      const terms = PILFlavor.commercialRemix({
         commercialRevShare: commercialTerms.commercialRevShare,
-        defaultMintingFee: parseFloat(commercialTerms.defaultMintingFee) || 1,
+        defaultMintingFee: BigInt(
+          parseEther(commercialTerms.defaultMintingFee.toString())
+        ),
+        currency: WIP_TOKEN_ADDRESS,
       });
+      setFormData((prev) => ({
+        ...prev,
+        licenseTerms: terms,
+      }));
+    } else {
+      const terms = PILFlavor.nonCommercialSocialRemixing();
       setFormData((prev) => ({
         ...prev,
         licenseTerms: terms,
@@ -122,6 +156,7 @@ export function RegisterIPModal({
       if (response?.status === "registered") {
         await updateVideoIpRegistration(video, ipRegistration);
 
+        onClose();
         alert("IP Asset registered successfully!");
       }
 
@@ -233,11 +268,10 @@ export function RegisterIPModal({
                     />
                     <Input
                       label="Address"
-                      value={creator.address}
+                      value={walletAddr as string}
                       onChange={(value) =>
                         updateCreatorField(index, "address", value)
                       }
-                      placeholder="0x..."
                     />
                     <Input
                       label="Contribution %"
@@ -364,7 +398,7 @@ export function RegisterIPModal({
                         <Input
                           label="Default Minting Fee (WIP)"
                           type="number"
-                          value={commercialTerms.defaultMintingFee}
+                          value={commercialTerms.defaultMintingFee.toString()}
                           onChange={(value) =>
                             updateCommercialTerms("defaultMintingFee", value)
                           }

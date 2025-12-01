@@ -8,6 +8,21 @@ import { LoadingState } from "./components/LoadingState";
 import { useVideos } from "./hooks/useVideos";
 import { useVideoThumbnails } from "./hooks/useVideoThumbnails";
 import { useVideoHover } from "./hooks/useVideoHover";
+import { LicenseTerms, IpCreator } from "@story-protocol/core-sdk";
+
+export interface Collaborator {
+  id: string;
+  walletAddress: string;
+  role: "audio" | "visual" | "both";
+  revenueShare: number;
+  contribution?: string;
+}
+
+export interface RegisteredIpAssetParams {
+  ipId: `0x${string}` | undefined;
+  status: "registered" | "notRegistered";
+  tokenId: bigint | undefined;
+}
 
 export interface Video {
   id: string;
@@ -20,10 +35,16 @@ export interface Video {
     size: number;
     type: string;
     duration?: number;
+    description?: string;
   };
-  publication: "draft" | "published";
   createdAt: string;
+  ipRegistration?: RegisteredIpAssetParams;
+  publication: "draft" | "published";
+  collaborators?: Collaborator[];
+  licenseTerms?: LicenseTerms[];
+  revenue?: number;
 }
+
 
 export const VideoPlayer = () => {
   const { user, primaryWallet } = useDynamicContext();

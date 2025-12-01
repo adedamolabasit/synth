@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { custom} from "viem";
+import { custom, http } from "viem";
 import { useWalletClient } from "wagmi";
 import { StoryClient, StoryConfig } from "@story-protocol/core-sdk";
+import { networkInfo } from "../config";
+import { privateKeyToAccount, Address, Account } from "viem/accounts";
 
 export const useStoryClient = () => {
   const { data: wallet } = useWalletClient();
@@ -9,6 +11,12 @@ export const useStoryClient = () => {
 
   useEffect(() => {
     if (!wallet) return;
+
+    // const config: StoryConfig = {
+    //   wallet,
+    //   transport: custom(wallet.transport),
+    //   chainId: "aeneid",
+    // };
 
     const config: StoryConfig = {
       wallet,

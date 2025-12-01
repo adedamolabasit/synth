@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 import { VisualizerProvider } from "./provider/VisualizerContext.tsx";
 import { AudioProvider } from "./provider/AudioContext.tsx";
+import { IpProvider } from "./provider/IpContext.tsx";
 import { DynamicContextProvider } from "@dynamic-labs/sdk-react-core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DynamicWagmiConnector } from "@dynamic-labs/wagmi-connector";
@@ -11,7 +12,6 @@ import { WagmiProvider, createConfig } from "wagmi";
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
 import { aeneid } from "@story-protocol/core-sdk";
 import { http } from "viem";
-import { StoryClient } from "@story-protocol/core-sdk";
 
 export const config = createConfig({
   chains: [aeneid],
@@ -23,7 +23,6 @@ export const config = createConfig({
 
 export const queryClient = new QueryClient();
 
-// export const client = StoryClient.newClient(config)
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -38,7 +37,9 @@ createRoot(document.getElementById("root")!).render(
           <DynamicWagmiConnector>
             <VisualizerProvider>
               <AudioProvider>
-                <App />
+                <IpProvider>
+                  <App />
+                </IpProvider>
               </AudioProvider>
             </VisualizerProvider>
           </DynamicWagmiConnector>
