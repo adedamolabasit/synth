@@ -192,6 +192,121 @@ export interface AmbientElementCustomization extends BaseCustomization {
   bounceHeight: number;
 }
 
+// export type Customization =
+//   | ParticleCustomization
+//   | LightCustomization
+//   | GridCustomization
+//   | BackgroundCustomization
+//   | ShapeCustomization
+//   | WaveCustomization
+//   | AmbientElementCustomization;
+
+// export interface VisualElement {
+//   id: string;
+//   type:
+//     | "particle"
+//     | "shape"
+//     | "light"
+//     | "grid"
+//     | "wave"
+//     | "background"
+//     | "ambient";
+//   name: string;
+//   visible: boolean;
+//   position: [number, number, number];
+//   rotation: [number, number, number];
+//   scale: [number, number, number];
+//   customization: Customization;
+// }
+
+// In your visualizer.types.ts file, update the types:
+
+export interface TextCustomization extends BaseCustomization {
+  text: string;
+  fontSize: number;
+  fontFamily: string;
+  fontWeight: string;
+  textAlign: "left" | "center" | "right";
+  position: [number, number, number];
+  rotation: [number, number, number];
+  scale: [number, number, number];
+  backgroundColor?: string;
+  backgroundOpacity?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  shadow?: boolean;
+  shadowColor?: string;
+  shadowBlur?: number;
+  animationType?: "none" | "fade" | "slide" | "typewriter" | "pulse";
+  animationSpeed?: number;
+}
+
+export interface ImageCustomization extends BaseCustomization {
+  imageUrl: string;
+  imageFile?: string;
+  width: number;
+  height: number;
+  scale: [number, number, number];
+  rotation: [number, number, number];
+  keepAspectRatio: boolean;
+  border?: boolean;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  shadow?: boolean;
+  shadowColor?: string;
+  shadowBlur?: number;
+  animationType?: "none" | "fade" | "slide" | "rotate" | "scale" | "float";
+  animationSpeed?: number;
+}
+
+export interface GIFCustomization extends ImageCustomization {
+  gifUrl: string;
+  gifFile?: string;
+  playSpeed: number;
+  loop: boolean;
+  frameRate?: number;
+}
+
+export interface IconCustomization extends BaseCustomization {
+  iconType: string; // Can be emoji or icon name
+  size: number;
+  rotationSpeed: number;
+  hoverEffect: boolean;
+  clickEffect: boolean;
+}
+
+export interface OverlayCustomization extends BaseCustomization {
+  overlayType: "gradient" | "noise" | "grid" | "vignette" | "scanlines";
+  intensity: number;
+  blendMode: "normal" | "add" | "multiply" | "screen";
+  opacity: number;
+}
+
+export interface FrameCustomization extends BaseCustomization {
+  frameStyle: "none" | "simple" | "ornate" | "modern" | "retro";
+  thickness: number;
+  color: string;
+  inset: boolean;
+  shadow?: boolean;
+}
+
+export interface ParticleSystemCustomization extends BaseCustomization {
+  particleType: "circle" | "square" | "star" | "sparkle" | "emoji";
+  count: number;
+  size: number;
+  sizeVariation: number;
+  speed: number;
+  spread: number;
+  lifetime: number;
+  spawnRate: number;
+  gravity: number;
+  wind: number;
+  trail: boolean;
+  trailLength: number;
+}
+
+// Update the Customization type union:
 export type Customization =
   | ParticleCustomization
   | LightCustomization
@@ -199,8 +314,16 @@ export type Customization =
   | BackgroundCustomization
   | ShapeCustomization
   | WaveCustomization
-  | AmbientElementCustomization;
+  | AmbientElementCustomization
+  | TextCustomization
+  | ImageCustomization
+  | GIFCustomization
+  | IconCustomization
+  | OverlayCustomization
+  | FrameCustomization
+  | ParticleSystemCustomization;
 
+// Update VisualElement type:
 export interface VisualElement {
   id: string;
   type:
@@ -210,7 +333,14 @@ export interface VisualElement {
     | "grid"
     | "wave"
     | "background"
-    | "ambient";
+    | "ambient"
+    | "text"
+    | "image"
+    | "gif"
+    | "icon"
+    | "overlay"
+    | "frame"
+    | "particleSystem";
   name: string;
   visible: boolean;
   position: [number, number, number];

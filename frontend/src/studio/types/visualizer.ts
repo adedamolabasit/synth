@@ -149,7 +149,8 @@ export interface VisualElement {
     | "grid"
     | "wave"
     | "background"
-    | "ambient";
+    | "ambient"
+    | "text"
   name: string;
   visible: boolean;
   position: [number, number, number];

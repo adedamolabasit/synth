@@ -11,6 +11,7 @@ import { decodeLyricsData } from "../../../shared/utils";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { CanvasControls } from "./components/CanvasControls";
 import { useToastContext } from "../../ui/Toast.tsx/ToastProvider";
+import { ElementRendererManager } from "../../../studio/visualizers/manager/ElementRendererManager";
 
 export const LivePreviewCanvas: React.FC = () => {
   const {
@@ -59,6 +60,7 @@ export const LivePreviewCanvas: React.FC = () => {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null
   );
+  const [forceRefresh, setForceRefresh] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -66,6 +68,8 @@ export const LivePreviewCanvas: React.FC = () => {
   const visualizerManagerRef = useRef<VisualizerManager>(
     new VisualizerManager()
   );
+
+  const elementRendererRef = useRef<ElementRendererManager | null>(null);
   const lyricsRendererRef = useRef<LyricsRenderer | null>(null);
   const lyricsManagerRef = useRef<LyricsManager>(new LyricsManager());
   const animationIdRef = useRef<number>(0);
@@ -228,6 +232,8 @@ export const LivePreviewCanvas: React.FC = () => {
     );
     camera.position.set(0, 0, 20);
 
+    elementRendererRef.current = new ElementRendererManager(scene);
+
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
       antialias: true,
@@ -245,7 +251,7 @@ export const LivePreviewCanvas: React.FC = () => {
     sceneRef.current = scene;
     cameraRef.current = camera;
     rendererRef.current = renderer;
-    
+
     scene.background = new THREE.Color(
       sceneBackground.type === "color"
         ? sceneBackground.color || "#0a0a0a"
@@ -294,11 +300,16 @@ export const LivePreviewCanvas: React.FC = () => {
         cancelAnimationFrame(animationIdRef.current);
       }
       lyricsRendererRef.current?.dispose();
+
+      // Clean up element renderer
+      elementRendererRef.current?.dispose();
+
       sceneRef.current?.clear();
       rendererRef.current?.dispose();
       sceneRef.current = null;
       cameraRef.current = null;
       rendererRef.current = null;
+      elementRendererRef.current = null;
       setSceneReady(false);
 
       audioSyncCountRef.current = 0;
@@ -307,98 +318,207 @@ export const LivePreviewCanvas: React.FC = () => {
   }, []);
 
   useEffect(() => {
+  if (!elementRendererRef.current || !sceneReady) return;
+
+  console.log('Updating elements:', visualElements.length);
+
+  // Get current element IDs
+  const currentElementIds = new Set(visualElements.map(el => el.id));
+  
+  // Get existing object IDs from the renderer
+  const existingObjects = elementRendererRef.current.getObjectIds();
+  
+  // Remove elements that no longer exist
+  existingObjects.forEach(id => {
+    if (!currentElementIds.has(id)) {
+      console.log('Removing element:', id);
+      elementRendererRef.current?.removeElement(id);
+    }
+  });
+  
+  // Add/update elements
+  visualElements.forEach(element => {
+    // Skip light and background elements (they're handled differently)
+    if (element.type === 'light' || element.type === 'background') return;
+    
+    // Check if element already exists
+    if (existingObjects.includes(element.id)) {
+      // Update existing element
+      elementRendererRef.current?.updateElement(element);
+    } else {
+      // Create new element
+      console.log('Creating new element:', element.id, element.type);
+      elementRendererRef.current?.createElementObject(element);
+    }
+  });
+
+  setForceRefresh(prev => prev + 1)
+  
+  // Force a re-render if we're animating
+  if (isAnimatingRef.current && rendererRef.current && sceneRef.current && cameraRef.current) {
+    rendererRef.current.render(sceneRef.current, cameraRef.current);
+  }
+}, [visualElements, sceneReady]);
+
+  // Add this useEffect to handle custom elements
+  useEffect(() => {
+    if (!elementRendererRef.current || !sceneReady) return;
+
+    // Get current element IDs
+    const currentElementIds = new Set(visualElements.map((el) => el.id));
+
+    // Get existing object IDs from the renderer (you'll need to expose this)
+    const existingObjects = elementRendererRef.current.getObjectIds();
+
+    // Remove elements that no longer exist
+    existingObjects.forEach((id) => {
+      if (!currentElementIds.has(id)) {
+        elementRendererRef.current?.removeElement(id);
+      }
+    });
+
+    // Add/update elements
+    visualElements.forEach((element) => {
+      if (element.type !== "light" && element.type !== "background") {
+        // Check if element already exists
+        if (!existingObjects.includes(element.id)) {
+          // Create new element
+          elementRendererRef.current?.createElementObject(element);
+        } else {
+          // Update existing element
+          elementRendererRef.current?.updateElement(element);
+        }
+      }
+    });
+  }, [visualElements, sceneReady]);
+
+// In LivePreviewCanvas.tsx, update the background useEffect:
+
+useEffect(() => {
+  if (!sceneRef.current) return;
+
+  console.log("Applying scene background:", sceneBackground);
+
+  const applyBackground = () => {
     if (!sceneRef.current) return;
 
-    console.log("Applying scene background:", sceneBackground);
+    const background = sceneBackground || { type: "color", color: "#0a0a0a" };
 
-    const applyBackground = () => {
-      if (!sceneRef.current) return;
+    switch (background.type) {
+      case "color":
+        console.log("Setting color background:", background.color);
+        sceneRef.current.background = new THREE.Color(
+          background.color || "#0a0a0a"
+        );
+        break;
 
-      const background = sceneBackground || { type: "color", color: "#0a0a0a" };
-
-      switch (background.type) {
-        case "color":
-          console.log("Setting color background:", background.color);
-          sceneRef.current.background = new THREE.Color(
-            background.color || "#0a0a0a"
-          );
-          break;
-
-        case "image":
-          if (background.image) {
-            console.log("Setting image background:", background.image);
-            const loader = new THREE.TextureLoader();
-            loader.load(
-              background.image,
-              (texture) => {
-                sceneRef.current!.background = texture;
-                // Trigger a re-render
-                if (
-                  rendererRef.current &&
-                  cameraRef.current &&
-                  sceneRef.current
-                ) {
-                  rendererRef.current.render(
-                    sceneRef.current,
-                    cameraRef.current
-                  );
-                }
-              },
-              undefined,
-              (error) => {
-                console.error("Error loading background image:", error);
-                sceneRef.current!.background = new THREE.Color("#0a0a0a");
+      case "image":
+        if (background.image) {
+          console.log("Setting image background:", background.image);
+          // Dispose of previous texture if it exists
+          if (sceneRef.current.background instanceof THREE.Texture) {
+            sceneRef.current.background.dispose();
+          }
+          
+          const loader = new THREE.TextureLoader();
+          loader.load(
+            background.image,
+            (texture) => {
+              sceneRef.current!.background = texture;
+              // Set opacity if provided (for image backgrounds, we need a different approach)
+              if (background.imageOpacity !== undefined) {
+                // For image opacity, we might need to use a different approach
+                // as THREE.js doesn't directly support background opacity
+                console.log("Image opacity set to:", background.imageOpacity);
               }
-            );
-          } else {
-            sceneRef.current.background = new THREE.Color("#0a0a0a");
-          }
-          break;
-
-        case "gradient":
-          console.log("Setting gradient background:", background.gradient);
-          // Create gradient texture
-          const canvas = document.createElement("canvas");
-          canvas.width = 512;
-          canvas.height = 512;
-          const ctx = canvas.getContext("2d");
-
-          if (
-            ctx &&
-            background.gradient?.colors &&
-            background.gradient.colors.length > 0
-          ) {
-            let gradient;
-            const colors = background.gradient.colors;
-
-            if (background.gradient.type === "radial") {
-              gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-            } else {
-              gradient = ctx.createLinearGradient(0, 0, 512, 512);
+              
+              // Force a re-render immediately
+              if (
+                rendererRef.current &&
+                cameraRef.current &&
+                sceneRef.current
+              ) {
+                rendererRef.current.render(
+                  sceneRef.current,
+                  cameraRef.current
+                );
+              }
+            },
+            undefined,
+            (error) => {
+              console.error("Error loading background image:", error);
+              sceneRef.current!.background = new THREE.Color("#0a0a0a");
             }
-
-            // Add color stops
-            colors.forEach((color: string, index: number) => {
-              gradient.addColorStop(index / (colors.length - 1), color);
-            });
-
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 512, 512);
-
-            const texture = new THREE.CanvasTexture(canvas);
-            sceneRef.current.background = texture;
-          } else {
-            sceneRef.current.background = new THREE.Color("#0a0a0a");
-          }
-          break;
-
-        default:
+          );
+        } else {
           sceneRef.current.background = new THREE.Color("#0a0a0a");
-      }
-    };
+        }
+        break;
 
-    applyBackground();
-  }, [sceneBackground]); // This effect runs when sceneBackground changes
+      case "gradient":
+        console.log("Setting gradient background:", background.gradient);
+        // Create gradient texture
+        const canvas = document.createElement("canvas");
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext("2d");
+
+        if (
+          ctx &&
+          background.gradient?.colors &&
+          background.gradient.colors.length > 0
+        ) {
+          let gradient;
+          const colors = background.gradient.colors;
+
+          if (background.gradient.type === "radial") {
+            gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+          } else {
+            gradient = ctx.createLinearGradient(0, 0, 512, 512);
+          }
+
+          // Add color stops
+          colors.forEach((color: string, index: number) => {
+            gradient.addColorStop(index / (colors.length - 1), color);
+          });
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, 512, 512);
+
+          const texture = new THREE.CanvasTexture(canvas);
+          sceneRef.current.background = texture;
+          
+          // Force a re-render immediately
+          if (
+            rendererRef.current &&
+            cameraRef.current &&
+            sceneRef.current
+          ) {
+            rendererRef.current.render(
+              sceneRef.current,
+              cameraRef.current
+            );
+          }
+        } else {
+          sceneRef.current.background = new THREE.Color("#0a0a0a");
+        }
+        break;
+
+      default:
+        sceneRef.current.background = new THREE.Color("#0a0a0a");
+    }
+  };
+
+  applyBackground();
+}, [sceneBackground]); // This effect runs when sceneBackground changes
+
+    useEffect(() => {
+    if (sceneReady && rendererRef.current && sceneRef.current && cameraRef.current && !isAnimatingRef.current) {
+      // Only render if not currently animating
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    }
+  }, [forceRefresh, sceneReady]);
+
 
   const createVisualizer = useCallback(() => {
     if (!sceneRef.current) return;
@@ -414,6 +534,140 @@ export const LivePreviewCanvas: React.FC = () => {
     );
     visualizerObjectsRef.current = objects;
   }, [params]);
+
+  // const animateScene = useCallback(
+  //   (time: number) => {
+  //     if (
+  //       !isAnimatingRef.current ||
+  //       !sceneRef.current ||
+  //       !cameraRef.current ||
+  //       !rendererRef.current
+  //     )
+  //       return;
+
+  //     animationFrameCountRef.current++;
+
+  //     animationIdRef.current = requestAnimationFrame(animateScene);
+
+  //     const currentTime = time * 0.001;
+
+  //     const bass = beatInfo.bandStrengths.bass || 0;
+  //     const mid = beatInfo.bandStrengths.mid || 0;
+  //     const treble = beatInfo.bandStrengths.treble || 0;
+  //     const overall = beatInfo.strength || 0;
+
+  //     elementRendererRef.current?.animateElements(currentTime, beatInfo);
+
+  //     visualElements.forEach((element) => {
+  //       if (!element.visible) return;
+
+  //       // Handle light elements
+  //       if (element.type === "light") {
+  //         const responseTo =
+  //           (element.customization as any).responseTo || "overall";
+  //         let intensity = 1;
+
+  //         switch (responseTo) {
+  //           case "bass":
+  //             intensity = 1 + bass * 2;
+  //             break;
+  //           case "mid":
+  //             intensity = 1 + mid * 2;
+  //             break;
+  //           case "treble":
+  //             intensity = 1 + treble * 2;
+  //             break;
+  //           case "beat":
+  //             intensity = beatInfo.isBeat ? 2 : 1;
+  //             break;
+  //           case "overall":
+  //             intensity = 1 + overall * 2;
+  //             break;
+  //         }
+
+  //         if (element.id === "ambient-light" && ambientLightRef.current) {
+  //           ambientLightRef.current.intensity =
+  //             (element.customization as any).intensity * intensity;
+  //           ambientLightRef.current.color.set(
+  //             (element.customization as any).color
+  //           );
+  //         }
+
+  //         if (
+  //           element.id === "directional-light" &&
+  //           directionalLightRef.current
+  //         ) {
+  //           directionalLightRef.current.intensity =
+  //             (element.customization as any).intensity * intensity;
+  //           directionalLightRef.current.color.set(
+  //             (element.customization as any).color
+  //           );
+  //         }
+  //       }
+
+  //       // Handle text elements
+  //       if (element.type === "text") {
+  //         const customization = element.customization as any;
+  //         // Update text position, rotation, scale based on element properties
+  //         // You'll need to get the THREE.js object for this element
+  //         // and update its properties
+  //       }
+
+  //       // Handle image/GIF elements
+  //       if (element.type === "image" || element.type === "gif") {
+  //         const customization = element.customization as any;
+  //         // Update image/GIF position, rotation, scale
+  //       }
+
+  //       // Handle particle systems
+  //       if (element.type === "particleSystem") {
+  //         const customization = element.customization as any;
+  //         // Update particle system animation
+  //       }
+
+  //       // Handle overlays
+  //       if (element.type === "overlay") {
+  //         const customization = element.customization as any;
+  //         // Update overlay effects
+  //       }
+
+  //       // Handle ambient elements
+  //       if (element.type === "ambient") {
+  //         const customization = element.customization as any;
+  //         // Update ambient element animation based on movementType
+  //       }
+  //     });
+
+  //     if (params.beatDetection && beatInfo.isBeat) {
+  //       setBeatDetected(true);
+  //       setTimeout(() => setBeatDetected(false), 100);
+  //     }
+
+  //     visualizerManagerRef.current.animateVisualizer(
+  //       visualizerObjectsRef.current,
+  //       frequencyData,
+  //       currentTime,
+  //       params,
+  //       beatInfo
+  //     );
+
+  //     if (cameraRef.current && params.rotationSpeed > 0) {
+  //       const cameraDistance = 15 + bass * 5;
+  //       const cameraSpeed = params.rotationSpeed * 0.005 + bass * 0.01;
+
+  //       cameraRef.current.position.x =
+  //         Math.sin(currentTime * cameraSpeed) * cameraDistance;
+  //       cameraRef.current.position.z =
+  //         Math.cos(currentTime * cameraSpeed) * cameraDistance;
+  //       cameraRef.current.position.y =
+  //         Math.sin(currentTime * cameraSpeed * 0.7) * 3;
+  //       cameraRef.current.lookAt(0, 0, 0);
+  //     }
+
+  //     rendererRef.current.render(sceneRef.current, cameraRef.current);
+  //   },
+  //   [params, visualElements, frequencyData, beatInfo]
+  // );
 
   const animateScene = useCallback(
     (time: number) => {
@@ -436,45 +690,92 @@ export const LivePreviewCanvas: React.FC = () => {
       const treble = beatInfo.bandStrengths.treble || 0;
       const overall = beatInfo.strength || 0;
 
+      // Update element animations
+    if (elementRendererRef.current) {
+      elementRendererRef.current.animateElements(currentTime, {
+        bass,
+        mid,
+        treble,
+        overall,
+        ...beatInfo
+      });
+    }
+
       visualElements.forEach((element) => {
-        if (!element.visible || element.type !== "light") return;
+        if (!element.visible) return;
 
-        const responseTo =
-          (element.customization as any).responseTo || "overall";
+         const customization = element.customization as any;
+      if (customization.responsive && customization.responseTo) {
         let intensity = 1;
-
-        switch (responseTo) {
-          case "bass":
-            intensity = 1 + bass * 2;
-            break;
-          case "mid":
-            intensity = 1 + mid * 2;
-            break;
-          case "treble":
-            intensity = 1 + treble * 2;
-            break;
-          case "beat":
-            intensity = beatInfo.isBeat ? 2 : 1;
-            break;
-          case "overall":
-            intensity = 1 + overall * 2;
-            break;
+        const object = elementRendererRef.current?.getObject(element.id);
+        
+        if (object) {
+          switch (customization.responseTo) {
+            case 'bass':
+              intensity = 1 + bass * 2;
+              break;
+            case 'mid':
+              intensity = 1 + mid * 2;
+              break;
+            case 'treble':
+              intensity = 1 + treble * 2;
+              break;
+            case 'beat':
+              intensity = beatInfo.isBeat ? 2 : 1;
+              break;
+            case 'overall':
+              intensity = 1 + overall * 2;
+              break;
+          }
+          
+          // Apply intensity to element
+          if (object instanceof THREE.Mesh && object.material instanceof THREE.MeshBasicMaterial) {
+            object.material.opacity = (customization.opacity || 1) * intensity;
+          }
         }
+      }
+        // Handle light elements
+        if (element.type === "light") {
+          const responseTo =
+            (element.customization as any).responseTo || "overall";
+          let intensity = 1;
 
-        if (element.id === "ambient-light" && ambientLightRef.current) {
-          ambientLightRef.current.intensity =
-            (element.customization as any).intensity * intensity;
-          ambientLightRef.current.color.set(
-            (element.customization as any).color
-          );
-        }
+          switch (responseTo) {
+            case "bass":
+              intensity = 1 + bass * 2;
+              break;
+            case "mid":
+              intensity = 1 + mid * 2;
+              break;
+            case "treble":
+              intensity = 1 + treble * 2;
+              break;
+            case "beat":
+              intensity = beatInfo.isBeat ? 2 : 1;
+              break;
+            case "overall":
+              intensity = 1 + overall * 2;
+              break;
+          }
 
-        if (element.id === "directional-light" && directionalLightRef.current) {
-          directionalLightRef.current.intensity =
-            (element.customization as any).intensity * intensity;
-          directionalLightRef.current.color.set(
-            (element.customization as any).color
-          );
+          if (element.id === "ambient-light" && ambientLightRef.current) {
+            ambientLightRef.current.intensity =
+              (element.customization as any).intensity * intensity;
+            ambientLightRef.current.color.set(
+              (element.customization as any).color
+            );
+          }
+
+          if (
+            element.id === "directional-light" &&
+            directionalLightRef.current
+          ) {
+            directionalLightRef.current.intensity =
+              (element.customization as any).intensity * intensity;
+            directionalLightRef.current.color.set(
+              (element.customization as any).color
+            );
+          }
         }
       });
 
@@ -508,7 +809,6 @@ export const LivePreviewCanvas: React.FC = () => {
     },
     [params, visualElements, frequencyData, beatInfo]
   );
-
   useEffect(() => {
     if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
 

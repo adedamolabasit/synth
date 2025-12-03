@@ -7,6 +7,9 @@ import {
   Layers,
   Eye,
   EyeOff,
+  Type,
+  Image,
+  Zap,
 } from "lucide-react";
 import { useVisualizer } from "../../../provider/VisualizerContext";
 import { Button } from "../../../components/ui/Button";
@@ -34,13 +37,15 @@ export const VisualElementSelector: React.FC = () => {
       "pulsing-sphere": "Pulsing Sphere",
     };
 
+    const elementId = `ambient-${Date.now()}`;
+
     setVisualElements((prev) => {
       const randomColor = `#${Math.floor(Math.random() * 16777215)
         .toString(16)
         .padStart(6, "0")}`;
 
       const newElement: VisualElement = {
-        id: `ambient-${Date.now()}`,
+        id: elementId,
         type: "ambient",
         name:
           ambientNames[ambientType as keyof typeof ambientNames] ||
@@ -80,7 +85,176 @@ export const VisualElementSelector: React.FC = () => {
       return [...prev, newElement];
     });
 
-    setSelectedElement(`ambient-${Date.now()}`);
+    setSelectedElement(elementId);
+    setShowAddMenu(false);
+  };
+
+  const addTextElement = (textType: string) => {
+    const textNames = {
+      "title-text": "Title Text",
+      "subtitle-text": "Subtitle",
+      "caption-text": "Caption",
+      "quote-text": "Quote",
+    };
+
+    const elementId = `text-${Date.now()}`;
+
+    setVisualElements((prev) => {
+      const newElement: VisualElement = {
+        id: elementId,
+        type: "text",
+        name: textNames[textType as keyof typeof textNames] || "Text Element",
+        visible: true,
+        position: [0, 5, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+        customization: {
+          text: textType === "title-text" ? "YOUR TITLE HERE" : 
+                textType === "quote-text" ? "Your quote goes here..." : "Your text here",
+          fontSize: textType === "title-text" ? 48 : 24,
+          fontFamily: "Arial",
+          fontWeight: textType === "title-text" ? "bold" : "normal",
+          textAlign: "center",
+          color: "#ffffff",
+          opacity: 1,
+          intensity: 1,
+          position: [0, 0, 0],
+          rotation: [0, 0, 0],
+          scale: [1, 1, 1],
+          animationType: textType === "title-text" ? "fade" : "none",
+          animationSpeed: 1,
+          backgroundColor: "#00000080",
+          backgroundOpacity: 0.8,
+          shadow: true,
+          shadowColor: "#000000",
+          shadowBlur: 10,
+        } as any,
+      };
+
+      return [...prev, newElement];
+    });
+
+    setSelectedElement(elementId);
+    setShowAddMenu(false);
+  };
+
+  const addMediaElement = (mediaType: string) => {
+    const mediaNames = {
+      "image": "Image",
+      "gif": "Animated GIF",
+      "icon": "Icon",
+    };
+
+    const elementType = mediaType === "icon" ? "icon" : mediaType;
+    const elementId = `${elementType}-${Date.now()}`;
+
+    setVisualElements((prev) => {
+      const newElement: VisualElement = {
+        id: elementId,
+        type: elementType as any,
+        name: mediaNames[mediaType as keyof typeof mediaNames] || "Media Element",
+        visible: true,
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+        customization: {
+          color: "#ffffff",
+          opacity: 1,
+          intensity: 1,
+          position: [0, 0, 0],
+          rotation: [0, 0, 0],
+          scale: [1, 1, 1],
+          ...(elementType === "icon" ? {
+            iconType: "🌟",
+            size: 32,
+            rotationSpeed: 0,
+            hoverEffect: true,
+            clickEffect: false,
+          } : elementType === "image" ? {
+            imageUrl: "",
+            width: 200,
+            height: 200,
+            keepAspectRatio: true,
+            border: false,
+            shadow: true,
+            animationType: "fade",
+            animationSpeed: 1,
+          } : {
+            gifUrl: "",
+            width: 200,
+            height: 200,
+            keepAspectRatio: true,
+            playSpeed: 1,
+            loop: true,
+            border: false,
+            shadow: true,
+            animationType: "fade",
+            animationSpeed: 1,
+          }),
+        } as any,
+      };
+
+      return [...prev, newElement];
+    });
+
+    setSelectedElement(elementId);
+    setShowAddMenu(false);
+  };
+
+  const addEffectElement = (effectType: string) => {
+    const effectNames = {
+      "particleSystem": "Particle System",
+      "overlay": "Overlay",
+      "frame": "Frame",
+    };
+
+    const elementId = `${effectType}-${Date.now()}`;
+
+    setVisualElements((prev) => {
+      const newElement: VisualElement = {
+        id: elementId,
+        type: effectType as any,
+        name: effectNames[effectType as keyof typeof effectNames] || "Effect Element",
+        visible: true,
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+        customization: {
+          color: "#ffffff",
+          opacity: 1,
+          intensity: 1,
+          ...(effectType === "particleSystem" ? {
+            particleType: "circle",
+            count: 100,
+            size: 5,
+            sizeVariation: 0.5,
+            speed: 1,
+            spread: 50,
+            lifetime: 5,
+            spawnRate: 10,
+            gravity: 0,
+            wind: 0,
+            trail: false,
+            trailLength: 10,
+          } : effectType === "overlay" ? {
+            overlayType: "gradient",
+            intensity: 0.5,
+            blendMode: "normal",
+            opacity: 0.3,
+          } : {
+            frameStyle: "simple",
+            thickness: 10,
+            color: "#ffffff",
+            inset: false,
+            shadow: true,
+          }),
+        } as any,
+      };
+
+      return [...prev, newElement];
+    });
+
+    setSelectedElement(elementId);
     setShowAddMenu(false);
   };
 
@@ -141,27 +315,95 @@ export const VisualElementSelector: React.FC = () => {
       {showAddMenu && (
         <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-600 rounded-xl p-3 min-w-48 shadow-2xl z-50 animate-in fade-in duration-200">
           <div className="space-y-3">
-            <div className=" pt-3">
+            <div>
+              <div className="text-xs text-slate-400 px-2 pb-2 flex items-center gap-2">
+                <Type size={12} />
+                Text Elements
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { type: "title-text", label: "Title Text", icon: "📝" },
+                  { type: "subtitle-text", label: "Subtitle", icon: "📄" },
+                  { type: "caption-text", label: "Caption", icon: "🔤" },
+                  { type: "quote-text", label: "Quote", icon: "💬" },
+                ].map(({ type, label, icon }) => (
+                  <button
+                    key={type}
+                    onClick={() => addTextElement(type)}
+                    className="text-xs p-2 rounded-lg hover:bg-slate-700 transition-all duration-200 text-slate-300 flex flex-col items-center gap-1 group"
+                  >
+                    <span className="text-sm group-hover:scale-110 transition-transform">
+                      {icon}
+                    </span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs text-slate-400 px-2 pb-2 flex items-center gap-2">
+                <Image size={12} />
+                Media Elements
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { type: "image", label: "Image", icon: "🖼️" },
+                  { type: "gif", label: "Animated GIF", icon: "🎬" },
+                  { type: "icon", label: "Icon/Emoji", icon: "😊" },
+                ].map(({ type, label, icon }) => (
+                  <button
+                    key={type}
+                    onClick={() => addMediaElement(type)}
+                    className="text-xs p-2 rounded-lg hover:bg-slate-700 transition-all duration-200 text-slate-300 flex flex-col items-center gap-1 group"
+                  >
+                    <span className="text-sm group-hover:scale-110 transition-transform">
+                      {icon}
+                    </span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <div className="text-xs text-slate-400 px-2 pb-2 flex items-center gap-2">
                 <Sparkles size={12} />
+                Effect Elements
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { type: "particleSystem", label: "Particle System", icon: "✨" },
+                  { type: "overlay", label: "Overlay", icon: "🎨" },
+                  { type: "frame", label: "Frame/Border", icon: "🖼️" },
+                ].map(({ type, label, icon }) => (
+                  <button
+                    key={type}
+                    onClick={() => addEffectElement(type)}
+                    className="text-xs p-2 rounded-lg hover:bg-slate-700 transition-all duration-200 text-slate-300 flex flex-col items-center gap-1 group"
+                  >
+                    <span className="text-sm group-hover:scale-110 transition-transform">
+                      {icon}
+                    </span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs text-slate-400 px-2 pb-2 flex items-center gap-2">
+                <Zap size={12} />
                 Ambient Elements
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { type: "bouncing-ball", label: "Bouncing Ball", icon: "⚽" },
-                  {
-                    type: "floating-particle",
-                    label: "Floating Particle",
-                    icon: "✨",
-                  },
+                  { type: "floating-particle", label: "Floating Particle", icon: "✨" },
                   { type: "flying-bird", label: "Flying Bird", icon: "🐦" },
                   { type: "floating-text", label: "Floating Text", icon: "📝" },
                   { type: "rotating-cube", label: "Rotating Cube", icon: "🎲" },
-                  {
-                    type: "pulsing-sphere",
-                    label: "Pulsing Sphere",
-                    icon: "🔴",
-                  },
+                  { type: "pulsing-sphere", label: "Pulsing Sphere", icon: "🔴" },
                 ].map(({ type, label, icon }) => (
                   <button
                     key={type}
