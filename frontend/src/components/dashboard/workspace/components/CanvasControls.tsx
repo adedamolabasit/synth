@@ -59,7 +59,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
   return (
     <>
       {/* Main Control Bar */}
-      <div className="absolute xl:bottom-72 bottom-20 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl opacity-0 group-hover:opacity-100 transition-all duration-300">
+      <div className="absolute xl:bottom-20 bottom-10 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl opacity-0 group-hover:opacity-100 transition-all duration-300">
         <div className="bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl p-4 shadow-2xl">
           <div className="flex items-center justify-between gap-6">
             {/* Left Section: Audio Info */}

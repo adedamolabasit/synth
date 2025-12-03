@@ -7,6 +7,7 @@ import { useVisualizer } from "../../../../provider/VisualizerContext";
 import { VisualizerParams } from "../../../../shared/types/visualizer.types";
 import { Mic } from "lucide-react";
 import { Switch } from "../../../ui/Switch";
+import { useToastContext } from "../../../ui/Toast.tsx/ToastProvider";
 
 interface ControlsPanelProps {
   params: VisualizerParams;
@@ -24,10 +25,11 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
   const recorderRef = useRef<SceneRecorder | null>(new SceneRecorder());
   const { currentAudio, getAudioManager } = useAudio();
   const [isRecording, setIsRecording] = useState(false);
+    const toast = useToastContext(); // Initialize toast
 
   const handleRecord = async () => {
     if (!canvasRef.current) {
-      alert("Canvas missing");
+      toast.error("Canvas missing");
       return;
     }
 
@@ -50,10 +52,6 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
 
         setIsRecording(true);
       } catch (err) {
-        alert(
-          "Failed to start recording: " +
-            (err instanceof Error ? err.message : String(err))
-        );
       }
     } else {
       try {
@@ -63,7 +61,6 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
 
         setIsRecording(false);
       } catch (err) {
-        alert("Failed to stop recording");
         setIsRecording(false);
       }
     }

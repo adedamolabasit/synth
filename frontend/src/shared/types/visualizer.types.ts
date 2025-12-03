@@ -8,10 +8,10 @@ export interface VisualizerContextType {
     elements: VisualElement[] | ((prev: VisualElement[]) => VisualElement[])
   ) => void;
   updateElement: (id: string, updates: Partial<VisualElement>) => void;
-  updateElementCustomization: (
-    id: string,
-    updates: Partial<Customization>
-  ) => void;
+  // updateElementCustomization: (
+  //   id: string,
+  //   updates: Partial<Customization>
+  // ) => void;
   selectedElement: string | null;
   setSelectedElement: (id: string | null) => void;
   audioData: AudioData;
@@ -26,6 +26,9 @@ export interface VisualizerContextType {
   setCurrentVisualizer: (visualizerType: string) => void;
   setVideoBlob: (visualizerType: Blob | null) => void;
   videoBlob: Blob | null;
+   sceneBackground: any;
+  setSceneBackground: (background: any) => void;
+  updateElementCustomization: (elementId: string, updates: any) => void;
 }
 
 export interface VisualizerParams {

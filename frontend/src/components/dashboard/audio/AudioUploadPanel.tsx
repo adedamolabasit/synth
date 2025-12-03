@@ -29,6 +29,7 @@ export function AudioUploadPanel({
   const isConnected = !!user;
 
   const [walletAddr, setWalletAddr] = useState<string | null>(null);
+  
   useEffect(() => {
     if (isConnected && primaryWallet?.address) {
       setWalletAddr(primaryWallet.address);
@@ -55,15 +56,36 @@ export function AudioUploadPanel({
     }
   }, [audioFiles.length]);
 
+  // Force refresh file input on click
   const handleFileInputClick = () => {
     if (!isConnected) {
       setShowAuthFlow(true);
       return;
     }
 
+    // Create a new input element to ensure fresh state
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-      fileInputRef.current.click();
+      // Create a new input to replace the old one
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'audio/*';
+      input.multiple = true;
+      input.style.display = 'none';
+      
+      input.onchange = (e) => {
+        const target = e.target as HTMLInputElement;
+        const files = Array.from(target.files || []).filter((f) =>
+          f.type.startsWith("audio/")
+        );
+        if (files.length > 0) {
+          handleFiles(files);
+        }
+        // Clean up
+        document.body.removeChild(input);
+      };
+      
+      document.body.appendChild(input);
+      input.click();
     }
   };
 
@@ -84,7 +106,9 @@ export function AudioUploadPanel({
       } else {
         await playAudio(audioFile);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Playback error:", error);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -153,20 +177,34 @@ export function AudioUploadPanel({
         clearInterval(progressInterval);
         setUploadProgress(100);
 
-        if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+        }
 
         const data = await response.json();
         if (!data.success) throw new Error(data.error || "Upload failed");
 
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Wait a bit to ensure backend processing is complete
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
+      // Fetch updated library immediately after upload
       await fetchAudioLibrarySequential();
+      
+      // Show success message
+      setFetchError(""); // Clear any previous errors
+      
     } catch (error) {
+      console.error("Upload error:", error);
       setFetchError(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      // Clear the file input value to allow re-selection of same file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -239,9 +277,16 @@ export function AudioUploadPanel({
     }
   };
 
+  // Add manual refresh function
+  const handleManualRefresh = async () => {
+    if (!isConnected || !walletAddr) return;
+    await fetchAudioLibrarySequential();
+  };
+
   useEffect(() => {
-    if (isConnected && walletAddr) fetchAudioLibrarySequential();
-    else {
+    if (isConnected && walletAddr) {
+      fetchAudioLibrarySequential();
+    } else {
       setAudioFiles([]);
       setActiveTab("upload");
     }
@@ -301,6 +346,20 @@ export function AudioUploadPanel({
             Audio Player
           </h2>
         </div>
+        {isConnected && audioFiles.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-slate-400 hover:text-cyan-400"
+            onClick={handleManualRefresh}
+            disabled={isUploading || isAnalyzing}
+            title="Refresh library"
+          >
+            <Loader2 
+              className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} 
+            />
+          </Button>
+        )}
       </div>
 
       <div className="flex gap-2 border-b border-slate-700/50 pb-2">
@@ -327,7 +386,11 @@ export function AudioUploadPanel({
           }`}
           onClick={() => {
             if (!isConnected) setShowAuthFlow(true);
-            else setActiveTab("library");
+            else {
+              setActiveTab("library");
+              // Refresh library when switching to library tab
+              fetchAudioLibrarySequential();
+            }
           }}
           disabled={isUploading || !isConnected}
         >
@@ -362,15 +425,25 @@ export function AudioUploadPanel({
           {fetchError && (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
               <p className="text-red-400 text-sm">{fetchError}</p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={fetchAudioLibrarySequential}
-                className="mt-2 text-red-400 hover:text-red-300"
-                disabled={isUploading}
-              >
-                Try Again
-              </Button>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchAudioLibrarySequential}
+                  className="text-red-400 hover:text-red-300"
+                  disabled={isUploading}
+                >
+                  Try Again
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFetchError("")}
+                  className="text-slate-400 hover:text-slate-300"
+                >
+                  Dismiss
+                </Button>
+              </div>
             </div>
           )}
 
@@ -433,7 +506,10 @@ export function AudioUploadPanel({
                   </p>
                   <Button
                     variant="primary"
-                    onClick={handleFileInputClick}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFileInputClick();
+                    }}
                     disabled={isUploading}
                   >
                     {isUploading ? "Uploading..." : "Browse Files"}
@@ -443,81 +519,85 @@ export function AudioUploadPanel({
             </Card>
           ) : (
             <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-              <div className="flex-1 overflow-y-auto space-y-3">
-                {isAnalyzing && audioFiles.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
-                    <Loader2 className="animate-spin" size={32} />
-                    <p>Loading audio library...</p>
+              {isAnalyzing && audioFiles.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2">
+                  <Loader2 className="animate-spin" size={32} />
+                  <p>Loading audio library...</p>
+                </div>
+              ) : audioFiles.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2">
+                  <Music size={48} />
+                  <p>No audio files found</p>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setActiveTab("upload")}
+                    disabled={isUploading}
+                  >
+                    Upload your first file
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="text-xs text-slate-500 flex justify-between items-center">
                   </div>
-                ) : audioFiles.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
-                    <Music size={48} />
-                    <p>No audio files found</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setActiveTab("upload")}
-                      disabled={isUploading}
-                    >
-                      Upload your first file
-                    </Button>
-                  </div>
-                ) : (
-                  audioFiles.map((audioFile) => (
-                    <Card
-                      key={audioFile._id}
-                      className={`p-3 transition-all duration-300 cursor-pointer group relative ${
-                        currentAudio?._id === audioFile._id
-                          ? "border-2 border-cyan-500 bg-cyan-500/15 shadow-lg shadow-cyan-500/20 scale-[1.02]"
-                          : "border border-slate-700/50 hover:border-slate-600/50 hover:shadow-lg hover:shadow-cyan-500/5"
-                      } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
-                      onClick={() => !isUploading && handlePlayPause(audioFile)}
-                    >
-                      {currentAudio?._id === audioFile._id && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 rounded-l-md" />
-                      )}
+                  <div className="flex-1 overflow-y-auto space-y-3">
+                    {audioFiles.map((audioFile) => (
+                      <Card
+                        key={audioFile._id}
+                        className={`p-3 transition-all duration-300 cursor-pointer group relative ${
+                          currentAudio?._id === audioFile._id
+                            ? "border-2 border-cyan-500 bg-cyan-500/15 shadow-lg shadow-cyan-500/20 scale-[1.02]"
+                            : "border border-slate-700/50 hover:border-slate-600/50 hover:shadow-lg hover:shadow-cyan-500/5"
+                        } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                        onClick={() => !isUploading && handlePlayPause(audioFile)}
+                      >
+                        {currentAudio?._id === audioFile._id && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 rounded-l-md" />
+                        )}
 
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={`w-8 h-8 p-0 rounded-full transition-all ${
-                            currentAudio?._id === audioFile._id
-                              ? "bg-cyan-500/50"
-                              : "bg-slate-700/50 hover:bg-slate-600/50"
-                          }`}
-                        >
-                          {currentAudio?._id === audioFile._id && isPlaying ? (
-                            <Pause size={16} />
-                          ) : (
-                            <Play size={16} />
-                          )}
-                        </Button>
-                        <div className="flex-1 flex flex-col">
-                          <p className="text-white font-medium text-sm truncate">
-                            {audioFile.name}
-                          </p>
-                          <p className="text-slate-400 text-xs">
-                            {formatFileSize(audioFile.size)} •{" "}
-                            {formatDate(audioFile.uploadedAt)}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`w-8 h-8 p-0 rounded-full transition-all ${
+                              currentAudio?._id === audioFile._id
+                                ? "bg-cyan-500/50"
+                                : "bg-slate-700/50 hover:bg-slate-600/50"
+                            }`}
+                          >
+                            {currentAudio?._id === audioFile._id && isPlaying ? (
+                              <Pause size={16} />
+                            ) : (
+                              <Play size={16} />
+                            )}
+                          </Button>
+                          <div className="flex-1 flex flex-col">
+                            <p className="text-white font-medium text-sm truncate">
+                              {audioFile.name}
+                            </p>
+                            <p className="text-slate-400 text-xs">
+                              {formatFileSize(audioFile.size)} •{" "}
+                              {formatDate(audioFile.uploadedAt)}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-slate-400 hover:text-cyan-400 p-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownload(audioFile);
+                            }}
+                          >
+                            <Download size={16} />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-slate-400 hover:text-cyan-400 p-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownload(audioFile);
-                          }}
-                        >
-                          <Download size={16} />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))
-                )}
-              </div>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </>

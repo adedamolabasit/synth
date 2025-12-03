@@ -38,6 +38,11 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
     );
   };
 
+  const [sceneBackground, setSceneBackground] = useState({
+    type: "color",
+    color: "#0a0a0a",
+  });
+
   const updateElementCustomization = (
     id: string,
     updates: Partial<Customization>
@@ -95,6 +100,8 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
     showDownloadModal,
     setVideoBlob,
     videoBlob,
+    sceneBackground,
+    setSceneBackground,
   };
 
   return (

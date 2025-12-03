@@ -146,11 +146,8 @@ export const useLivePreview = () => {
         setShowDownloadModal(false);
         setVideoBlob(null);
         setVideoName(`visualizer-${Date.now()}`);
-      } else {
-        alert(result.error || "Upload failed");
-      }
+      } 
     } catch (error) {
-      alert("Network error. Please try again.");
     } finally {
       setIsUploading(false);
     }

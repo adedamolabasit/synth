@@ -9,6 +9,7 @@ import { DynamicContextProvider } from "@dynamic-labs/sdk-react-core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DynamicWagmiConnector } from "@dynamic-labs/wagmi-connector";
 import { WagmiProvider, createConfig } from "wagmi";
+import { ToastProvider } from "./components/ui/Toast.tsx/ToastProvider.tsx";
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
 import { aeneid } from "@story-protocol/core-sdk";
 import { http } from "viem";
@@ -22,7 +23,6 @@ export const config = createConfig({
 });
 
 export const queryClient = new QueryClient();
-
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -38,7 +38,9 @@ createRoot(document.getElementById("root")!).render(
             <VisualizerProvider>
               <AudioProvider>
                 <IpProvider>
-                  <App />
+                  <ToastProvider position="top-center">
+                    <App />
+                  </ToastProvider>
                 </IpProvider>
               </AudioProvider>
             </VisualizerProvider>

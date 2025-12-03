@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import type { Video as VideoParams, RegisteredIpAssetParams } from "../types";
+import { useToastContext } from "../../../ui/Toast.tsx/ToastProvider";
 
 export function useVideos(walletAddress: string, isConnected: boolean) {
   const [videos, setVideos] = useState<VideoParams[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const toast = useToastContext(); // Initialize toast
 
   const fetchUserVideos = async () => {
     if (!isConnected) {
@@ -130,10 +133,10 @@ export function useVideos(walletAddress: string, isConnected: boolean) {
       if (result.success) {
         setVideos((prev) => prev.filter((v) => v.id !== videoId));
       } else {
-        alert("Failed to delete video: " + result.error);
+        toast.error("Failed to delete video");
       }
     } catch (error) {
-      alert("Error deleting video");
+      toast.error("Error deleting video");
     }
   };
 

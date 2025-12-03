@@ -38,6 +38,10 @@ export interface Video {
     description?: string;
   };
   createdAt: string;
+    likes?: number;
+  comments?: number;
+  shares?: number;
+  isLiked?: boolean;
   ipRegistration?: RegisteredIpAssetParams;
   publication: "draft" | "published";
   collaborators?: Collaborator[];

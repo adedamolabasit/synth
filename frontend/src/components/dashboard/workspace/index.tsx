@@ -10,6 +10,7 @@ import { LyricsRenderer } from "../../../studio/visualizers/manager/LyricsRender
 import { decodeLyricsData } from "../../../shared/utils";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { CanvasControls } from "./components/CanvasControls";
+import { useToastContext } from "../../ui/Toast.tsx/ToastProvider";
 
 export const LivePreviewCanvas: React.FC = () => {
   const {
@@ -25,9 +26,6 @@ export const LivePreviewCanvas: React.FC = () => {
     timeData,
     beatInfo,
     audioLevel,
-    audioContext,
-    audioElement,
-    audioBufferSource,
   } = useAudio();
 
   const {
@@ -39,9 +37,11 @@ export const LivePreviewCanvas: React.FC = () => {
     showDownloadModal,
     setVideoBlob,
     videoBlob,
+    sceneBackground,
   } = useVisualizer();
 
   const { user, primaryWallet } = useDynamicContext();
+  const toast = useToastContext(); // Initialize toast
 
   const walletAddress = primaryWallet?.address;
   const isConnected = !!user;
@@ -59,8 +59,6 @@ export const LivePreviewCanvas: React.FC = () => {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null
   );
-  const [isLargeScreen, setIsLargeScreen] = useState(false);
-
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -88,21 +86,6 @@ export const LivePreviewCanvas: React.FC = () => {
   const audioSyncCountRef = useRef(0);
   const animationFrameCountRef = useRef(0);
 
-  // Check for large screens
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsLargeScreen(window.innerWidth >= 1400);
-    };
-
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-
-    return () => {
-      window.removeEventListener("resize", checkScreenSize);
-    };
-  }, []);
-
-  // Initialize params.showLyrics if not set
   useEffect(() => {
     if (params.showLyrics === undefined) {
       setParams((prev) => ({
@@ -112,11 +95,10 @@ export const LivePreviewCanvas: React.FC = () => {
     }
   }, []);
 
-  // Handle audio completion - stop recording if active
   useEffect(() => {
     if (isRecording && duration > 0 && currentTime >= duration - 0.5) {
       console.log("Audio finished, stopping recording...");
-      handleRecordVideo(); // Stop recording
+      handleRecordVideo();
     }
   }, [currentTime, duration, isRecording]);
 
@@ -138,7 +120,6 @@ export const LivePreviewCanvas: React.FC = () => {
   }, [currentAudio, hasDefaultAudio]);
 
   useEffect(() => {
-    // Prevent running before data exists
     if (!frequencyData || !timeData) return;
 
     const convertedTimeData =
@@ -156,7 +137,6 @@ export const LivePreviewCanvas: React.FC = () => {
         };
       }
 
-      // Shallow compare array lengths + beat strength
       const same =
         prev.frequencyData?.length === frequencyData.length &&
         prev.timeData?.length === convertedTimeData.length &&
@@ -225,7 +205,6 @@ export const LivePreviewCanvas: React.FC = () => {
     }
   }, [params.showLyrics, sceneReady]);
 
-  // Clean up audio stream on unmount
   useEffect(() => {
     return () => {
       if (audioStreamRef.current) {
@@ -237,7 +216,6 @@ export const LivePreviewCanvas: React.FC = () => {
     };
   }, []);
 
-  // Scene initialization
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -267,8 +245,12 @@ export const LivePreviewCanvas: React.FC = () => {
     sceneRef.current = scene;
     cameraRef.current = camera;
     rendererRef.current = renderer;
-
-    scene.background = new THREE.Color(0x0a0a0a);
+    
+    scene.background = new THREE.Color(
+      sceneBackground.type === "color"
+        ? sceneBackground.color || "#0a0a0a"
+        : "#0a0a0a"
+    );
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
@@ -323,6 +305,100 @@ export const LivePreviewCanvas: React.FC = () => {
       animationFrameCountRef.current = 0;
     };
   }, []);
+
+  useEffect(() => {
+    if (!sceneRef.current) return;
+
+    console.log("Applying scene background:", sceneBackground);
+
+    const applyBackground = () => {
+      if (!sceneRef.current) return;
+
+      const background = sceneBackground || { type: "color", color: "#0a0a0a" };
+
+      switch (background.type) {
+        case "color":
+          console.log("Setting color background:", background.color);
+          sceneRef.current.background = new THREE.Color(
+            background.color || "#0a0a0a"
+          );
+          break;
+
+        case "image":
+          if (background.image) {
+            console.log("Setting image background:", background.image);
+            const loader = new THREE.TextureLoader();
+            loader.load(
+              background.image,
+              (texture) => {
+                sceneRef.current!.background = texture;
+                // Trigger a re-render
+                if (
+                  rendererRef.current &&
+                  cameraRef.current &&
+                  sceneRef.current
+                ) {
+                  rendererRef.current.render(
+                    sceneRef.current,
+                    cameraRef.current
+                  );
+                }
+              },
+              undefined,
+              (error) => {
+                console.error("Error loading background image:", error);
+                sceneRef.current!.background = new THREE.Color("#0a0a0a");
+              }
+            );
+          } else {
+            sceneRef.current.background = new THREE.Color("#0a0a0a");
+          }
+          break;
+
+        case "gradient":
+          console.log("Setting gradient background:", background.gradient);
+          // Create gradient texture
+          const canvas = document.createElement("canvas");
+          canvas.width = 512;
+          canvas.height = 512;
+          const ctx = canvas.getContext("2d");
+
+          if (
+            ctx &&
+            background.gradient?.colors &&
+            background.gradient.colors.length > 0
+          ) {
+            let gradient;
+            const colors = background.gradient.colors;
+
+            if (background.gradient.type === "radial") {
+              gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+            } else {
+              gradient = ctx.createLinearGradient(0, 0, 512, 512);
+            }
+
+            // Add color stops
+            colors.forEach((color: string, index: number) => {
+              gradient.addColorStop(index / (colors.length - 1), color);
+            });
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 512, 512);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            sceneRef.current.background = texture;
+          } else {
+            sceneRef.current.background = new THREE.Color("#0a0a0a");
+          }
+          break;
+
+        default:
+          sceneRef.current.background = new THREE.Color("#0a0a0a");
+      }
+    };
+
+    applyBackground();
+  }, [sceneBackground]); // This effect runs when sceneBackground changes
 
   const createVisualizer = useCallback(() => {
     if (!sceneRef.current) return;
@@ -510,11 +586,8 @@ export const LivePreviewCanvas: React.FC = () => {
     seekTo(newTime);
   };
 
-  // Function to capture system audio (requires user permission and may not work in all browsers)
   const captureSystemAudio = async (): Promise<MediaStream | null> => {
     try {
-      // This requires the user to grant permission to capture audio
-      // Note: This only works in some browsers and requires HTTPS
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
@@ -531,42 +604,8 @@ export const LivePreviewCanvas: React.FC = () => {
     }
   };
 
-  // Alternative: Web Audio API method to route audio
-  const setupAudioCapture = async (): Promise<MediaStream | null> => {
-    if (!audioContext || !audioElement || !audioElement.src) {
-      console.warn("No audio context or audio element available");
-      return null;
-    }
-
-    try {
-      // Recreate the audio context if it's closed
-      let ctx = audioContext;
-      if (ctx.state === "closed") {
-        ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-
-      // Create a media element source
-      const source = ctx.createMediaElementSource(audioElement);
-      const destination = ctx.createMediaStreamDestination();
-
-      // Connect the audio graph
-      source.connect(destination);
-      // Also connect to speakers
-      source.connect(ctx.destination);
-
-      audioDestinationRef.current = destination;
-      return destination.stream;
-    } catch (error) {
-      console.error("Error setting up audio capture:", error);
-      return null;
-    }
-  };
-
-  // Main recording function with audio capture
   const handleRecordVideo = async () => {
     if (isRecording && mediaRecorder) {
-      // Stop recording
-
       console.log("Stopping recording...");
       mediaRecorder.stop();
       setIsRecording(false);
@@ -577,13 +616,11 @@ export const LivePreviewCanvas: React.FC = () => {
         recordingTimerRef.current = null;
       }
 
-      // Resume audio playback if it was paused
       if (wasPlayingRef.current && currentAudio) {
         await resumeAudio();
         wasPlayingRef.current = false;
       }
 
-      // Clean up audio stream
       if (audioStreamRef.current) {
         audioStreamRef.current.getTracks().forEach((track) => track.stop());
         audioStreamRef.current = null;
@@ -598,33 +635,18 @@ export const LivePreviewCanvas: React.FC = () => {
       return;
     }
 
-    // Start recording
-    console.log("Starting recording...");
-
     if (!canvasRef.current) {
-      alert("Canvas not available for recording");
+      toast.error("Recording Error", "Canvas not available for recording");
       return;
     }
 
     try {
-      // Store current playback state
       wasPlayingRef.current = isPlaying;
 
-      // Pause audio playback if playing
-      // if (isPlaying) {
-      //   pauseAudio();
-      // }
+      const canvasStream = canvasRef.current.captureStream(30);
 
-      // Get canvas video stream
-      const canvasStream = canvasRef.current.captureStream(30); // 30 FPS
-
-      // Try to get audio stream
       let audioStream: MediaStream | null = null;
 
-      // Method 1: Try Web Audio API routing
-      audioStream = await setupAudioCapture();
-
-      // Method 2: Try system audio capture (requires user permission)
       if (!audioStream) {
         console.log("Trying system audio capture...");
         audioStream = await captureSystemAudio();
@@ -634,7 +656,6 @@ export const LivePreviewCanvas: React.FC = () => {
       let hasAudio = false;
 
       if (audioStream && audioStream.getAudioTracks().length > 0) {
-        // Combine video from canvas and audio
         const videoTrack = canvasStream.getVideoTracks()[0];
         const audioTrack = audioStream.getAudioTracks()[0];
         audioTrackRef.current = audioTrack;
@@ -644,12 +665,17 @@ export const LivePreviewCanvas: React.FC = () => {
         hasAudio = true;
         console.log("Recording with audio");
       } else {
-        // Record without audio
         combinedStream = canvasStream;
         console.log("Recording without audio - could not capture audio");
+
+        // Show warning toast for no audio
+        toast.warning(
+          "Recording Started",
+          "Recording without audio. Make sure to allow microphone access for full recording.",
+          { duration: 5000 }
+        );
       }
 
-      // Check available MIME types
       const mimeTypes = [
         "video/webm;codecs=vp9,opus",
         "video/webm;codecs=vp8,opus",
@@ -672,7 +698,7 @@ export const LivePreviewCanvas: React.FC = () => {
 
       const options = {
         mimeType: selectedMimeType,
-        videoBitsPerSecond: 5000000, // Higher quality for visualizer
+        videoBitsPerSecond: 5000000,
         audioBitsPerSecond: hasAudio ? 128000 : 0,
       };
 
@@ -695,38 +721,45 @@ export const LivePreviewCanvas: React.FC = () => {
 
         setVideoBlob(blob);
         setShowDownloadModal(true);
-
-        // Don't resume audio here - let user decide
       };
 
       recorder.onerror = (e) => {
         console.error("Recording error:", e);
-        alert("Recording error occurred");
+        toast.error("Recording Failed", "An error occurred during recording");
         setIsRecording(false);
         setRecordingTime(0);
 
-        // Resume audio playback on error
         if (wasPlayingRef.current && currentAudio) {
           resumeAudio();
           wasPlayingRef.current = false;
         }
       };
 
-      recorder.start(100); // Collect data every 100ms
+      recorder.start(100);
       setMediaRecorder(recorder);
       setIsRecording(true);
 
-      // Start recording timer
       recordingTimerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
 
       console.log(`Recording started ${hasAudio ? "with" : "without"} audio`);
+
+      // Show recording started toast
+      toast.info(
+        "Recording Started",
+        hasAudio
+          ? "Recording with audio. Click the record button again to stop."
+          : "Recording without audio. Click the record button again to stop.",
+        { duration: 3000 }
+      );
     } catch (error) {
       console.error("Error starting recording:", error);
-      alert(`Failed to start recording: ${error}`);
+      toast.error(
+        "Recording Failed",
+        error instanceof Error ? error.message : "Failed to start recording"
+      );
 
-      // Resume audio playback on error
       if (wasPlayingRef.current && currentAudio) {
         resumeAudio();
         wasPlayingRef.current = false;
@@ -758,20 +791,69 @@ export const LivePreviewCanvas: React.FC = () => {
       const result = await response.json();
 
       if (result.success) {
+        // Show success toast with action to register IP
+        toast.success(
+          "Video Saved Successfully!",
+          `"${videoName || fileName}" has been saved to your library.`,
+          {
+            duration: 7000, // Longer duration for important action
+            action: {
+              label: "Register as IP Asset",
+              onClick: () => {
+                // Navigate to IP Assets page
+                // navigate('/ip-assets');
+
+                // You could also pass the video ID if you have it
+                // navigate(`/ip-assets?video=${result.videoId}`);
+
+                // Optional: Show another toast about registration
+                setTimeout(() => {
+                  toast.info(
+                    "IP Asset Registration",
+                    "Register your video as an IP Asset to protect and monetize your content.",
+                    { duration: 5000 }
+                  );
+                }, 1000);
+              },
+            },
+          }
+        );
+
         setShowDownloadModal(false);
         setVideoBlob(null);
         setVideoName(`visualizer-${Date.now()}`);
 
-        // Resume audio if it was paused for recording
         if (wasPlayingRef.current && currentAudio) {
           resumeAudio();
           wasPlayingRef.current = false;
         }
       } else {
-        alert(result.error || "Upload failed");
+        toast.error(
+          "Upload Failed",
+          result.error || "Failed to save video. Please try again.",
+          {
+            duration: 5000,
+            isPersistent: true,
+            action: {
+              label: "Retry",
+              onClick: handleSaveVideo,
+            },
+          }
+        );
       }
     } catch (error) {
-      alert("Network error. Please try again.");
+      toast.error(
+        "Network Error",
+        "Failed to connect to server. Please check your connection and try again.",
+        {
+          duration: 5000,
+          isPersistent: true,
+          action: {
+            label: "Retry",
+            onClick: handleSaveVideo,
+          },
+        }
+      );
     } finally {
       setIsUploading(false);
     }
@@ -809,7 +891,6 @@ export const LivePreviewCanvas: React.FC = () => {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-        {/* Recording Indicator */}
         {isRecording && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40">
             <div className="flex items-center gap-3 bg-red-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg animate-pulse">
@@ -831,7 +912,7 @@ export const LivePreviewCanvas: React.FC = () => {
           <CanvasControls
             isConnected={isConnected}
             audioName={audioName}
-            canPlayAudio={canPlayAudio}
+            canPlayAudio={canPlayAudio as boolean}
             isPlaying={isPlaying}
             isLoading={isLoading}
             togglePlayback={togglePlayback}
@@ -845,7 +926,6 @@ export const LivePreviewCanvas: React.FC = () => {
             onDemoAudio={handleDemoAudio}
             onRecordVideo={handleRecordVideo}
             isRecording={isRecording}
-            isLargeScreen={isLargeScreen}
           />
         )}
 
@@ -878,7 +958,6 @@ export const LivePreviewCanvas: React.FC = () => {
               <button
                 onClick={() => {
                   setShowDownloadModal(false);
-                  // Resume audio if it was paused for recording
                   if (wasPlayingRef.current && currentAudio) {
                     resumeAudio();
                     wasPlayingRef.current = false;
@@ -931,7 +1010,6 @@ export const LivePreviewCanvas: React.FC = () => {
                   )}
                 </button>
 
-                {/* Download button for immediate download */}
                 <button
                   onClick={() => {
                     if (videoBlob) {
@@ -956,7 +1034,6 @@ export const LivePreviewCanvas: React.FC = () => {
                   onClick={() => {
                     setShowDownloadModal(false);
                     setVideoBlob(null);
-                    // Resume audio if it was paused for recording
                     if (wasPlayingRef.current && currentAudio) {
                       resumeAudio();
                       wasPlayingRef.current = false;
@@ -966,6 +1043,13 @@ export const LivePreviewCanvas: React.FC = () => {
                 >
                   {wasPlayingRef.current ? "Cancel & Resume Audio" : "Cancel"}
                 </button>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-slate-700">
+                <p className="text-xs text-slate-400 text-center">
+                  Tip: After saving, register your video as an IP Asset to
+                  protect and monetize your creation.
+                </p>
               </div>
             </div>
           </div>
