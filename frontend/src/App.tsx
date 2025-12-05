@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Sidebar } from "./layouts/Sidebar";
-import { StatusBar } from "./layouts/StatusBar";
+import { Sidebar } from "./components/layouts/Sidebar";
+import { StatusBar } from "./components/layouts/StatusBar";
 import { WorkspaceLayout } from "./pages/dashboard/WorkspaceLayout";
 
 function App() {
   const [activeView, setActiveView] = useState("");
 
-  // Load view from URL on first load
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const view = params.get("view");
@@ -14,12 +13,10 @@ function App() {
     if (view) {
       setActiveView(view);
     } else {
-      // default view
       setActiveView("workspace");
     }
   }, []);
 
-  // Sync and update both state + URL
   const updateActiveView = (view: string) => {
     setActiveView(view);
 

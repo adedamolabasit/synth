@@ -1,4 +1,3 @@
-// ElementCustomizationPanel.tsx - Updated version
 import React, { useState } from "react";
 import {
   X,
@@ -8,69 +7,27 @@ import {
   Zap,
   Image,
   Trash2,
-  Move3D,
   Type,
   FileImage,
   Film,
   Smile,
   Layers,
-  Box,
-  Grid3x3,
   Sparkles,
   Settings,
-  Upload,
-  Download,
   Copy,
-  RotateCw,
-  Move,
-  Scale,
-  Bold,
-  Italic,
-  Underline,
   AlignLeft,
   AlignCenter,
   AlignRight,
   Eye as EyeIcon,
   EyeOff as EyeOffIcon,
-  Play,
-  Pause,
-  Repeat,
   Zap as Lightning,
-  Filter,
   Frame,
-  Wind,
-  Music,
-  Volume2,
-  Star,
-  Heart,
-  Clock,
-  Globe,
-  Moon,
-  Sun,
 } from "lucide-react";
 import { useVisualizer } from "../../../provider/VisualizerContext";
 import { Button } from "../../../components/ui/Button";
 import { Slider } from "../../../components/ui/Slider";
-import { useToastContext } from "../../../components/ui/Toast.tsx/ToastProvider";
+import { useToastContext } from "../../../components/common/Toast/ToastProvider";
 
-interface CustomizationField {
-  key: string;
-  label: string;
-  type:
-    | "color"
-    | "slider"
-    | "select"
-    | "checkbox"
-    | "image"
-    | "position"
-    | "text"
-    | "number"
-    | "font";
-  min?: number;
-  max?: number;
-  step?: number;
-  options?: { value: string; label: string }[];
-}
 
 export const ElementCustomizationPanel: React.FC = () => {
   const {
@@ -80,16 +37,14 @@ export const ElementCustomizationPanel: React.FC = () => {
     updateElement,
     updateElementCustomization,
     setSceneBackground,
-    sceneBackground,
   } = useVisualizer();
 
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("properties");
   const element = visualElements.find((el) => el.id === selectedElement);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const gifInputRef = React.useRef<HTMLInputElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
-  const backgroundImageInputRef = React.useRef<HTMLInputElement>(null); // Add this
+  const backgroundImageInputRef = React.useRef<HTMLInputElement>(null); 
   const toast = useToastContext();
 
   React.useEffect(() => {
@@ -101,16 +56,13 @@ export const ElementCustomizationPanel: React.FC = () => {
 const handleFieldChange = (fieldKey: string, value: any) => {
   updateElementCustomization(element.id, { [fieldKey]: value });
   
-  // Handle background updates
   if (element.type === "background") {
     const customization = element.customization as any;
     const updatedCustomization = { ...customization, [fieldKey]: value };
     const backgroundType = updatedCustomization.backgroundType || "color";
 
     if (setSceneBackground) {
-      // Handle different field changes
       if (fieldKey === "backgroundType") {
-        // When background type changes
         if (value === "color") {
           setSceneBackground({
             type: "color",
@@ -132,26 +84,22 @@ const handleFieldChange = (fieldKey: string, value: any) => {
           });
         }
       } else if (fieldKey === "color" && backgroundType === "color") {
-        // When color changes for color background
         setSceneBackground({
           type: "color",
           color: value,
         });
       } else if (fieldKey === "image" && backgroundType === "image") {
-        // When image URL changes
         setSceneBackground({
           type: "image",
           image: value,
           imageOpacity: updatedCustomization.imageOpacity || 1,
         });
       } else if (fieldKey === "gradient" && backgroundType === "gradient") {
-        // When gradient changes
         setSceneBackground({
           type: "gradient",
           gradient: value,
         });
       } else if (fieldKey === "imageOpacity" && backgroundType === "image") {
-        // When image opacity changes
         setSceneBackground({
           type: "image",
           image: updatedCustomization.image,
@@ -159,7 +107,6 @@ const handleFieldChange = (fieldKey: string, value: any) => {
         });
       }
       
-      // Also update if we're currently on the image background type and an image-related field changes
       if (backgroundType === "image" && fieldKey.includes("image")) {
         setSceneBackground({
           type: "image",
@@ -212,11 +159,9 @@ const handleFileUpload = (
       updates.imageUrl = fileUrl;
     }
 
-    // For background images, also set the background type to image
     if (element.type === "background" && elementType === "image") {
       updates.backgroundType = "image";
       
-      // Immediately update the scene background
       if (setSceneBackground) {
         setSceneBackground({
           type: "image",
@@ -233,11 +178,9 @@ const handleFileUpload = (
   
   reader.readAsDataURL(file);
 
-  // Reset the correct file input
   if (elementType === "gif" && gifInputRef.current) {
     gifInputRef.current.value = "";
   } else if (elementType === "image") {
-    // Check which image input to reset
     if (element.type === "background" && backgroundImageInputRef.current) {
       backgroundImageInputRef.current.value = "";
     } else if (imageInputRef.current) {
@@ -301,12 +244,9 @@ const handleFileUpload = (
         element.position[2],
       ] as [number, number, number],
     };
-    // You'll need to add this function to your context
-    // For now, we'll just show a toast
     toast.info("Coming Soon", "Duplicate feature coming soon!");
   };
   
-  // In ElementCustomizationPanel.tsx, add the handleGradientColorChange function:
 
 const handleGradientColorChange = (index: number, color: string) => {
   const newColors = [...(customization.gradient?.colors || ["#0a0a0a", "#1a1a2e", "#16213e"])];
@@ -504,7 +444,6 @@ const handleGradientColorChange = (index: number, color: string) => {
 
         return (
           <div className="space-y-4">
-            {/* File Upload */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 {isGif ? "GIF/Video File" : "Image File"}
@@ -587,7 +526,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               )}
             </div>
 
-            {/* GIF Specific Controls */}
             {isGif && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
@@ -626,7 +564,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             )}
 
-            {/* Size Controls */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">Size</label>
               <div className="grid grid-cols-2 gap-3">
@@ -705,7 +642,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Animation */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Animation
@@ -731,7 +667,6 @@ const handleGradientColorChange = (index: number, color: string) => {
       case "icon":
         return (
           <div className="space-y-4">
-            {/* Icon Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Icon Type
@@ -767,7 +702,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Size and Color */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">
@@ -797,7 +731,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Rotation Speed */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Rotation Speed
@@ -814,7 +747,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Effects */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Effects
@@ -850,7 +782,6 @@ const handleGradientColorChange = (index: number, color: string) => {
       case "particleSystem":
         return (
           <div className="space-y-4">
-            {/* Particle Type */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Particle Type
@@ -881,7 +812,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Particle Settings */}
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
