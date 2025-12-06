@@ -62,18 +62,14 @@ export function VideoCard({
   const handleVideoHover = () => {
     setHovered(true);
 
-    // Clear any existing timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    // Delay video play slightly to ensure smooth transition
     hoverTimeoutRef.current = setTimeout(() => {
       if (previewRef.current && canPlay) {
         previewRef.current.currentTime = 0;
         previewRef.current.play().catch((error) => {
-          console.log("Auto-play prevented:", error);
-          // Fallback: show thumbnail if video can't play
           setHovered(false);
         });
       }
@@ -83,7 +79,6 @@ export function VideoCard({
   const handleVideoHoverEnd = () => {
     setHovered(false);
 
-    // Clear any pending timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
@@ -94,7 +89,6 @@ export function VideoCard({
     }
   };
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (hoverTimeoutRef.current) {
@@ -129,7 +123,7 @@ export function VideoCard({
   const handleViewLicense = () => {
     onSelect(video);
     onShowLicenseModal(true);
-    console.log(video, "video>>");
+
     if (video.ipRegistration?.ipId) {
       setIpId(video.ipRegistration?.ipId);
     } else {
@@ -148,7 +142,6 @@ export function VideoCard({
       onMouseLeave={handleVideoHoverEnd}
     >
       <div className="aspect-video bg-slate-800 relative overflow-hidden">
-        {/* Always render video element but control visibility and play state */}
         <video
           ref={previewRef}
           src={video.videoUrl}
@@ -163,7 +156,6 @@ export function VideoCard({
           onLoadedData={() => setCanPlay(true)}
         />
 
-        {/* Thumbnail/fallback - always visible when video isn't playing */}
         <div
           className={`absolute inset-0 transition-opacity duration-300 ${
             hovered && canPlay ? "opacity-0" : "opacity-100"
@@ -215,7 +207,6 @@ export function VideoCard({
             {video.metadata.name}
           </h4>
           <div className="flex gap-2">
-            {/* {video.ipRegistration?.status === "registered" && ( */}
             <div className="flex items-center space-x-3">
               <Switch
                 checked={video.publication === "published"}
@@ -227,7 +218,6 @@ export function VideoCard({
                 {video.publication === "published" ? "Published" : "Draft"}
               </span>
             </div>
-            {/* )} */}
 
             <Button
               variant="ghost"

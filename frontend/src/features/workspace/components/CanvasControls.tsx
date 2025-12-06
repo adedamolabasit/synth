@@ -1,7 +1,7 @@
 import React from "react";
 import { Music, Play, Pause, Video, Music2, Zap } from "lucide-react";
-import { Button } from "../../../components/ui/Button";
 import { Slider } from "../../../components/ui/Slider";
+import { formatTime } from "../utils";
 
 interface CanvasControlsProps {
   isConnected: boolean;
@@ -19,7 +19,7 @@ interface CanvasControlsProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   onDemoAudio: () => void;
   onRecordVideo?: () => void;
-  isRecording?: boolean; // Add this line
+  isRecording?: boolean;
 }
 
 export const CanvasControls: React.FC<CanvasControlsProps> = ({
@@ -35,7 +35,6 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
   handleSeek,
   params,
   setParams,
-  canvasRef,
   onDemoAudio,
   onRecordVideo,
   isRecording,
@@ -58,11 +57,9 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
 
   return (
     <>
-      {/* Main Control Bar */}
       <div className="absolute xl:bottom-20 bottom-10 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl opacity-0 group-hover:opacity-100 transition-all duration-300">
         <div className="bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl p-4 shadow-2xl">
           <div className="flex items-center justify-between gap-6">
-            {/* Left Section: Audio Info */}
             <div className="flex items-center gap-4 min-w-0 flex-1">
               {audioName && (
                 <div className="flex items-center gap-3 min-w-0">
@@ -84,9 +81,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
               )}
             </div>
 
-            {/* Center Section: Playback Controls */}
             <div className="flex items-center gap-4">
-              {/* Demo Audio Button */}
               <button
                 onClick={onDemoAudio}
                 className="flex flex-col items-center gap-1 p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/50 transition-all duration-200 group/tooltip relative"
@@ -101,7 +96,6 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
                 </div>
               </button>
 
-              {/* Main Play/Pause Button */}
               <button
                 onClick={togglePlayback}
                 disabled={!canPlayAudio || isLoading}
@@ -124,7 +118,6 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
                 </div>
               </button>
 
-              {/* Record Video Button */}
               <button
                 onClick={onRecordVideo}
                 className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all duration-200 group/tooltip relative ${
@@ -149,9 +142,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
               </button>
             </div>
 
-            {/* Right Section: Visualizer Controls */}
             <div className="flex items-center gap-6 min-w-0 flex-1 justify-end">
-              {/* Lyrics Toggle */}
               <div className="flex flex-col items-center gap-2 min-w-[120px]">
                 <button
                   onClick={handleToggleLyrics}
@@ -171,7 +162,6 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
                 </div>
               </div>
 
-              {/* Speed Control */}
               <div className="flex flex-col gap-3 min-w-[200px]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -205,7 +195,6 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
         </div>
       </div>
 
-      {/* Progress Bar */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[80%] max-w-4xl">
         <div className="relative">
           <div
@@ -236,11 +225,4 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
       </div>
     </>
   );
-};
-
-// Helper function to format time
-const formatTime = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
 };

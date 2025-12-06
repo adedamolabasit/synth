@@ -68,7 +68,6 @@ export function VideoGrid({
 
   <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {selectedVideo ? (
-      // Full screen overlay
       <div className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm p-4 md:p-6 lg:p-8 overflow-auto">
        <div className="flex h-[calc(100vh-80px)]">
           <VideoDetailView

@@ -18,16 +18,12 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  Eye as EyeIcon,
-  EyeOff as EyeOffIcon,
-  Zap as Lightning,
   Frame,
 } from "lucide-react";
 import { useVisualizer } from "../../../provider/VisualizerContext";
 import { Button } from "../../../components/ui/Button";
 import { Slider } from "../../../components/ui/Slider";
 import { useToastContext } from "../../../components/common/Toast/ToastProvider";
-
 
 export const ElementCustomizationPanel: React.FC = () => {
   const {
@@ -44,7 +40,7 @@ export const ElementCustomizationPanel: React.FC = () => {
   const element = visualElements.find((el) => el.id === selectedElement);
   const gifInputRef = React.useRef<HTMLInputElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
-  const backgroundImageInputRef = React.useRef<HTMLInputElement>(null); 
+  const backgroundImageInputRef = React.useRef<HTMLInputElement>(null);
   const toast = useToastContext();
 
   React.useEffect(() => {
@@ -53,141 +49,152 @@ export const ElementCustomizationPanel: React.FC = () => {
 
   if (!element) return null;
 
-const handleFieldChange = (fieldKey: string, value: any) => {
-  updateElementCustomization(element.id, { [fieldKey]: value });
-  
-  if (element.type === "background") {
-    const customization = element.customization as any;
-    const updatedCustomization = { ...customization, [fieldKey]: value };
-    const backgroundType = updatedCustomization.backgroundType || "color";
+  const handleFieldChange = (fieldKey: string, value: any) => {
+    updateElementCustomization(element.id, { [fieldKey]: value });
 
-    if (setSceneBackground) {
-      if (fieldKey === "backgroundType") {
-        if (value === "color") {
+    if (element.type === "background") {
+      const customization = element.customization as any;
+      const updatedCustomization = { ...customization, [fieldKey]: value };
+      const backgroundType = updatedCustomization.backgroundType || "color";
+
+      if (setSceneBackground) {
+        if (fieldKey === "backgroundType") {
+          if (value === "color") {
+            setSceneBackground({
+              type: "color",
+              color: updatedCustomization.color || "#0a0a0a",
+            });
+          } else if (value === "image") {
+            setSceneBackground({
+              type: "image",
+              image: updatedCustomization.image,
+              imageOpacity: updatedCustomization.imageOpacity || 1,
+            });
+          } else if (value === "gradient") {
+            setSceneBackground({
+              type: "gradient",
+              gradient: updatedCustomization.gradient || {
+                colors: ["#0a0a0a", "#1a1a2e", "#16213e"],
+                type: "radial",
+              },
+            });
+          }
+        } else if (fieldKey === "color" && backgroundType === "color") {
           setSceneBackground({
             type: "color",
-            color: updatedCustomization.color || "#0a0a0a",
+            color: value,
           });
-        } else if (value === "image") {
+        } else if (fieldKey === "image" && backgroundType === "image") {
+          setSceneBackground({
+            type: "image",
+            image: value,
+            imageOpacity: updatedCustomization.imageOpacity || 1,
+          });
+        } else if (fieldKey === "gradient" && backgroundType === "gradient") {
+          setSceneBackground({
+            type: "gradient",
+            gradient: value,
+          });
+        } else if (fieldKey === "imageOpacity" && backgroundType === "image") {
+          setSceneBackground({
+            type: "image",
+            image: updatedCustomization.image,
+            imageOpacity: value,
+          });
+        }
+
+        if (backgroundType === "image" && fieldKey.includes("image")) {
           setSceneBackground({
             type: "image",
             image: updatedCustomization.image,
             imageOpacity: updatedCustomization.imageOpacity || 1,
           });
-        } else if (value === "gradient") {
+        }
+      }
+    }
+  };
+
+  const handleFileUpload = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    fieldKey: string,
+    elementType: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const validImageTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/svg+xml",
+    ];
+    const validGifTypes = ["image/gif", "video/mp4", "video/webm"];
+
+    if (elementType === "image" && !validImageTypes.includes(file.type)) {
+      toast.error(
+        "Please select a valid image file (JPEG, PNG, GIF, WEBP, SVG)"
+      );
+      return;
+    }
+
+    if (elementType === "gif" && !validGifTypes.includes(file.type)) {
+      toast.error("Please select a valid GIF or video file (GIF, MP4, WEBM)");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Please select a file smaller than 10MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const fileUrl = e.target?.result as string;
+
+      const updates: any = {
+        [fieldKey]: fileUrl,
+        [`${fieldKey}File`]: file.name,
+      };
+
+      if (elementType === "gif") {
+        updates.gifUrl = fileUrl;
+      } else if (elementType === "image") {
+        updates.imageUrl = fileUrl;
+      }
+
+      if (element.type === "background" && elementType === "image") {
+        updates.backgroundType = "image";
+
+        if (setSceneBackground) {
           setSceneBackground({
-            type: "gradient",
-            gradient: updatedCustomization.gradient || {
-              colors: ["#0a0a0a", "#1a1a2e", "#16213e"],
-              type: "radial",
-            },
+            type: "image",
+            image: fileUrl,
+            imageOpacity: customization.imageOpacity || 1,
           });
         }
-      } else if (fieldKey === "color" && backgroundType === "color") {
-        setSceneBackground({
-          type: "color",
-          color: value,
-        });
-      } else if (fieldKey === "image" && backgroundType === "image") {
-        setSceneBackground({
-          type: "image",
-          image: value,
-          imageOpacity: updatedCustomization.imageOpacity || 1,
-        });
-      } else if (fieldKey === "gradient" && backgroundType === "gradient") {
-        setSceneBackground({
-          type: "gradient",
-          gradient: value,
-        });
-      } else if (fieldKey === "imageOpacity" && backgroundType === "image") {
-        setSceneBackground({
-          type: "image",
-          image: updatedCustomization.image,
-          imageOpacity: value,
-        });
       }
-      
-      if (backgroundType === "image" && fieldKey.includes("image")) {
-        setSceneBackground({
-          type: "image",
-          image: updatedCustomization.image,
-          imageOpacity: updatedCustomization.imageOpacity || 1,
-        });
-      }
-    }
-  }
-};
 
-const handleFileUpload = (
-  event: React.ChangeEvent<HTMLInputElement>,
-  fieldKey: string,
-  elementType: string
-) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
+      updateElementCustomization(element.id, updates);
 
-  const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
-  const validGifTypes = ["image/gif", "video/mp4", "video/webm"];
-
-  if (elementType === "image" && !validImageTypes.includes(file.type)) {
-    toast.error("Please select a valid image file (JPEG, PNG, GIF, WEBP, SVG)");
-    return;
-  }
-
-  if (elementType === "gif" && !validGifTypes.includes(file.type)) {
-    toast.error("Please select a valid GIF or video file (GIF, MP4, WEBM)");
-    return;
-  }
-
-  if (file.size > 10 * 1024 * 1024) {
-    toast.error("Please select a file smaller than 10MB");
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const fileUrl = e.target?.result as string;
-    
-    const updates: any = {
-      [fieldKey]: fileUrl,
-      [`${fieldKey}File`]: file.name,
+      toast.success(
+        "File Uploaded",
+        `${file.name} has been uploaded successfully`
+      );
     };
 
-    if (elementType === "gif") {
-      updates.gifUrl = fileUrl;
-    } else if (elementType === "image") {
-      updates.imageUrl = fileUrl;
-    }
+    reader.readAsDataURL(file);
 
-    if (element.type === "background" && elementType === "image") {
-      updates.backgroundType = "image";
-      
-      if (setSceneBackground) {
-        setSceneBackground({
-          type: "image",
-          image: fileUrl,
-          imageOpacity: customization.imageOpacity || 1,
-        });
+    if (elementType === "gif" && gifInputRef.current) {
+      gifInputRef.current.value = "";
+    } else if (elementType === "image") {
+      if (element.type === "background" && backgroundImageInputRef.current) {
+        backgroundImageInputRef.current.value = "";
+      } else if (imageInputRef.current) {
+        imageInputRef.current.value = "";
       }
     }
-
-    updateElementCustomization(element.id, updates);
-    
-    toast.success("File Uploaded", `${file.name} has been uploaded successfully`);
   };
-  
-  reader.readAsDataURL(file);
-
-  if (elementType === "gif" && gifInputRef.current) {
-    gifInputRef.current.value = "";
-  } else if (elementType === "image") {
-    if (element.type === "background" && backgroundImageInputRef.current) {
-      backgroundImageInputRef.current.value = "";
-    } else if (imageInputRef.current) {
-      imageInputRef.current.value = "";
-    }
-  }
-};
 
   const removeFile = (fieldKey: string) => {
     updateElementCustomization(element.id, {
@@ -234,30 +241,21 @@ const handleFileUpload = (
   };
 
   const duplicateElement = () => {
-    const newElement = {
-      ...element,
-      id: `${element.id}-copy-${Date.now()}`,
-      name: `${element.name} (Copy)`,
-      position: [
-        element.position[0] + 1,
-        element.position[1],
-        element.position[2],
-      ] as [number, number, number],
-    };
     toast.info("Coming Soon", "Duplicate feature coming soon!");
   };
-  
 
-const handleGradientColorChange = (index: number, color: string) => {
-  const newColors = [...(customization.gradient?.colors || ["#0a0a0a", "#1a1a2e", "#16213e"])];
-  newColors[index] = color;
-  const newGradient = {
-    ...(customization.gradient || { type: "radial" }),
-    colors: newColors,
+  const handleGradientColorChange = (index: number, color: string) => {
+    const newColors = [
+      ...(customization.gradient?.colors || ["#0a0a0a", "#1a1a2e", "#16213e"]),
+    ];
+    newColors[index] = color;
+    const newGradient = {
+      ...(customization.gradient || { type: "radial" }),
+      colors: newColors,
+    };
+
+    handleFieldChange("gradient", newGradient);
   };
-  
-  handleFieldChange("gradient", newGradient);
-};
 
   const customization = element.customization as any;
 
@@ -268,7 +266,6 @@ const handleGradientColorChange = (index: number, color: string) => {
       case "text":
         return (
           <div className="space-y-4">
-            {/* Text Content */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Text Content
@@ -281,7 +278,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               />
             </div>
 
-            {/* Font Settings */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">
@@ -312,7 +308,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Font Family */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Font Family
@@ -338,7 +333,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </select>
             </div>
 
-            {/* Text Alignment */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Text Alignment
@@ -377,7 +371,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Text Effects */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Text Effects
@@ -410,8 +403,6 @@ const handleGradientColorChange = (index: number, color: string) => {
                 </div>
               </div>
             </div>
-
-            {/* Animation */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Animation
@@ -940,7 +931,6 @@ const handleGradientColorChange = (index: number, color: string) => {
       case "overlay":
         return (
           <div className="space-y-4">
-            {/* Overlay Type */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Overlay Type
@@ -971,7 +961,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Overlay Settings */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">
@@ -1005,7 +994,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Blend Mode */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Blend Mode
@@ -1030,7 +1018,6 @@ const handleGradientColorChange = (index: number, color: string) => {
       case "frame":
         return (
           <div className="space-y-4">
-            {/* Frame Style */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Frame Style
@@ -1061,7 +1048,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Frame Settings */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">
@@ -1091,7 +1077,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Frame Options */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Options
@@ -1124,216 +1109,216 @@ const handleGradientColorChange = (index: number, color: string) => {
           </div>
         );
 
-      // In ElementCustomizationPanel.tsx, update the renderElementSpecificControls function:
-      // Add a case for "background" type:
+      case "background":
+        const backgroundType = customization.backgroundType || "color";
 
-     case "background":
-  const backgroundType = customization.backgroundType || "color";
-  
-  return (
-    <div className="space-y-4">
-      {/* Background Type */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-300">
-          Background Type
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { value: "color", label: "Color", icon: "🎨" },
-            { value: "gradient", label: "Gradient", icon: "🌈" },
-            { value: "image", label: "Image", icon: "🖼️" },
-          ].map((option) => (
-            <button
-              key={option.value}
-              className={`p-3 rounded-lg border transition-all flex flex-col items-center gap-1 ${
-                backgroundType === option.value
-                  ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-                  : "border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500"
-              }`}
-              onClick={() => handleFieldChange("backgroundType", option.value)}
-            >
-              <span className="text-lg">{option.icon}</span>
-              <span className="text-xs">{option.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">
+                Background Type
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: "color", label: "Color", icon: "🎨" },
+                  { value: "gradient", label: "Gradient", icon: "🌈" },
+                  { value: "image", label: "Image", icon: "🖼️" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    className={`p-3 rounded-lg border transition-all flex flex-col items-center gap-1 ${
+                      backgroundType === option.value
+                        ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+                        : "border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500"
+                    }`}
+                    onClick={() =>
+                      handleFieldChange("backgroundType", option.value)
+                    }
+                  >
+                    <span className="text-lg">{option.icon}</span>
+                    <span className="text-xs">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-      {/* Color Background */}
-      {backgroundType === "color" && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-300">
-            Color
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="color"
-              value={customization.color || "#0a0a0a"}
-              onChange={(e) => handleFieldChange("color", e.target.value)}
-              className="w-full h-10 rounded-lg border border-slate-600 bg-slate-700 cursor-pointer"
-            />
-            <input
-              type="text"
-              value={customization.color || "#0a0a0a"}
-              onChange={(e) => handleFieldChange("color", e.target.value)}
-              className="w-32 h-10 rounded-lg border border-slate-600 bg-slate-700 px-3 text-sm text-white"
-              placeholder="#000000"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Image Background */}
-      {backgroundType === "image" && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">
-              Background Image
-            </label>
-            <input
-              ref={backgroundImageInputRef} // Use the specific ref for background
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileUpload(e, "image", "image")}
-              className="hidden"
-              id="background-image-input"
-            />
-
-            {customization.image ? (
-              <div className="space-y-3">
-                <div className="relative aspect-video bg-slate-700 rounded-lg border border-slate-600 overflow-hidden">
-                  <img
-                    src={customization.image}
-                    alt="Background"
-                    className="w-full h-full object-cover"
+            {backgroundType === "color" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">
+                  Color
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={customization.color || "#0a0a0a"}
+                    onChange={(e) => handleFieldChange("color", e.target.value)}
+                    className="w-full h-10 rounded-lg border border-slate-600 bg-slate-700 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customization.color || "#0a0a0a"}
+                    onChange={(e) => handleFieldChange("color", e.target.value)}
+                    className="w-32 h-10 rounded-lg border border-slate-600 bg-slate-700 px-3 text-sm text-white"
+                    placeholder="#000000"
                   />
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="text-xs text-slate-400 truncate flex-1 mr-2">
-                    {customization.imageFile || "Uploaded image"}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    icon={<Trash2 size={14} />}
-                    onClick={() => removeFile("image")}
-                    className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-2"
-                  >
-                    Remove
-                  </Button>
-                </div>
               </div>
-            ) : (
-              <div className="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center hover:border-slate-500 transition-colors cursor-pointer">
-                <label
-                  htmlFor="background-image-input"
-                  className="flex flex-col items-center gap-2 cursor-pointer"
-                >
-                  <Image size={32} className="text-slate-400" />
-                  <div>
-                    <p className="text-sm text-slate-300 font-medium">
-                      Upload Background Image
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Click to browse or drag and drop
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Supports JPG, PNG, GIF (max 5MB)
-                    </p>
+            )}
+
+            {backgroundType === "image" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Background Image
+                  </label>
+                  <input
+                    ref={backgroundImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, "image", "image")}
+                    className="hidden"
+                    id="background-image-input"
+                  />
+
+                  {customization.image ? (
+                    <div className="space-y-3">
+                      <div className="relative aspect-video bg-slate-700 rounded-lg border border-slate-600 overflow-hidden">
+                        <img
+                          src={customization.image}
+                          alt="Background"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-xs text-slate-400 truncate flex-1 mr-2">
+                          {customization.imageFile || "Uploaded image"}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<Trash2 size={14} />}
+                          onClick={() => removeFile("image")}
+                          className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 p-2"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center hover:border-slate-500 transition-colors cursor-pointer">
+                      <label
+                        htmlFor="background-image-input"
+                        className="flex flex-col items-center gap-2 cursor-pointer"
+                      >
+                        <Image size={32} className="text-slate-400" />
+                        <div>
+                          <p className="text-sm text-slate-300 font-medium">
+                            Upload Background Image
+                          </p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Click to browse or drag and drop
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Supports JPG, PNG, GIF (max 5MB)
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {customization.image && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-300 flex items-center justify-between">
+                      <span>Image Opacity</span>
+                      <span className="text-xs text-slate-400">
+                        {customization.imageOpacity || 1}
+                      </span>
+                    </label>
+                    <Slider
+                      value={customization.imageOpacity || 1}
+                      onChange={(v) => handleFieldChange("imageOpacity", v)}
+                      min={0}
+                      max={1}
+                      step={0.1}
+                    />
                   </div>
-                </label>
+                )}
+              </div>
+            )}
+
+            {backgroundType === "gradient" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Gradient Colors
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(
+                      customization.gradient?.colors || [
+                        "#0a0a0a",
+                        "#1a1a2e",
+                        "#16213e",
+                      ]
+                    ).map((color: string, index: number) => (
+                      <div key={index} className="space-y-1">
+                        <input
+                          type="color"
+                          value={color}
+                          onChange={(e) =>
+                            handleGradientColorChange(index, e.target.value)
+                          }
+                          className="w-full h-8 rounded-lg border border-slate-600 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={color}
+                          onChange={(e) =>
+                            handleGradientColorChange(index, e.target.value)
+                          }
+                          className="w-full text-xs bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">
+                    Gradient Type
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: "linear", label: "Linear", icon: "↔️" },
+                      { value: "radial", label: "Radial", icon: "⭕" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        className={`p-2 rounded-lg border transition-all flex items-center justify-center gap-1 ${
+                          (customization.gradient?.type || "radial") ===
+                          option.value
+                            ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
+                            : "border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500"
+                        }`}
+                        onClick={() => {
+                          const newGradient = {
+                            ...(customization.gradient || {}),
+                            type: option.value,
+                          };
+                          handleFieldChange("gradient", newGradient);
+                        }}
+                      >
+                        <span>{option.icon}</span>
+                        <span className="text-xs">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
-
-          {/* Image Opacity */}
-          {customization.image && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300 flex items-center justify-between">
-                <span>Image Opacity</span>
-                <span className="text-xs text-slate-400">
-                  {customization.imageOpacity || 1}
-                </span>
-              </label>
-              <Slider
-                value={customization.imageOpacity || 1}
-                onChange={(v) => handleFieldChange("imageOpacity", v)}
-                min={0}
-                max={1}
-                step={0.1}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Gradient Background */}
-      {backgroundType === "gradient" && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">
-              Gradient Colors
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(customization.gradient?.colors || ["#0a0a0a", "#1a1a2e", "#16213e"]).map(
-                (color: string, index: number) => (
-                  <div key={index} className="space-y-1">
-                    <input
-                      type="color"
-                      value={color}
-                      onChange={(e) => handleGradientColorChange(index, e.target.value)}
-                      className="w-full h-8 rounded-lg border border-slate-600 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={color}
-                      onChange={(e) => handleGradientColorChange(index, e.target.value)}
-                      className="w-full text-xs bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white"
-                    />
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-          
-          {/* Gradient Type Selector */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">
-              Gradient Type
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { value: "linear", label: "Linear", icon: "↔️" },
-                { value: "radial", label: "Radial", icon: "⭕" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  className={`p-2 rounded-lg border transition-all flex items-center justify-center gap-1 ${
-                    (customization.gradient?.type || "radial") === option.value
-                      ? "border-cyan-500 bg-cyan-500/10 text-cyan-400"
-                      : "border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500"
-                  }`}
-                  onClick={() => {
-                    const newGradient = {
-                      ...(customization.gradient || {}),
-                      type: option.value,
-                    };
-                    handleFieldChange("gradient", newGradient);
-                  }}
-                >
-                  <span>{option.icon}</span>
-                  <span className="text-xs">{option.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+        );
       default:
-        // Handle other element types (background, ambient, etc.)
-        // Your existing code for other element types...
         return null;
     }
   };
@@ -1513,7 +1498,6 @@ const handleGradientColorChange = (index: number, color: string) => {
         {activeTab === "transform" && renderPositionControls()}
         {activeTab === "effects" && (
           <div className="space-y-4">
-            {/* Opacity */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300 flex items-center justify-between">
                 <span>Opacity</span>
@@ -1530,7 +1514,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               />
             </div>
 
-            {/* Color */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">
                 Color
@@ -1552,7 +1535,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             </div>
 
-            {/* Intensity */}
             {customization.intensity !== undefined && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300 flex items-center justify-between">
@@ -1571,7 +1553,6 @@ const handleGradientColorChange = (index: number, color: string) => {
               </div>
             )}
 
-            {/* Audio Response */}
             {customization.responsive !== undefined && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">

@@ -12,7 +12,7 @@ import {
   Flower,
   Flame,
   Shapes,
-  Filter
+  Filter,
 } from "lucide-react";
 
 import { Input } from "../../../components/ui/Input";
@@ -41,7 +41,7 @@ const typeIcons = {
   "4d": Flame,
   warp: Waves,
   molecular: Atom,
-  energy: Flame
+  energy: Flame,
 };
 
 type FilterType =
@@ -139,7 +139,7 @@ export function VisualizerLibrary() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        
+
         <div className="relative">
           <button
             onClick={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -190,8 +190,6 @@ export function VisualizerLibrary() {
         </div>
       </div>
 
-     
-
       <div className="flex-1 overflow-y-auto mt-6 mx-2">
         {filteredVisualizers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-slate-400">
@@ -232,8 +230,7 @@ export function VisualizerLibrary() {
                       <Icon size={10} className="mr-1" />
                       {viz.type}
                     </Badge>
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                    </span>
+                    <span className="text-xs text-slate-400 flex items-center gap-1"></span>
                   </div>
                 </Card>
               );

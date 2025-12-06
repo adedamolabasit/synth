@@ -12,6 +12,7 @@ import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { CanvasControls } from "./components/CanvasControls";
 import { useToastContext } from "../../components/common/Toast/ToastProvider";
 import { ElementRendererManager } from "../../studio/visualizers/manager/ElementRendererManager";
+import { useUploadVideo } from "../../hooks/useUploadVideo";
 
 export const LivePreviewCanvas: React.FC = () => {
   const {
@@ -46,6 +47,9 @@ export const LivePreviewCanvas: React.FC = () => {
 
   const walletAddress = primaryWallet?.address;
   const isConnected = !!user;
+
+  // Initialize the upload video hook
+  const uploadVideoMutation = useUploadVideo();
 
   const [audioName, setAudioName] = useState<string>("");
   const [audioError, setAudioError] = useState<string>("");
@@ -101,7 +105,6 @@ export const LivePreviewCanvas: React.FC = () => {
 
   useEffect(() => {
     if (isRecording && duration > 0 && currentTime >= duration - 0.5) {
-      console.log("Audio finished, stopping recording...");
       handleRecordVideo();
     }
   }, [currentTime, duration, isRecording]);
@@ -162,7 +165,6 @@ export const LivePreviewCanvas: React.FC = () => {
     const loadLyrics = async () => {
       if (currentAudio?.lyrics) {
         try {
-          console.log("Loading lyrics for audio:", currentAudio.name);
           let lyricsData = {
             text: await decodeLyricsData(currentAudio.lyrics),
             timestamps: await decodeLyricsData(currentAudio.words as string),
@@ -171,16 +173,10 @@ export const LivePreviewCanvas: React.FC = () => {
 
           if (lyricsData) {
             lyricsManagerRef.current.loadLyrics(lyricsData);
-            console.log("Lyrics loaded successfully");
-          } else {
-            console.log("No lyrics data found");
           }
-        } catch (error) {
-          console.error("Error loading lyrics:", error);
-        }
+        } catch (error) {}
       } else {
         lyricsManagerRef.current.reset();
-        console.log("No lyrics available for current audio");
       }
     };
 
@@ -195,17 +191,13 @@ export const LivePreviewCanvas: React.FC = () => {
 
   useEffect(() => {
     if (!lyricsRendererRef.current || !sceneReady) {
-      console.log("Lyrics renderer not ready yet");
       return;
     }
 
-    console.log("Lyrics visibility changed:", params.showLyrics);
     if (params.showLyrics) {
       lyricsRendererRef.current.show();
-      console.log("Lyrics shown");
     } else {
       lyricsRendererRef.current.hide();
-      console.log("Lyrics hidden");
     }
   }, [params.showLyrics, sceneReady]);
 
@@ -272,7 +264,6 @@ export const LivePreviewCanvas: React.FC = () => {
       lyricsManagerRef.current
     );
 
-    console.log("Initializing lyrics renderer - starting with lyrics hidden");
     lyricsRendererRef.current.hide();
 
     setSceneReady(true);
@@ -319,15 +310,12 @@ export const LivePreviewCanvas: React.FC = () => {
   useEffect(() => {
     if (!elementRendererRef.current || !sceneReady) return;
 
-    console.log("Updating elements:", visualElements.length);
-
     const currentElementIds = new Set(visualElements.map((el) => el.id));
 
     const existingObjects = elementRendererRef.current.getObjectIds();
 
     existingObjects.forEach((id) => {
       if (!currentElementIds.has(id)) {
-        console.log("Removing element:", id);
         elementRendererRef.current?.removeElement(id);
       }
     });
@@ -338,7 +326,6 @@ export const LivePreviewCanvas: React.FC = () => {
       if (existingObjects.includes(element.id)) {
         elementRendererRef.current?.updateElement(element);
       } else {
-        console.log("Creating new element:", element.id, element.type);
         elementRendererRef.current?.createElementObject(element);
       }
     });
@@ -382,8 +369,6 @@ export const LivePreviewCanvas: React.FC = () => {
   useEffect(() => {
     if (!sceneRef.current) return;
 
-    console.log("Applying scene background:", sceneBackground);
-
     const applyBackground = () => {
       if (!sceneRef.current) return;
 
@@ -391,7 +376,6 @@ export const LivePreviewCanvas: React.FC = () => {
 
       switch (background.type) {
         case "color":
-          console.log("Setting color background:", background.color);
           sceneRef.current.background = new THREE.Color(
             background.color || "#0a0a0a"
           );
@@ -399,8 +383,6 @@ export const LivePreviewCanvas: React.FC = () => {
 
         case "image":
           if (background.image) {
-            console.log("Setting image background:", background.image);
-            // Dispose of previous texture if it exists
             if (sceneRef.current.background instanceof THREE.Texture) {
               sceneRef.current.background.dispose();
             }
@@ -410,14 +392,6 @@ export const LivePreviewCanvas: React.FC = () => {
               background.image,
               (texture) => {
                 sceneRef.current!.background = texture;
-                // Set opacity if provided (for image backgrounds, we need a different approach)
-                if (background.imageOpacity !== undefined) {
-                  // For image opacity, we might need to use a different approach
-                  // as THREE.js doesn't directly support background opacity
-                  console.log("Image opacity set to:", background.imageOpacity);
-                }
-
-                // Force a re-render immediately
                 if (
                   rendererRef.current &&
                   cameraRef.current &&
@@ -430,8 +404,7 @@ export const LivePreviewCanvas: React.FC = () => {
                 }
               },
               undefined,
-              (error) => {
-                console.error("Error loading background image:", error);
+              () => {
                 sceneRef.current!.background = new THREE.Color("#0a0a0a");
               }
             );
@@ -441,8 +414,6 @@ export const LivePreviewCanvas: React.FC = () => {
           break;
 
         case "gradient":
-          console.log("Setting gradient background:", background.gradient);
-          // Create gradient texture
           const canvas = document.createElement("canvas");
           canvas.width = 512;
           canvas.height = 512;
@@ -461,8 +432,6 @@ export const LivePreviewCanvas: React.FC = () => {
             } else {
               gradient = ctx.createLinearGradient(0, 0, 512, 512);
             }
-
-            // Add color stops
             colors.forEach((color: string, index: number) => {
               gradient.addColorStop(index / (colors.length - 1), color);
             });
@@ -516,139 +485,6 @@ export const LivePreviewCanvas: React.FC = () => {
     visualizerObjectsRef.current = objects;
   }, [params]);
 
-  //   (time: number) => {
-  //     if (
-  //       !isAnimatingRef.current ||
-  //       !sceneRef.current ||
-  //       !cameraRef.current ||
-  //       !rendererRef.current
-  //     )
-  //       return;
-
-  //     animationFrameCountRef.current++;
-
-  //     animationIdRef.current = requestAnimationFrame(animateScene);
-
-  //     const currentTime = time * 0.001;
-
-  //     const bass = beatInfo.bandStrengths.bass || 0;
-  //     const mid = beatInfo.bandStrengths.mid || 0;
-  //     const treble = beatInfo.bandStrengths.treble || 0;
-  //     const overall = beatInfo.strength || 0;
-
-  //     elementRendererRef.current?.animateElements(currentTime, beatInfo);
-
-  //     visualElements.forEach((element) => {
-  //       if (!element.visible) return;
-
-  //       // Handle light elements
-  //       if (element.type === "light") {
-  //         const responseTo =
-  //           (element.customization as any).responseTo || "overall";
-  //         let intensity = 1;
-
-  //         switch (responseTo) {
-  //           case "bass":
-  //             intensity = 1 + bass * 2;
-  //             break;
-  //           case "mid":
-  //             intensity = 1 + mid * 2;
-  //             break;
-  //           case "treble":
-  //             intensity = 1 + treble * 2;
-  //             break;
-  //           case "beat":
-  //             intensity = beatInfo.isBeat ? 2 : 1;
-  //             break;
-  //           case "overall":
-  //             intensity = 1 + overall * 2;
-  //             break;
-  //         }
-
-  //         if (element.id === "ambient-light" && ambientLightRef.current) {
-  //           ambientLightRef.current.intensity =
-  //             (element.customization as any).intensity * intensity;
-  //           ambientLightRef.current.color.set(
-  //             (element.customization as any).color
-  //           );
-  //         }
-
-  //         if (
-  //           element.id === "directional-light" &&
-  //           directionalLightRef.current
-  //         ) {
-  //           directionalLightRef.current.intensity =
-  //             (element.customization as any).intensity * intensity;
-  //           directionalLightRef.current.color.set(
-  //             (element.customization as any).color
-  //           );
-  //         }
-  //       }
-
-  //       // Handle text elements
-  //       if (element.type === "text") {
-  //         const customization = element.customization as any;
-  //         // Update text position, rotation, scale based on element properties
-  //         // You'll need to get the THREE.js object for this element
-  //         // and update its properties
-  //       }
-
-  //       // Handle image/GIF elements
-  //       if (element.type === "image" || element.type === "gif") {
-  //         const customization = element.customization as any;
-  //         // Update image/GIF position, rotation, scale
-  //       }
-
-  //       // Handle particle systems
-  //       if (element.type === "particleSystem") {
-  //         const customization = element.customization as any;
-  //         // Update particle system animation
-  //       }
-
-  //       // Handle overlays
-  //       if (element.type === "overlay") {
-  //         const customization = element.customization as any;
-  //         // Update overlay effects
-  //       }
-
-  //       // Handle ambient elements
-  //       if (element.type === "ambient") {
-  //         const customization = element.customization as any;
-  //         // Update ambient element animation based on movementType
-  //       }
-  //     });
-
-  //     if (params.beatDetection && beatInfo.isBeat) {
-  //       setBeatDetected(true);
-  //       setTimeout(() => setBeatDetected(false), 100);
-  //     }
-
-  //     visualizerManagerRef.current.animateVisualizer(
-  //       visualizerObjectsRef.current,
-  //       frequencyData,
-  //       currentTime,
-  //       params,
-  //       beatInfo
-  //     );
-
-  //     if (cameraRef.current && params.rotationSpeed > 0) {
-  //       const cameraDistance = 15 + bass * 5;
-  //       const cameraSpeed = params.rotationSpeed * 0.005 + bass * 0.01;
-
-  //       cameraRef.current.position.x =
-  //         Math.sin(currentTime * cameraSpeed) * cameraDistance;
-  //       cameraRef.current.position.z =
-  //         Math.cos(currentTime * cameraSpeed) * cameraDistance;
-  //       cameraRef.current.position.y =
-  //         Math.sin(currentTime * cameraSpeed * 0.7) * 3;
-  //       cameraRef.current.lookAt(0, 0, 0);
-  //     }
-
-  //     rendererRef.current.render(sceneRef.current, cameraRef.current);
-  //   },
-  //   [params, visualElements, frequencyData, beatInfo]
-  // );
-
   const animateScene = useCallback(
     (time: number) => {
       if (
@@ -671,13 +507,7 @@ export const LivePreviewCanvas: React.FC = () => {
       const overall = beatInfo.strength || 0;
 
       if (elementRendererRef.current) {
-        elementRendererRef.current.animateElements(currentTime, {
-          bass,
-          mid,
-          treble,
-          overall,
-          ...beatInfo,
-        });
+        elementRendererRef.current.animateElements(currentTime);
       }
 
       visualElements.forEach((element) => {
@@ -790,6 +620,7 @@ export const LivePreviewCanvas: React.FC = () => {
     },
     [params, visualElements, frequencyData, beatInfo]
   );
+
   useEffect(() => {
     if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
 
@@ -877,17 +708,14 @@ export const LivePreviewCanvas: React.FC = () => {
         },
         video: false,
       });
-      console.log("System audio capture successful");
       return stream;
     } catch (error) {
-      console.error("Failed to capture system audio:", error);
       return null;
     }
   };
 
   const handleRecordVideo = async () => {
     if (isRecording && mediaRecorder) {
-      console.log("Stopping recording...");
       mediaRecorder.stop();
       setIsRecording(false);
       setRecordingTime(0);
@@ -929,7 +757,6 @@ export const LivePreviewCanvas: React.FC = () => {
       let audioStream: MediaStream | null = null;
 
       if (!audioStream) {
-        console.log("Trying system audio capture...");
         audioStream = await captureSystemAudio();
       }
 
@@ -944,11 +771,8 @@ export const LivePreviewCanvas: React.FC = () => {
         combinedStream = new MediaStream([videoTrack, audioTrack]);
         audioStreamRef.current = audioStream;
         hasAudio = true;
-        console.log("Recording with audio");
       } else {
         combinedStream = canvasStream;
-        console.log("Recording without audio - could not capture audio");
-
         toast.warning(
           "Recording Started",
           "Recording without audio. Make sure to allow microphone access for full recording.",
@@ -973,7 +797,6 @@ export const LivePreviewCanvas: React.FC = () => {
 
       if (!selectedMimeType) {
         selectedMimeType = "video/webm";
-        console.warn("Using default MIME type");
       }
 
       const options = {
@@ -994,7 +817,6 @@ export const LivePreviewCanvas: React.FC = () => {
       recorder.onstop = () => {
         pauseAudio();
 
-        console.log("Recording stopped, creating blob...");
         const blob = new Blob(chunks, {
           type: selectedMimeType.includes("webm") ? "video/webm" : "video/mp4",
         });
@@ -1004,7 +826,6 @@ export const LivePreviewCanvas: React.FC = () => {
       };
 
       recorder.onerror = (e) => {
-        console.error("Recording error:", e);
         toast.error("Recording Failed", "An error occurred during recording");
         setIsRecording(false);
         setRecordingTime(0);
@@ -1023,8 +844,6 @@ export const LivePreviewCanvas: React.FC = () => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
 
-      console.log(`Recording started ${hasAudio ? "with" : "without"} audio`);
-
       toast.info(
         "Recording Started",
         hasAudio
@@ -1033,7 +852,6 @@ export const LivePreviewCanvas: React.FC = () => {
         { duration: 3000 }
       );
     } catch (error) {
-      console.error("Error starting recording:", error);
       toast.error(
         "Recording Failed",
         error instanceof Error ? error.message : "Failed to start recording"
@@ -1047,7 +865,7 @@ export const LivePreviewCanvas: React.FC = () => {
   };
 
   const handleSaveVideo = async () => {
-    if (!videoBlob) return;
+    if (!videoBlob || !walletAddress) return;
 
     setIsUploading(true);
 
@@ -1059,15 +877,10 @@ export const LivePreviewCanvas: React.FC = () => {
     formData.append("video", file);
 
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/video/upload/${walletAddress}`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      const result = await response.json();
+      const result = await uploadVideoMutation.mutateAsync({
+        wallet: walletAddress,
+        formData,
+      });
 
       if (result.success) {
         toast.success(
@@ -1114,8 +927,10 @@ export const LivePreviewCanvas: React.FC = () => {
       }
     } catch (error) {
       toast.error(
-        "Network Error",
-        "Failed to connect to server. Please check your connection and try again.",
+        "Upload Error",
+        error instanceof Error
+          ? error.message
+          : "Failed to save video. Please try again.",
         {
           duration: 5000,
           isPersistent: true,
@@ -1264,14 +1079,14 @@ export const LivePreviewCanvas: React.FC = () => {
               <div className="space-y-3">
                 <button
                   onClick={handleSaveVideo}
-                  disabled={isUploading}
+                  disabled={isUploading || uploadVideoMutation.isPending}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                    isUploading
+                    isUploading || uploadVideoMutation.isPending
                       ? "bg-gray-600 cursor-not-allowed"
                       : "bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
                   }`}
                 >
-                  {isUploading ? (
+                  {isUploading || uploadVideoMutation.isPending ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Saving...

@@ -27,25 +27,21 @@ export class LyricsRenderer {
     lyricsManager.onUpdate(this.handleLyricsUpdate.bind(this));
   }
 
-  // Add show method
   public show(): void {
     this.isVisible = true;
     this.lyricsLayer.visible = true;
-    // Re-render lyrics if there's current state
     const currentState = this.lyricsManager.getCurrentState();
     if (currentState.isActive && currentState.currentLine) {
       this.renderAllLyrics(currentState, this.config);
     }
   }
 
-  // Add hide method
   public hide(): void {
     this.isVisible = false;
     this.lyricsLayer.visible = false;
     this.clearAllLyrics();
   }
 
-  // Add toggle method for convenience
   public toggle(visible: boolean): void {
     if (visible) {
       this.show();
@@ -67,11 +63,8 @@ export class LyricsRenderer {
   }
 
   private renderAllLyrics(state: LyricsState, config: LyricsDisplayConfig) {
-    const isXL = window.innerWidth >= 1440;
-
     const getY = (small: number, large: number) => {
       const aspect = window.innerWidth / window.innerHeight;
-      // ultrawide screens usually have aspect > 1.8
       return aspect > 1.8 ? large : small;
     };
 
@@ -87,8 +80,7 @@ export class LyricsRenderer {
         fontSize: 16,
         opacity: 0.5,
         color: "#d1d5db",
-       y: getY(-2.2, -9.2),
-        // y: -9.2,
+        y: getY(-2.2, -9.2),
       });
       if (this.previousLinesMesh) this.lyricsLayer.add(this.previousLinesMesh);
     }
@@ -98,7 +90,6 @@ export class LyricsRenderer {
       opacity: 1,
       color: config.color,
       y: getY(-4.5, -11.5),
-      // y: -11.5,
       scale: config.showLineHighlight ? 1.1 : 1,
       isCurrent: true,
     });
@@ -112,7 +103,6 @@ export class LyricsRenderer {
         opacity: 0.7,
         color: "#e2e8f0",
         y: getY(-5.8, -12.8),
-        // y: -12.8,
       });
       if (this.upcomingLinesMesh) this.lyricsLayer.add(this.upcomingLinesMesh);
     }

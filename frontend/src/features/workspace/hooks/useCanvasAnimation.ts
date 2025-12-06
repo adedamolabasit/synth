@@ -15,46 +15,41 @@ export const useCanvasAnimation = (
     if (!sceneReady || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const animate = () => {
       if (!ctx || !canvas) return;
 
-      // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw background
-      ctx.fillStyle = '#0a0a0a';
+      ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw some basic visualization based on audio data
       if (frequencyData && frequencyData.length > 0) {
         const barWidth = canvas.width / frequencyData.length;
         const maxBarHeight = canvas.height * 0.4;
 
-        ctx.fillStyle = '#00ff88';
-        
+        ctx.fillStyle = "#00ff88";
+
         for (let i = 0; i < frequencyData.length; i++) {
           const barHeight = (frequencyData[i] / 255) * maxBarHeight;
           const x = i * barWidth;
           const y = canvas.height - barHeight;
-          
+
           ctx.fillRect(x, y, barWidth - 1, barHeight);
         }
       }
 
-      // Draw beat indicator
       if (beatInfo?.isBeat) {
-        ctx.fillStyle = '#ff0066';
+        ctx.fillStyle = "#ff0066";
         ctx.beginPath();
         ctx.arc(canvas.width - 30, 30, 15, 0, 2 * Math.PI);
         ctx.fill();
       }
 
-      // Draw audio level
       if (audioLevel > 0) {
-        ctx.fillStyle = '#0099ff';
+        ctx.fillStyle = "#0099ff";
         const levelHeight = audioLevel * canvas.height;
         ctx.fillRect(10, canvas.height - levelHeight, 20, levelHeight);
       }
@@ -75,16 +70,14 @@ export const useCanvasAnimation = (
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [sceneReady, isPlaying, frequencyData, beatInfo, audioLevel, canvasRef, params, visualElements]);
-
-  // Log for debugging
-  useEffect(() => {
-    console.log('Canvas Animation State:', {
-      sceneReady,
-      isPlaying,
-      hasFrequencyData: !!frequencyData,
-      beatDetected: beatInfo?.isBeat,
-      audioLevel
-    });
-  }, [sceneReady, isPlaying, frequencyData, beatInfo, audioLevel]);
+  }, [
+    sceneReady,
+    isPlaying,
+    frequencyData,
+    beatInfo,
+    audioLevel,
+    canvasRef,
+    params,
+    visualElements,
+  ]);
 };

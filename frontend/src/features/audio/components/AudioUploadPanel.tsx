@@ -16,6 +16,8 @@ import { Button } from "../../../components/ui/Button";
 import { useAudio } from "../../../provider/AudioContext";
 import { AudioUploadPanelProps } from "../../../shared/types/audio.types";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { useUploadAudio } from "../../../hooks/useUploadAudio";
+import { useGetAudioByWallet } from "../../../hooks/useGetAudioByWallet";
 
 export function AudioUploadPanel({
   isCollapsed = false,
@@ -29,7 +31,7 @@ export function AudioUploadPanel({
   const isConnected = !!user;
 
   const [walletAddr, setWalletAddr] = useState<string | null>(null);
-  
+
   useEffect(() => {
     if (isConnected && primaryWallet?.address) {
       setWalletAddr(primaryWallet.address);
@@ -48,6 +50,45 @@ export function AudioUploadPanel({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const uploadAudioMutation = useUploadAudio();
+  const {
+    data: audioData,
+    isLoading: isAudioLoading,
+    error: audioError,
+    refetch: refetchAudio,
+  } = useGetAudioByWallet(walletAddr || "");
+
+  useEffect(() => {
+    if (audioData?.success && Array.isArray(audioData.audio)) {
+      const mappedAudio = audioData.audio.map((audio: any) => ({
+        ...audio,
+        uploadedAt: new Date(audio.createdAt || audio.uploadedAt),
+        _id: audio._id || audio.id,
+        name: audio.name || audio.metadata?.name || "Unknown",
+        url: audio.url || audio.audioUrl,
+        audioUrl: audio.audioUrl || audio.url,
+        metadata: audio.metadata || {
+          name: audio.name,
+          size: audio.size,
+          type: audio.type,
+        },
+        size: audio.size || audio.metadata?.size,
+        type: audio.type || audio.metadata?.type,
+      }));
+      setAudioFiles(mappedAudio);
+    }
+  }, [audioData]);
+
+  useEffect(() => {
+    if (audioError) {
+      setFetchError(
+        audioError instanceof Error
+          ? audioError.message
+          : "Failed to load audio library"
+      );
+    }
+  }, [audioError]);
+
   useEffect(() => {
     if (audioFiles.length > 0) {
       setActiveTab("library");
@@ -63,12 +104,12 @@ export function AudioUploadPanel({
     }
 
     if (fileInputRef.current) {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'audio/*';
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "audio/*";
       input.multiple = true;
-      input.style.display = 'none';
-      
+      input.style.display = "none";
+
       input.onchange = (e) => {
         const target = e.target as HTMLInputElement;
         const files = Array.from(target.files || []).filter((f) =>
@@ -79,7 +120,7 @@ export function AudioUploadPanel({
         }
         document.body.removeChild(input);
       };
-      
+
       document.body.appendChild(input);
       input.click();
     }
@@ -102,9 +143,7 @@ export function AudioUploadPanel({
       } else {
         await playAudio(audioFile);
       }
-    } catch (error) {
-      console.error("Playback error:", error);
-    }
+    } catch (error) {}
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -162,41 +201,31 @@ export function AudioUploadPanel({
           });
         }, 200);
 
-        const response = await fetch(
-          `http://localhost:8000/api/v1/extract/${walletAddr}`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        const result = await uploadAudioMutation.mutateAsync({
+          wallet: walletAddr,
+          formData,
+        });
 
         clearInterval(progressInterval);
         setUploadProgress(100);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+        if (!result.success) {
+          throw new Error(result.error || "Upload failed");
         }
-
-        const data = await response.json();
-        if (!data.success) throw new Error(data.error || "Upload failed");
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      await fetchAudioLibrarySequential();
-      
-      setFetchError(""); 
-      
+      await refetchAudio();
+
+      setFetchError("");
     } catch (error) {
-      console.error("Upload error:", error);
       setFetchError(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
-      // Clear the file input value to allow re-selection of same file
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -222,68 +251,24 @@ export function AudioUploadPanel({
       day: "numeric",
     });
 
-  const fetchAudioLibrarySequential = async () => {
+  const handleManualRefresh = async () => {
     if (!isConnected || !walletAddr) return;
-
     setIsAnalyzing(true);
-    setFetchError("");
-    setAudioFiles([]);
-
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/v1/audio/wallet/${walletAddr}`,
-        { method: "GET", headers: { accept: "application/json" } }
-      );
-
-      if (!response.ok)
-        throw new Error(`Failed to fetch audio files: ${response.status}`);
-
-      const data = await response.json();
-      if (!data.success || !Array.isArray(data.audio))
-        throw new Error("Invalid response format");
-
-      for (const audio of data.audio) {
-        const mapped = {
-          ...audio,
-          uploadedAt: new Date(audio.createdAt || audio.uploadedAt),
-          _id: audio._id || audio.id,
-          name: audio.name || audio.metadata?.name || "Unknown",
-          url: audio.url || audio.audioUrl,
-          audioUrl: audio.audioUrl || audio.url,
-          metadata: audio.metadata || {
-            name: audio.name,
-            size: audio.size,
-            type: audio.type,
-          },
-          size: audio.size || audio.metadata?.size,
-          type: audio.type || audio.metadata?.type,
-        };
-        setAudioFiles((prev) => [...prev, mapped]);
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-    } catch (err) {
-      setFetchError(
-        err instanceof Error ? err.message : "Failed to load audio library"
-      );
+      await refetchAudio();
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  // Add manual refresh function
-  const handleManualRefresh = async () => {
-    if (!isConnected || !walletAddr) return;
-    await fetchAudioLibrarySequential();
-  };
-
   useEffect(() => {
     if (isConnected && walletAddr) {
-      fetchAudioLibrarySequential();
+      setIsAnalyzing(isAudioLoading);
     } else {
       setAudioFiles([]);
       setActiveTab("upload");
     }
-  }, [isConnected, walletAddr]);
+  }, [isConnected, walletAddr, isAudioLoading]);
 
   if (isCollapsed) {
     return (
@@ -348,8 +333,8 @@ export function AudioUploadPanel({
             disabled={isUploading || isAnalyzing}
             title="Refresh library"
           >
-            <Loader2 
-              className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} 
+            <Loader2
+              className={`h-4 w-4 ${isAnalyzing ? "animate-spin" : ""}`}
             />
           </Button>
         )}
@@ -381,8 +366,7 @@ export function AudioUploadPanel({
             if (!isConnected) setShowAuthFlow(true);
             else {
               setActiveTab("library");
-              // Refresh library when switching to library tab
-              fetchAudioLibrarySequential();
+              handleManualRefresh();
             }
           }}
           disabled={isUploading || !isConnected}
@@ -422,7 +406,7 @@ export function AudioUploadPanel({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={fetchAudioLibrarySequential}
+                  onClick={handleManualRefresh}
                   className="text-red-400 hover:text-red-300"
                   disabled={isUploading}
                 >
@@ -532,8 +516,7 @@ export function AudioUploadPanel({
                 </div>
               ) : (
                 <>
-                  <div className="text-xs text-slate-500 flex justify-between items-center">
-                  </div>
+                  <div className="text-xs text-slate-500 flex justify-between items-center"></div>
                   <div className="flex-1 overflow-y-auto space-y-3">
                     {audioFiles.map((audioFile) => (
                       <Card
@@ -542,8 +525,12 @@ export function AudioUploadPanel({
                           currentAudio?._id === audioFile._id
                             ? "border-2 border-cyan-500 bg-cyan-500/15 shadow-lg shadow-cyan-500/20 scale-[1.02]"
                             : "border border-slate-700/50 hover:border-slate-600/50 hover:shadow-lg hover:shadow-cyan-500/5"
-                        } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
-                        onClick={() => !isUploading && handlePlayPause(audioFile)}
+                        } ${
+                          isUploading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                        onClick={() =>
+                          !isUploading && handlePlayPause(audioFile)
+                        }
                       >
                         {currentAudio?._id === audioFile._id && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 rounded-l-md" />
@@ -559,7 +546,8 @@ export function AudioUploadPanel({
                                 : "bg-slate-700/50 hover:bg-slate-600/50"
                             }`}
                           >
-                            {currentAudio?._id === audioFile._id && isPlaying ? (
+                            {currentAudio?._id === audioFile._id &&
+                            isPlaying ? (
                               <Pause size={16} />
                             ) : (
                               <Play size={16} />

@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Card } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
 import { Input, Textarea } from "../../../components/ui/Input2";
-import { formatDate } from "../utils/formatter";
+import { formatDate, formatFileSize } from "../utils/formatter";
 import { RegisterIPModalProps, IPRegistrationData } from "../types";
 import { PILFlavor, WIP_TOKEN_ADDRESS } from "@story-protocol/core-sdk";
-import { RegisterIpAsset } from "../actions/RegisterIpAsset";
+import { RegisterIpAsset } from "../story/RegisterIpAsset";
 import { client } from "../../../story/config";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { parseEther } from "viem";
@@ -22,7 +22,7 @@ export function RegisterIPModal({
   >("nonCommercial");
   const { user, primaryWallet } = useDynamicContext();
   const isConnected = !!user;
-  const toast = useToastContext(); 
+  const toast = useToastContext();
 
   const [walletAddr, setWalletAddr] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -156,9 +156,6 @@ export function RegisterIPModal({
 
     try {
       const response = await RegisterIpAsset(client!, registrationData);
-
-      console.log(response, "response");
-
       if (response?.status === "registered") {
         const ipRegistration = {
           ipId: response.ipId,
@@ -170,7 +167,6 @@ export function RegisterIPModal({
 
         setIsSuccess(true);
 
-        // Show success toast with action button
         toast.success(
           "Registration Successful!",
           `Your video "${video.metadata.name}" has been registered as an IP Asset.`,
@@ -179,14 +175,11 @@ export function RegisterIPModal({
             action: {
               label: "View IP Assets",
               onClick: () => {
-                // You can add navigation logic here
                 window.open("/ip-assets", "_blank");
               },
             },
           }
         );
-
-        // Wait a moment to show success state, then close modal
         setTimeout(() => {
           setIsLoading(false);
           onClose();
@@ -268,7 +261,6 @@ export function RegisterIPModal({
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Video Information */}
               <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
                 <h4 className="text-sm font-medium text-slate-300 mb-3">
                   Video Information
@@ -297,7 +289,6 @@ export function RegisterIPModal({
                 </div>
               </div>
 
-              {/* Basic Information */}
               <div className="space-y-4">
                 <h4 className="text-sm font-medium text-slate-300">
                   Basic Information
@@ -320,7 +311,6 @@ export function RegisterIPModal({
                 />
               </div>
 
-              {/* Creators */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium text-slate-300">
@@ -394,14 +384,12 @@ export function RegisterIPModal({
                 )}
               </div>
 
-              {/* License Terms */}
               <div className="space-y-4">
                 <h4 className="text-sm font-medium text-slate-300">
                   License Terms
                 </h4>
 
                 <div className="space-y-4 p-4 bg-slate-800/30 rounded-lg border border-slate-700">
-                  {/* License Type Selection */}
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-slate-200">
                       License Type
@@ -438,7 +426,6 @@ export function RegisterIPModal({
                     </div>
                   </div>
 
-                  {/* License Details */}
                   <div className="space-y-3 pt-2">
                     <h5 className="text-sm font-medium text-slate-200">
                       License Details
@@ -522,7 +509,6 @@ export function RegisterIPModal({
                     )}
                   </div>
 
-                  {/* License Summary */}
                   <div className="p-3 bg-slate-800/50 rounded border border-slate-600">
                     <h6 className="text-xs font-medium text-slate-300 mb-2">
                       Summary
@@ -536,7 +522,6 @@ export function RegisterIPModal({
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-3 pt-4 border-t border-slate-700">
                 <Button
                   variant="primary"
@@ -572,13 +557,4 @@ export function RegisterIPModal({
       </Card>
     </div>
   );
-}
-
-// Helper function
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }

@@ -1,12 +1,73 @@
 import { useState, useEffect } from "react";
 import type { Video as VideoParams, RegisteredIpAssetParams } from "../types";
 import { useToastContext } from "../../../components/common/Toast/ToastProvider";
+import { useGetVideoByWallet } from "../../../hooks/useGetVideosByWallet";
+import { useUpdatePublication } from "../../../hooks/useUpdatePublication";
+import { useUpdateIp } from "../../../hooks/useUpdateIp";
+import { useDeleteVideo } from "../../../hooks/useDeleteVideo";
 
 export function useVideos(walletAddress: string, isConnected: boolean) {
   const [videos, setVideos] = useState<VideoParams[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const toast = useToastContext(); // Initialize toast
+  const toast = useToastContext();
+
+  const {
+    data: videosData,
+    isLoading: isVideosLoading,
+    error: videosError,
+    refetch: refetchVideos,
+  } = useGetVideoByWallet(walletAddress || "");
+
+  const updatePublicationMutation = useUpdatePublication();
+  const updateIpMutation = useUpdateIp();
+  const deleteVideoMutation = useDeleteVideo();
+
+  useEffect(() => {
+    if (videosData?.success && Array.isArray(videosData.videos)) {
+      const videosWithIPData = videosData.videos.map((video: VideoParams) => ({
+        id: video.id,
+        videoUrl: video.videoUrl,
+        thumbnailUrl: video.thumbnailUrl,
+        videoHash: video.videoHash,
+        walletAddress: video.walletAddress,
+        metadata: {
+          name: video.metadata?.name || "Untitled Video",
+          size: video.metadata?.size || 0,
+          type: video.metadata?.type || "video/mp4",
+          duration: video.metadata?.duration,
+          description: video.metadata?.description,
+        },
+        createdAt: video.createdAt,
+        ipRegistration: video.ipRegistration,
+        publication: video.publication,
+        collaborators: Math.random() > 0.5 ? generateMockCollaborators() : [],
+        licenseTerms: Math.random() > 0.6 ? generateMockLicenses() : [],
+        revenue: Math.floor(Math.random() * 1000),
+      }));
+
+      setVideos(videosWithIPData);
+    } else if (!isConnected || !walletAddress) {
+      setVideos([]);
+    }
+  }, [videosData, isConnected, walletAddress]);
+
+  useEffect(() => {
+    if (!isConnected || !walletAddress) {
+      setVideos([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(isVideosLoading);
+  }, [isVideosLoading, isConnected, walletAddress]);
+
+  useEffect(() => {
+    if (videosError) {
+      console.error("Error fetching videos:", videosError);
+      setVideos([]);
+    }
+  }, [videosError]);
 
   const fetchUserVideos = async () => {
     if (!isConnected) {
@@ -15,47 +76,10 @@ export function useVideos(walletAddress: string, isConnected: boolean) {
       return;
     }
 
-    setLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/video/wallet/${walletAddress}`
-      );
-
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-
-      const result = await response.json();
-
-      if (result.success && Array.isArray(result.videos)) {
-        const videosWithIPData = result.videos.map((video: VideoParams) => ({
-          id: video.id,
-          videoUrl: video.videoUrl,
-          thumbnailUrl: video.thumbnailUrl,
-          videoHash: video.videoHash,
-          walletAddress: video.walletAddress,
-          metadata: {
-            name: video.metadata?.name || "Untitled Video",
-            size: video.metadata?.size || 0,
-            type: video.metadata?.type || "video/mp4",
-            duration: video.metadata?.duration,
-            description: video.metadata?.description,
-          },
-          createdAt: video.createdAt,
-          ipRegistration: video.ipRegistration,
-          publication: video.publication,
-          collaborators: Math.random() > 0.5 ? generateMockCollaborators() : [],
-          licenseTerms: Math.random() > 0.6 ? generateMockLicenses() : [],
-          revenue: Math.floor(Math.random() * 1000),
-        }));
-
-        setVideos(videosWithIPData);
-      } else {
-        setVideos([]);
-      }
+      await refetchVideos();
     } catch (err) {
-      setVideos([]);
-    } finally {
-      setLoading(false);
+      console.error("Error refetching videos:", err);
     }
   };
 
@@ -68,81 +92,56 @@ export function useVideos(walletAddress: string, isConnected: boolean) {
     );
 
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/video/publication/${video.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ publication: status }),
-        }
-      );
+      await updatePublicationMutation.mutateAsync({
+        id: video.id,
+        status,
+      });
 
-      const data = await res.json();
-      if (!data.success) {
-        fetchUserVideos();
-      }
+      await refetchVideos();
     } catch (err) {
-      fetchUserVideos();
+      console.error("Error updating publication:", err);
+      await refetchVideos();
+      toast.error("Failed to update publication status");
     }
   };
+
   const updateVideoIpRegistration = async (
     video: VideoParams,
     ipRegistration: RegisteredIpAssetParams
   ) => {
-    console.log(ipRegistration, "ayyyyyyyyy");
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/video/ip/${video.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ipRegistration: {
-              ipId: ipRegistration.ipId,
-              status: ipRegistration.status,
-              tokenId: ipRegistration.tokenId
-                ? ipRegistration.tokenId.toString()
-                : undefined,
-            },
-          }),
-        }
-      );
+      await updateIpMutation.mutateAsync({
+        id: video.id,
+        ipRegistration: {
+          ipId: ipRegistration.ipId as string,
+          status: ipRegistration.status,
+          tokenId: ipRegistration.tokenId
+            ? ipRegistration.tokenId.toString()
+            : undefined,
+        },
+      });
 
-      const data = await res.json();
-      if (!data.success) {
-        fetchUserVideos();
-      }
+      await refetchVideos();
     } catch (err) {
-      console.log(err, "error>>");
-      fetchUserVideos();
+      await refetchVideos();
+      toast.error("Failed to update IP registration");
     }
   };
 
   const deleteVideo = async (videoId: string) => {
     if (!confirm("Are you sure you want to delete this video?")) return;
 
-    try {
-      const response = await fetch(
-        `http://localhost:8000/api/video/${videoId}`,
-        {
-          method: "DELETE",
-        }
-      );
-      const result = await response.json();
+    setVideos((prev) => prev.filter((v) => v.id !== videoId));
 
-      if (result.success) {
-        setVideos((prev) => prev.filter((v) => v.id !== videoId));
-      } else {
-        toast.error("Failed to delete video");
-      }
+    try {
+      await deleteVideoMutation.mutateAsync(videoId);
+      toast.success("Video deleted successfully");
     } catch (error) {
-      toast.error("Error deleting video");
+      console.error("Error deleting video:", error);
+      await refetchVideos();
+      toast.error("Failed to delete video");
     }
   };
-
-  useEffect(() => {
-    fetchUserVideos();
-  }, [walletAddress, isConnected]);
 
   return {
     videos,

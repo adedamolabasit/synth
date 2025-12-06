@@ -14,15 +14,12 @@ export class ElementRendererManager {
     return Array.from(this.elementObjects.keys());
   }
 
-  // In ElementRendererManager.ts, add:
-
   getObject(elementId: string): THREE.Object3D | undefined {
     return this.elementObjects.get(elementId);
   }
 
   createElementObject(element: VisualElement): THREE.Object3D {
     let object: THREE.Object3D;
-    const customization = element.customization as any;
 
     switch (element.type) {
       case "text":
@@ -53,13 +50,11 @@ export class ElementRendererManager {
         object = new THREE.Object3D();
     }
 
-    // Set position, rotation, scale
     object.position.set(...element.position);
     object.rotation.set(...element.rotation);
     object.scale.set(...element.scale);
     object.visible = element.visible;
 
-    // Store reference
     this.elementObjects.set(element.id, object);
     this.scene.add(object);
 
@@ -69,17 +64,14 @@ export class ElementRendererManager {
   private createTextObject(element: VisualElement): THREE.Object3D {
     const customization = element.customization as any;
 
-    // Create canvas for text
     const canvas = document.createElement("canvas");
     canvas.width = 512;
     canvas.height = 128;
     const context = canvas.getContext("2d");
 
     if (context) {
-      // Clear canvas
       context.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Set font
       context.font = `${customization.fontWeight || "normal"} ${
         customization.fontSize || 24
       }px ${customization.fontFamily || "Arial"}`;
@@ -87,7 +79,6 @@ export class ElementRendererManager {
       context.textAlign = customization.textAlign || "center";
       context.textBaseline = "middle";
 
-      // Add background if specified
       if (customization.backgroundColor && customization.backgroundOpacity) {
         context.fillStyle = customization.backgroundColor;
         context.globalAlpha = customization.backgroundOpacity;
@@ -95,7 +86,6 @@ export class ElementRendererManager {
         context.globalAlpha = 1;
       }
 
-      // Draw text
       const text = customization.text || "";
       const lines = this.wrapText(context, text, canvas.width - 20);
 
@@ -106,7 +96,6 @@ export class ElementRendererManager {
         context.fillText(line, canvas.width / 2, startY + index * lineHeight);
       });
 
-      // Add shadow if specified
       if (customization.shadow) {
         context.shadowColor = customization.shadowColor || "#000000";
         context.shadowBlur = customization.shadowBlur || 10;
@@ -124,7 +113,6 @@ export class ElementRendererManager {
       }
     }
 
-    // Create texture from canvas
     const texture = new THREE.CanvasTexture(canvas);
     const material = new THREE.MeshBasicMaterial({
       map: texture,
@@ -132,7 +120,6 @@ export class ElementRendererManager {
       side: THREE.DoubleSide,
     });
 
-    // Create plane geometry
     const geometry = new THREE.PlaneGeometry(10, 2.5);
     const mesh = new THREE.Mesh(geometry, material);
 
@@ -165,14 +152,12 @@ export class ElementRendererManager {
   private createImageObject(element: VisualElement): THREE.Object3D {
     const customization = element.customization as any;
 
-    // Load image texture
     const textureLoader = new THREE.TextureLoader();
     let texture: THREE.Texture;
 
     if (customization.imageUrl) {
       texture = textureLoader.load(customization.imageUrl);
     } else {
-      // Create placeholder texture
       const canvas = document.createElement("canvas");
       canvas.width = 256;
       canvas.height = 256;
@@ -189,7 +174,6 @@ export class ElementRendererManager {
       texture = new THREE.CanvasTexture(canvas);
     }
 
-    // Create material
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
@@ -197,7 +181,6 @@ export class ElementRendererManager {
       side: THREE.DoubleSide,
     });
 
-    // Create plane geometry
     const width = customization.width || 100;
     const height = customization.height || 100;
     const geometry = new THREE.PlaneGeometry(width / 50, height / 50);
@@ -207,14 +190,12 @@ export class ElementRendererManager {
   }
 
   private createGIFObject(element: VisualElement): THREE.Object3D {
-    // For now, treat as image
     return this.createImageObject(element);
   }
 
   private createIconObject(element: VisualElement): THREE.Object3D {
     const customization = element.customization as any;
 
-    // Create canvas for icon (emoji)
     const canvas = document.createElement("canvas");
     canvas.width = 128;
     canvas.height = 128;
@@ -256,7 +237,6 @@ export class ElementRendererManager {
           geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
           break;
         case "star":
-          // Create star shape
           const starShape = new THREE.Shape();
           const spikes = 5;
           const outerRadius = 0.05;
@@ -277,7 +257,7 @@ export class ElementRendererManager {
           starShape.closePath();
           geometry = new THREE.ShapeGeometry(starShape);
           break;
-        default: // circle
+        default:
           geometry = new THREE.SphereGeometry(0.05);
       }
 
@@ -289,7 +269,6 @@ export class ElementRendererManager {
 
       const particle = new THREE.Mesh(geometry, material);
 
-      // Random position within spread
       const spread = customization.spread || 50;
       particle.position.set(
         ((Math.random() - 0.5) * spread) / 50,
@@ -297,7 +276,6 @@ export class ElementRendererManager {
         ((Math.random() - 0.5) * spread) / 50
       );
 
-      // Store particle data for animation
       (particle.userData as any) = {
         speed: (Math.random() * 0.5 + 0.5) * (customization.speed || 1),
         size: customization.size || 5,
@@ -350,10 +328,10 @@ export class ElementRendererManager {
           const data = imageData.data;
           for (let i = 0; i < data.length; i += 4) {
             const value = Math.random() * 255;
-            data[i] = value; // R
-            data[i + 1] = value; // G
-            data[i + 2] = value; // B
-            data[i + 3] = 50; // A
+            data[i] = value;
+            data[i + 1] = value;
+            data[i + 2] = value;
+            data[i + 3] = 50;
           }
           context.putImageData(imageData, 0, 0);
           break;
@@ -424,23 +402,18 @@ export class ElementRendererManager {
     const customization = element.customization as any;
     const group = new THREE.Group();
 
-    // Create frame as a hollow rectangle
-    const thickness = (customization.thickness || 10) / 500;
     const frameColor = customization.color || "#ffffff";
 
-    // Create a single plane with a hole for the frame effect
     const shape = new THREE.Shape();
     const outerSize = 10;
     const innerSize = 9.8;
 
-    // Outer rectangle
     shape.moveTo(-outerSize, outerSize);
     shape.lineTo(outerSize, outerSize);
     shape.lineTo(outerSize, -outerSize);
     shape.lineTo(-outerSize, -outerSize);
     shape.lineTo(-outerSize, outerSize);
 
-    // Inner rectangle (hole)
     const hole = new THREE.Path();
     hole.moveTo(-innerSize, innerSize);
     hole.lineTo(innerSize, innerSize);
@@ -489,7 +462,6 @@ export class ElementRendererManager {
 
     const mesh = new THREE.Mesh(geometry, material);
 
-    // Store animation data
     (mesh.userData as any) = {
       movementType: customization.movementType || "float",
       speed: customization.speed || 1,
@@ -502,30 +474,22 @@ export class ElementRendererManager {
     return mesh;
   }
 
-  // In ElementRendererManager.ts, update the updateElement method:
-
   updateElement(element: VisualElement) {
     const object = this.elementObjects.get(element.id);
     if (!object) {
-      // Element doesn't exist yet, create it
       this.createElementObject(element);
       return;
     }
 
-    // Update visibility
     object.visible = element.visible;
 
-    // Update position, rotation, scale
     object.position.set(...element.position);
     object.rotation.set(...element.rotation);
     object.scale.set(...element.scale);
 
-    // Update material properties based on customization
     const customization = element.customization as any;
 
-    // Handle different element types
     if (element.type === "text") {
-      // For text elements, we need to recreate the texture
       this.updateTextObject(object as THREE.Mesh, customization);
     } else if (element.type === "image" || element.type === "gif") {
       this.updateImageObject(object as THREE.Mesh, customization, element.type);
@@ -534,7 +498,6 @@ export class ElementRendererManager {
     } else if (element.type === "particleSystem") {
       this.updateParticleSystem(object as THREE.Group, customization);
     } else {
-      // For other elements, update material
       if (
         object instanceof THREE.Mesh &&
         object.material instanceof THREE.MeshBasicMaterial
@@ -548,10 +511,8 @@ export class ElementRendererManager {
   }
 
   private updateTextObject(mesh: THREE.Mesh, customization: any) {
-    const geometry = mesh.geometry as THREE.PlaneGeometry;
     const material = mesh.material as THREE.MeshBasicMaterial;
 
-    // Create new canvas with updated text
     const canvas = document.createElement("canvas");
     canvas.width = 512;
     canvas.height = 128;
@@ -560,7 +521,6 @@ export class ElementRendererManager {
     if (context) {
       context.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Set font
       context.font = `${customization.fontWeight || "normal"} ${
         customization.fontSize || 24
       }px ${customization.fontFamily || "Arial"}`;
@@ -568,7 +528,6 @@ export class ElementRendererManager {
       context.textAlign = customization.textAlign || "center";
       context.textBaseline = "middle";
 
-      // Add background if specified
       if (customization.backgroundColor && customization.backgroundOpacity) {
         context.fillStyle = customization.backgroundColor;
         context.globalAlpha = customization.backgroundOpacity;
@@ -576,7 +535,6 @@ export class ElementRendererManager {
         context.globalAlpha = 1;
       }
 
-      // Draw text
       const text = customization.text || "";
       const lines = this.wrapText(context, text, canvas.width - 20);
 
@@ -587,7 +545,6 @@ export class ElementRendererManager {
         context.fillText(line, canvas.width / 2, startY + index * lineHeight);
       });
 
-      // Add shadow if specified
       if (customization.shadow) {
         context.shadowColor = customization.shadowColor || "#000000";
         context.shadowBlur = customization.shadowBlur || 10;
@@ -600,7 +557,6 @@ export class ElementRendererManager {
       }
     }
 
-    // Update texture
     if (material.map) {
       material.map.dispose();
     }
@@ -619,7 +575,6 @@ export class ElementRendererManager {
   ) {
     const material = mesh.material as THREE.MeshBasicMaterial;
 
-    // If image URL changed, load new texture
     const currentUrl = material.map?.userData?.url || "";
     const newUrl =
       elementType === "gif" ? customization.gifUrl : customization.imageUrl;
@@ -636,7 +591,6 @@ export class ElementRendererManager {
         material.opacity = customization.opacity || 1;
       });
     } else {
-      // Just update opacity and color
       material.opacity = customization.opacity || 1;
     }
   }
@@ -645,12 +599,10 @@ export class ElementRendererManager {
     const material = mesh.material as THREE.MeshBasicMaterial;
     const geometry = mesh.geometry as THREE.PlaneGeometry;
 
-    // Update size
     const size = customization.size || 32;
     geometry.dispose();
     mesh.geometry = new THREE.PlaneGeometry(size / 50, size / 50);
 
-    // Update texture if icon changed
     if (customization.iconType !== material.map?.userData?.iconType) {
       const canvas = document.createElement("canvas");
       canvas.width = 128;
@@ -681,7 +633,6 @@ export class ElementRendererManager {
   }
 
   private updateParticleSystem(group: THREE.Group, customization: any) {
-    // Update particle colors and properties
     group.children.forEach((child: THREE.Object3D) => {
       if (child instanceof THREE.Mesh) {
         if (child.material instanceof THREE.MeshBasicMaterial) {
@@ -691,7 +642,6 @@ export class ElementRendererManager {
           }
         }
 
-        // Update particle data
         const particleData = child.userData;
         if (particleData) {
           particleData.speed = customization.speed || 1;
@@ -708,7 +658,6 @@ export class ElementRendererManager {
     if (object) {
       this.scene.remove(object);
 
-      // Dispose of geometry and material if needed
       if (object instanceof THREE.Mesh) {
         object.geometry.dispose();
         if (Array.isArray(object.material)) {
@@ -722,31 +671,22 @@ export class ElementRendererManager {
     }
   }
 
-  animateElements(time: number, beatInfo: any) {
-    this.elementObjects.forEach((object, elementId) => {
-      const customization = (object.userData as any).customization;
-
-      // Animate based on element type
+  animateElements(time: number) {
+    this.elementObjects.forEach((object) => {
       if (object instanceof THREE.Group && object.children.length > 0) {
-        // Handle particle systems
         object.children.forEach((child: THREE.Object3D) => {
           const particleData = child.userData;
           if (particleData) {
-            // Update particle position based on velocity
             child.position.x += particleData.velocity.x * particleData.speed;
             child.position.y += particleData.velocity.y * particleData.speed;
             child.position.z += particleData.velocity.z * particleData.speed;
 
-            // Apply gravity
             child.position.y -= particleData.gravity * 0.01;
 
-            // Apply wind
             child.position.x += particleData.wind * 0.01;
 
-            // Update age
-            particleData.age += 0.016; // ~60fps
+            particleData.age += 0.016;
 
-            // Respawn if dead
             if (particleData.age > particleData.lifetime) {
               particleData.age = 0;
               child.position.set(
@@ -758,7 +698,6 @@ export class ElementRendererManager {
           }
         });
       } else if (object instanceof THREE.Mesh) {
-        // Handle ambient elements
         const animData = object.userData;
         if (animData && animData.movementType) {
           const t = time;

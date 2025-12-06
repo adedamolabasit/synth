@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { VideoPlayerHeader } from "./components/VideoPlayerHeader";
 import { VideoGallery } from "./components/VideoGallery";
@@ -8,7 +8,7 @@ import { LoadingState } from "./components/LoadingState";
 import { useVideos } from "./hooks/useVideos";
 import { useVideoThumbnails } from "./hooks/useVideoThumbnails";
 import { useVideoHover } from "./hooks/useVideoHover";
-import { LicenseTerms, IpCreator } from "@story-protocol/core-sdk";
+import { LicenseTerms } from "@story-protocol/core-sdk";
 
 export interface Collaborator {
   id: string;
@@ -38,7 +38,7 @@ export interface Video {
     description?: string;
   };
   createdAt: string;
-    likes?: number;
+  likes?: number;
   comments?: number;
   shares?: number;
   isLiked?: boolean;
@@ -49,7 +49,6 @@ export interface Video {
   revenue?: number;
 }
 
-
 export const VideoPlayer = () => {
   const { user, primaryWallet } = useDynamicContext();
   const isConnected = !!user;
@@ -58,11 +57,7 @@ export const VideoPlayer = () => {
   const [activeTab, setActiveTab] = useState<"all" | "your">("all");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
-  const { videos, loading} = useVideos(
-    activeTab,
-    isConnected,
-    walletAddress
-  );
+  const { videos, loading } = useVideos(activeTab, isConnected, walletAddress);
   const { videoThumbnails, generateThumbnails } = useVideoThumbnails(videos);
   const { hoveredVideo, handleVideoHover, handleVideoHoverEnd, previewRefs } =
     useVideoHover();

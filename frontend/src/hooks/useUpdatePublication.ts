@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { updatePublication } from "../api/mutations/updatePublication";
 
-export const usePublishVideo = () =>
+export const useUpdatePublication = () =>
   useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       updatePublication(id, status),

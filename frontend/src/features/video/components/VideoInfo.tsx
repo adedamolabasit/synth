@@ -23,7 +23,7 @@ import { useState } from "react";
 import { Badge } from "../../../components/ui/Badge";
 import { useStory } from "../../ipAssets/hooks/useStory";
 import { useStoryClient } from "../../../story/client/storyClient";
-import { MintIpLicense } from "../../ipAssets/actions/MintIpLicense";
+import { MintIpLicense } from "../../ipAssets/story/MintIpLicense";
 
 interface VideoInfoProps {
   video: Video;
@@ -94,7 +94,7 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
         ipId: video.ipRegistration?.ipId as `0x${string}`,
         licensstermId: licenseId,
       };
-      const response = await MintIpLicense(client!, mintData);
+      await MintIpLicense(client!, mintData);
     } catch (error) {}
   };
 
@@ -242,7 +242,6 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex border-b border-slate-700 -mx-4 -mb-4">
           <button
             className={`flex-1 py-2 px-4 text-sm font-medium border-b-2 transition-colors ${

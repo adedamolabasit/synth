@@ -11,21 +11,23 @@ import { useToastContext } from "../../../components/common/Toast/ToastProvider"
 
 interface ControlsPanelProps {
   params: VisualizerParams;
-  onParamsChange: (updater: (prev: VisualizerParams) => VisualizerParams) => void;
+  onParamsChange: (
+    updater: (prev: VisualizerParams) => VisualizerParams
+  ) => void;
   onDemoAudio: () => void;
   canvasRef: React.RefObject<HTMLCanvasElement>;
 }
 
-export const ControlsPanel: React.FC<ControlsPanelProps> = ({ 
-  params, 
+export const ControlsPanel: React.FC<ControlsPanelProps> = ({
+  params,
   onParamsChange,
-  canvasRef 
+  canvasRef,
 }) => {
   const { setShowDownloadModal, setVideoBlob } = useVisualizer();
   const recorderRef = useRef<SceneRecorder | null>(new SceneRecorder());
   const { currentAudio, getAudioManager } = useAudio();
   const [isRecording, setIsRecording] = useState(false);
-    const toast = useToastContext(); // Initialize toast
+  const toast = useToastContext();
 
   const handleRecord = async () => {
     if (!canvasRef.current) {
@@ -51,8 +53,7 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
         );
 
         setIsRecording(true);
-      } catch (err) {
-      }
+      } catch (err) {}
     } else {
       try {
         const blob = await recorderRef.current!.stopRecording();
@@ -67,26 +68,20 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
   };
 
   const toggleLyrics = (enabled: boolean) => {
-    console.log('Toggling lyrics to:', enabled);
     onParamsChange((prev) => ({
       ...prev,
-      showLyrics: enabled
+      showLyrics: enabled,
     }));
   };
 
   return (
     <div className="flex items-center gap-4">
-      {/* Lyrics Toggle */}
       <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/30">
         <Mic size={16} className="text-cyan-400" />
         <span className="text-sm text-slate-300 whitespace-nowrap">Lyrics</span>
-        <Switch
-          checked={params.showLyrics ?? false} // FIXED: Default to false
-          onChange={toggleLyrics}
-        />
+        <Switch checked={params.showLyrics ?? false} onChange={toggleLyrics} />
       </div>
 
-      {/* Record Button */}
       <Button
         variant={isRecording ? "danger" : "primary"}
         onClick={handleRecord}

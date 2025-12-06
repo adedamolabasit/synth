@@ -1,4 +1,3 @@
-// Input.tsx
 interface InputProps {
   label?: string;
   value: string;

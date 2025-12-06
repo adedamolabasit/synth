@@ -1,39 +1,59 @@
 import { useState, useEffect } from "react";
 import { Video } from "..";
+import { useGetVideoByWallet } from "../../../hooks/useGetVideosByWallet";
 
-export const useVideos = (activeTab: "all" | "your", isConnected: boolean, walletAddress?: string) => {
+export const useVideos = (
+  activeTab: "all" | "your",
+  isConnected: boolean,
+  walletAddress?: string
+) => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const {
+    data: videosData,
+    isLoading: isVideosLoading,
+    error: videosError,
+    refetch: refetchVideos,
+  } = useGetVideoByWallet(walletAddress || "");
+
   useEffect(() => {
-    const fetchVideos = async () => {
-      setLoading(true);
-      try {
-        if (activeTab === "your" && !isConnected) {
-          setVideos([]);
-          setLoading(false);
-          return;
-        }
+    if (videosData?.success) {
+      setVideos(videosData.videos || []);
+    } else if (!isConnected || !walletAddress) {
+      setVideos([]);
+    }
+  }, [videosData, isConnected, walletAddress]);
 
-        const endpoint = `http://localhost:8000/api/video/wallet/${walletAddress}`;
+  useEffect(() => {
+    if (activeTab === "your" && !isConnected) {
+      setVideos([]);
+      setLoading(false);
+      return;
+    }
 
-        const response = await fetch(endpoint);
-        const result = await response.json();
+    if (activeTab === "your" && walletAddress) {
+      setLoading(isVideosLoading);
+    } else {
+      setLoading(false);
+    }
+  }, [activeTab, isConnected, walletAddress, isVideosLoading]);
 
-        if (result.success) {
-          setVideos(result.videos || []);
-        } else {
-          setVideos([]);
-        }
-      } catch (error) {
-        setVideos([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  useEffect(() => {
+    if (videosError) {
+      setVideos([]);
+    }
+  }, [videosError]);
 
-    fetchVideos();
-  }, [activeTab, isConnected, walletAddress]);
+  const fetchVideos = async () => {
+    if (activeTab === "your" && walletAddress) {
+      await refetchVideos();
+    }
+  };
 
-  return { videos, loading};
+  return {
+    videos,
+    loading,
+    refetchVideos: fetchVideos,
+  };
 };

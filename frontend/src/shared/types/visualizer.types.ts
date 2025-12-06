@@ -8,10 +8,6 @@ export interface VisualizerContextType {
     elements: VisualElement[] | ((prev: VisualElement[]) => VisualElement[])
   ) => void;
   updateElement: (id: string, updates: Partial<VisualElement>) => void;
-  // updateElementCustomization: (
-  //   id: string,
-  //   updates: Partial<Customization>
-  // ) => void;
   selectedElement: string | null;
   setSelectedElement: (id: string | null) => void;
   audioData: AudioData;
@@ -26,7 +22,7 @@ export interface VisualizerContextType {
   setCurrentVisualizer: (visualizerType: string) => void;
   setVideoBlob: (visualizerType: Blob | null) => void;
   videoBlob: Blob | null;
-   sceneBackground: any;
+  sceneBackground: any;
   setSceneBackground: (background: any) => void;
   updateElementCustomization: (elementId: string, updates: any) => void;
 }
@@ -192,35 +188,6 @@ export interface AmbientElementCustomization extends BaseCustomization {
   bounceHeight: number;
 }
 
-// export type Customization =
-//   | ParticleCustomization
-//   | LightCustomization
-//   | GridCustomization
-//   | BackgroundCustomization
-//   | ShapeCustomization
-//   | WaveCustomization
-//   | AmbientElementCustomization;
-
-// export interface VisualElement {
-//   id: string;
-//   type:
-//     | "particle"
-//     | "shape"
-//     | "light"
-//     | "grid"
-//     | "wave"
-//     | "background"
-//     | "ambient";
-//   name: string;
-//   visible: boolean;
-//   position: [number, number, number];
-//   rotation: [number, number, number];
-//   scale: [number, number, number];
-//   customization: Customization;
-// }
-
-// In your visualizer.types.ts file, update the types:
-
 export interface TextCustomization extends BaseCustomization {
   text: string;
   fontSize: number;
@@ -269,7 +236,7 @@ export interface GIFCustomization extends ImageCustomization {
 }
 
 export interface IconCustomization extends BaseCustomization {
-  iconType: string; // Can be emoji or icon name
+  iconType: string;
   size: number;
   rotationSpeed: number;
   hoverEffect: boolean;
@@ -306,7 +273,6 @@ export interface ParticleSystemCustomization extends BaseCustomization {
   trailLength: number;
 }
 
-// Update the Customization type union:
 export type Customization =
   | ParticleCustomization
   | LightCustomization
@@ -323,7 +289,6 @@ export type Customization =
   | FrameCustomization
   | ParticleSystemCustomization;
 
-// Update VisualElement type:
 export interface VisualElement {
   id: string;
   type:

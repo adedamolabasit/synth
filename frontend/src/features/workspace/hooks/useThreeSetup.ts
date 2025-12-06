@@ -13,7 +13,9 @@ export const useThreeSetup = () => {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const visualizerManagerRef = useRef<VisualizerManager>(new VisualizerManager());
+  const visualizerManagerRef = useRef<VisualizerManager>(
+    new VisualizerManager()
+  );
   const visualizerObjectsRef = useRef<THREE.Object3D[]>([]);
   const ambientObjectsRef = useRef<THREE.Object3D[]>([]);
   const animationIdRef = useRef<number>(0);
@@ -31,11 +33,12 @@ export const useThreeSetup = () => {
 
   // Convert time data like in original code
   useEffect(() => {
-    const convertedTimeData = frequencyData instanceof Uint8Array
-      ? new Float32Array(frequencyData.length).map(
-          (_, i) => (frequencyData[i] - 128) / 128
-        )
-      : frequencyData;
+    const convertedTimeData =
+      frequencyData instanceof Uint8Array
+        ? new Float32Array(frequencyData.length).map(
+            (_, i) => (frequencyData[i] - 128) / 128
+          )
+        : frequencyData;
 
     setAudioData({
       frequencyData,
@@ -206,137 +209,134 @@ export const useThreeSetup = () => {
     [visualElements]
   );
 
-  const animateAmbientElements = useCallback(
-    (time: number, beatInfo: any) => {
-      const bass = beatInfo?.bandStrengths?.bass || 0;
-      const mid = beatInfo?.bandStrengths?.mid || 0;
-      const treble = beatInfo?.bandStrengths?.treble || 0;
-      const overall = beatInfo?.strength || 0;
+  const animateAmbientElements = useCallback((time: number, beatInfo: any) => {
+    const bass = beatInfo?.bandStrengths?.bass || 0;
+    const mid = beatInfo?.bandStrengths?.mid || 0;
+    const treble = beatInfo?.bandStrengths?.treble || 0;
+    const overall = beatInfo?.strength || 0;
 
-      ambientObjectsRef.current.forEach((object) => {
-        const data = object.userData;
-        if (!data || !data.startPosition) return;
+    ambientObjectsRef.current.forEach((object) => {
+      const data = object.userData;
+      if (!data || !data.startPosition) return;
 
-        let audioIntensity = 1;
-        if (data.responsive) {
-          switch (data.responseTo) {
-            case "bass":
-              audioIntensity = 1 + bass * 2 * (data.intensity || 1);
-              break;
-            case "mid":
-              audioIntensity = 1 + mid * 2 * (data.intensity || 1);
-              break;
-            case "treble":
-              audioIntensity = 1 + treble * 2 * (data.intensity || 1);
-              break;
-            case "beat":
-              audioIntensity = beatInfo?.isBeat ? 2 * (data.intensity || 1) : 1;
-              break;
-            case "overall":
-              audioIntensity = 1 + overall * 2 * (data.intensity || 1);
-              break;
-            default:
-              audioIntensity = 1;
-          }
-        }
-
-        const elapsedTime = time - (data.startTime || 0);
-        const speed = (data.speed || 1) * audioIntensity;
-
-        const newPosition = { x: 0, y: 0, z: 0 };
-        const newRotation = {
-          x: object.rotation.x,
-          y: object.rotation.y,
-          z: object.rotation.z,
-        };
-        const newScale = {
-          x: object.scale.x,
-          y: object.scale.y,
-          z: object.scale.z,
-        };
-
-        newPosition.x = data.startPosition.x;
-        newPosition.y = data.startPosition.y;
-        newPosition.z = data.startPosition.z;
-
-        switch (data.movementType) {
-          case "bounce":
-            const bounceY =
-              Math.abs(Math.sin(elapsedTime * speed * 2)) *
-              (data.bounceHeight || 3) *
-              audioIntensity;
-            newPosition.y = data.startPosition.y + bounceY;
-            newPosition.x =
-              data.startPosition.x +
-              Math.sin(elapsedTime * speed * 0.5) * (data.amplitude || 2);
+      let audioIntensity = 1;
+      if (data.responsive) {
+        switch (data.responseTo) {
+          case "bass":
+            audioIntensity = 1 + bass * 2 * (data.intensity || 1);
             break;
-
-          case "float":
-            newPosition.y =
-              data.startPosition.y +
-              Math.sin(elapsedTime * speed) *
-                (data.amplitude || 2) *
-                audioIntensity;
-            newPosition.x =
-              data.startPosition.x +
-              Math.cos(elapsedTime * speed * 0.7) * (data.amplitude || 2);
+          case "mid":
+            audioIntensity = 1 + mid * 2 * (data.intensity || 1);
             break;
-
-          case "fly":
-            const radius = (data.amplitude || 2) * 3;
-            const angle = elapsedTime * speed;
-            newPosition.x = data.startPosition.x + Math.cos(angle) * radius;
-            newPosition.z = data.startPosition.z + Math.sin(angle) * radius;
-            newPosition.y =
-              data.startPosition.y +
-              Math.sin(elapsedTime * speed * 3) * 2 * audioIntensity;
-
-            if (object.children.length > 0) {
-              object.children.forEach((child, index) => {
-                if (index > 0) {
-                  child.rotation.z =
-                    Math.PI / 4 +
-                    Math.sin(elapsedTime * speed * 8) * 0.5 * audioIntensity;
-                }
-              });
-            }
+          case "treble":
+            audioIntensity = 1 + treble * 2 * (data.intensity || 1);
             break;
-
-          case "rotate":
-            newRotation.x = elapsedTime * speed;
-            newRotation.y = elapsedTime * speed * 0.7;
-            newPosition.y =
-              data.startPosition.y +
-              Math.sin(elapsedTime * speed) * (data.amplitude || 2) * 0.5;
+          case "beat":
+            audioIntensity = beatInfo?.isBeat ? 2 * (data.intensity || 1) : 1;
             break;
-
-          case "pulse":
-            const pulseScale =
-              1 + Math.sin(elapsedTime * speed * 2) * 0.3 * audioIntensity;
-            newScale.x = pulseScale;
-            newScale.y = pulseScale;
-            newScale.z = pulseScale;
-            newPosition.y =
-              data.startPosition.y +
-              Math.sin(elapsedTime * speed) * (data.amplitude || 2);
+          case "overall":
+            audioIntensity = 1 + overall * 2 * (data.intensity || 1);
             break;
-
           default:
-            newPosition.y =
-              data.startPosition.y +
-              Math.sin(elapsedTime * speed) * (data.amplitude || 2);
-            break;
+            audioIntensity = 1;
         }
+      }
 
-        object.position.set(newPosition.x, newPosition.y, newPosition.z);
-        object.rotation.set(newRotation.x, newRotation.y, newRotation.z);
-        object.scale.set(newScale.x, newScale.y, newScale.z);
+      const elapsedTime = time - (data.startTime || 0);
+      const speed = (data.speed || 1) * audioIntensity;
 
-        object.rotation.z += 0.01 * speed;
-      });
-    },
-    []
-  );
+      const newPosition = { x: 0, y: 0, z: 0 };
+      const newRotation = {
+        x: object.rotation.x,
+        y: object.rotation.y,
+        z: object.rotation.z,
+      };
+      const newScale = {
+        x: object.scale.x,
+        y: object.scale.y,
+        z: object.scale.z,
+      };
+
+      newPosition.x = data.startPosition.x;
+      newPosition.y = data.startPosition.y;
+      newPosition.z = data.startPosition.z;
+
+      switch (data.movementType) {
+        case "bounce":
+          const bounceY =
+            Math.abs(Math.sin(elapsedTime * speed * 2)) *
+            (data.bounceHeight || 3) *
+            audioIntensity;
+          newPosition.y = data.startPosition.y + bounceY;
+          newPosition.x =
+            data.startPosition.x +
+            Math.sin(elapsedTime * speed * 0.5) * (data.amplitude || 2);
+          break;
+
+        case "float":
+          newPosition.y =
+            data.startPosition.y +
+            Math.sin(elapsedTime * speed) *
+              (data.amplitude || 2) *
+              audioIntensity;
+          newPosition.x =
+            data.startPosition.x +
+            Math.cos(elapsedTime * speed * 0.7) * (data.amplitude || 2);
+          break;
+
+        case "fly":
+          const radius = (data.amplitude || 2) * 3;
+          const angle = elapsedTime * speed;
+          newPosition.x = data.startPosition.x + Math.cos(angle) * radius;
+          newPosition.z = data.startPosition.z + Math.sin(angle) * radius;
+          newPosition.y =
+            data.startPosition.y +
+            Math.sin(elapsedTime * speed * 3) * 2 * audioIntensity;
+
+          if (object.children.length > 0) {
+            object.children.forEach((child, index) => {
+              if (index > 0) {
+                child.rotation.z =
+                  Math.PI / 4 +
+                  Math.sin(elapsedTime * speed * 8) * 0.5 * audioIntensity;
+              }
+            });
+          }
+          break;
+
+        case "rotate":
+          newRotation.x = elapsedTime * speed;
+          newRotation.y = elapsedTime * speed * 0.7;
+          newPosition.y =
+            data.startPosition.y +
+            Math.sin(elapsedTime * speed) * (data.amplitude || 2) * 0.5;
+          break;
+
+        case "pulse":
+          const pulseScale =
+            1 + Math.sin(elapsedTime * speed * 2) * 0.3 * audioIntensity;
+          newScale.x = pulseScale;
+          newScale.y = pulseScale;
+          newScale.z = pulseScale;
+          newPosition.y =
+            data.startPosition.y +
+            Math.sin(elapsedTime * speed) * (data.amplitude || 2);
+          break;
+
+        default:
+          newPosition.y =
+            data.startPosition.y +
+            Math.sin(elapsedTime * speed) * (data.amplitude || 2);
+          break;
+      }
+
+      object.position.set(newPosition.x, newPosition.y, newPosition.z);
+      object.rotation.set(newRotation.x, newRotation.y, newRotation.z);
+      object.scale.set(newScale.x, newScale.y, newScale.z);
+
+      object.rotation.z += 0.01 * speed;
+    });
+  }, []);
 
   const updateBackground = useCallback(
     (scene: THREE.Scene) => {
@@ -569,7 +569,7 @@ export const useThreeSetup = () => {
         beatInfo || {
           isBeat: false,
           strength: 0,
-          bandStrengths: { bass: 0, mid: 0, treble: 0 }
+          bandStrengths: { bass: 0, mid: 0, treble: 0 },
         }
       );
 
@@ -638,15 +638,18 @@ export const useThreeSetup = () => {
     createVisualizer();
 
     setSceneReady(true);
-    console.log('Three.js scene setup complete with audio integration');
-  }, [updateBackground, createLightsFromElements, createAmbientElements, createVisualizer]);
+  }, [
+    updateBackground,
+    createLightsFromElements,
+    createAmbientElements,
+    createVisualizer,
+  ]);
 
   // Start/stop animation
   const startAnimation = useCallback(() => {
     if (isAnimatingRef.current || !sceneReady) return;
     isAnimatingRef.current = true;
     animationIdRef.current = requestAnimationFrame(animateScene);
-    console.log('Animation started with audio data');
   }, [animateScene, sceneReady]);
 
   const stopAnimation = useCallback(() => {
@@ -655,14 +658,15 @@ export const useThreeSetup = () => {
       cancelAnimationFrame(animationIdRef.current);
       animationIdRef.current = 0;
     }
-    console.log('Animation stopped');
   }, []);
 
   // Handle resize
   const handleResize = useCallback(() => {
-    if (!canvasRef.current || !cameraRef.current || !rendererRef.current) return;
-    
-    cameraRef.current.aspect = canvasRef.current.clientWidth / canvasRef.current.clientHeight;
+    if (!canvasRef.current || !cameraRef.current || !rendererRef.current)
+      return;
+
+    cameraRef.current.aspect =
+      canvasRef.current.clientWidth / canvasRef.current.clientHeight;
     cameraRef.current.updateProjectionMatrix();
     rendererRef.current.setSize(
       canvasRef.current.clientWidth,
@@ -694,7 +698,12 @@ export const useThreeSetup = () => {
       createLightsFromElements(sceneRef.current);
       createAmbientElements(sceneRef.current);
     }
-  }, [visualElements, updateBackground, createLightsFromElements, createAmbientElements]);
+  }, [
+    visualElements,
+    updateBackground,
+    createLightsFromElements,
+    createAmbientElements,
+  ]);
 
   // Update visualizer when params change
   useEffect(() => {

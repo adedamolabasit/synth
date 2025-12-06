@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-const STORY_URL = "https://staging-api.storyprotocol.net/api/v4";
-const API_KEY = "KOTbaGUSWQ6cUJWhiJYiOjPgB0kTRu1eCFFvQL0IWls";
+const STORY_URL = import.meta.env.VITE_STORY_API_URL;
+const API_KEY = import.meta.env.VITE_STORY_API_KEY;
 
 export interface LicenseTerm {
   id: string;
@@ -49,12 +49,12 @@ export function useStory(ipId: string | undefined) {
       );
 
       const assets = response.data.data ?? [];
-      console.log(assets,"assets>>")
+      console.log(assets, "assets>>");
       const firstAsset = assets[0];
-      console.log(firstAsset,"lll")
+      console.log(firstAsset, "lll");
 
       if (firstAsset && Array.isArray(firstAsset.licenses)) {
-        console.log(firstAsset.licenses,'first')
+        console.log(firstAsset.licenses, "first");
         setLicenses(firstAsset.licenses);
       } else {
         setLicenses([]);

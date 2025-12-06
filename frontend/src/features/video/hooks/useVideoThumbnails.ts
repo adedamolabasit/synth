@@ -3,7 +3,9 @@ import { Video } from "..";
 import { generateVideoThumbnail } from "../utils/videoUtils";
 
 export const useVideoThumbnails = (videos: Video[]) => {
-  const [videoThumbnails, setVideoThumbnails] = useState<{ [key: string]: string }>({});
+  const [videoThumbnails, setVideoThumbnails] = useState<{
+    [key: string]: string;
+  }>({});
   const videoThumbnailCache: Record<string, string> = {};
 
   const generateThumbnails = useCallback(async () => {
@@ -13,10 +15,8 @@ export const useVideoThumbnails = (videos: Video[]) => {
       try {
         const thumb = await generateVideoThumbnail(video.videoUrl);
         videoThumbnailCache[video.videoUrl] = thumb;
-        setVideoThumbnails(prev => ({ ...prev, [video.id]: thumb }));
-      } catch (err) {
-        console.error('Failed to generate thumbnail:', err);
-      }
+        setVideoThumbnails((prev) => ({ ...prev, [video.id]: thumb }));
+      } catch (err) {}
     }
   }, [videos]);
 

@@ -191,7 +191,6 @@ export class AudioManager {
         this.isDefaultAudioPlaying = true;
         this.startProgressTracking();
       } catch (error) {
-
         await this.loadDefaultAudio();
         this.defaultSource!.start();
         this.isDefaultAudioPlaying = true;
@@ -207,8 +206,7 @@ export class AudioManager {
     if (this.defaultSource && this.isDefaultAudioPlaying) {
       try {
         this.defaultSource.stop();
-      } catch (error) {
-      }
+      } catch (error) {}
       this.isDefaultAudioPlaying = false;
 
       this.loadDefaultAudio();
@@ -330,8 +328,7 @@ export class AudioManager {
     this.progressCallbacks.forEach((cb) => {
       try {
         cb(currentTime, duration);
-      } catch (e) {
-      }
+      } catch (e) {}
     });
   }
 
@@ -378,7 +375,6 @@ export class AudioManager {
       }
       this.isInitialized = false;
       this.destinationNode = null;
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 }

@@ -39,7 +39,7 @@ function App() {
 
       <StatusBar
         ipConnected={true}
-        projectName="Neon Dreams Project"
+        projectName="Synth Canvas"
         lastSaved={new Date(Date.now() - 120000)}
       />
     </div>
