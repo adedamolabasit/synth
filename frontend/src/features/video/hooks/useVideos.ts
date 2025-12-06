@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { Video } from "..";
 import { useGetVideoByWallet } from "../../../hooks/useGetVideosByWallet";
+import { useGetVideos } from "../../../hooks/useGetVideos";
 
-export const useVideos = (
-  activeTab: "all" | "your",
-  isConnected: boolean,
-  walletAddress?: string
-) => {
+export const useVideos = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -15,29 +12,17 @@ export const useVideos = (
     isLoading: isVideosLoading,
     error: videosError,
     refetch: refetchVideos,
-  } = useGetVideoByWallet(walletAddress || "");
+  } = useGetVideos();
 
   useEffect(() => {
     if (videosData?.success) {
       setVideos(videosData.videos || []);
-    } else if (!isConnected || !walletAddress) {
-      setVideos([]);
     }
-  }, [videosData, isConnected, walletAddress]);
+  }, [videosData]);
 
   useEffect(() => {
-    if (activeTab === "your" && !isConnected) {
-      setVideos([]);
-      setLoading(false);
-      return;
-    }
-
-    if (activeTab === "your" && walletAddress) {
-      setLoading(isVideosLoading);
-    } else {
-      setLoading(false);
-    }
-  }, [activeTab, isConnected, walletAddress, isVideosLoading]);
+    setLoading(false);
+  }, [isVideosLoading]);
 
   useEffect(() => {
     if (videosError) {
@@ -45,15 +30,9 @@ export const useVideos = (
     }
   }, [videosError]);
 
-  const fetchVideos = async () => {
-    if (activeTab === "your" && walletAddress) {
-      await refetchVideos();
-    }
-  };
-
   return {
     videos,
     loading,
-    refetchVideos: fetchVideos,
+    refetchVideos: refetchVideos,
   };
 };

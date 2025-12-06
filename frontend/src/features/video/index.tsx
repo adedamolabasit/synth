@@ -50,14 +50,13 @@ export interface Video {
 }
 
 export const VideoPlayer = () => {
-  const { user, primaryWallet } = useDynamicContext();
+  const { user } = useDynamicContext();
   const isConnected = !!user;
-  const walletAddress = primaryWallet?.address;
 
   const [activeTab, setActiveTab] = useState<"all" | "your">("all");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
-  const { videos, loading } = useVideos(activeTab, isConnected, walletAddress);
+  const { videos, loading } = useVideos();
   const { videoThumbnails, generateThumbnails } = useVideoThumbnails(videos);
   const { hoveredVideo, handleVideoHover, handleVideoHoverEnd, previewRefs } =
     useVideoHover();
