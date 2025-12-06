@@ -170,14 +170,26 @@ swagger-ui-express: ^5.0.1
 # 🚀 Run Commands
 
 ## Backend
-pnpm install # or npm/yarn
+# Install dependencies
+pnpm install   # or: npm install / yarn install
+
+# Copy environment file
 cp .env.example .env
+
+# Start development server
 npm run dev
 
+
 ## Frontend
-pnpm install # or npm/yarn
+# Install dependencies
+pnpm install   # or: npm install / yarn install
+
+# Copy environment file
 cp .env.example .env
+
+# Start development server
 npm run dev
+
 
 ---
 
