@@ -1,149 +1,153 @@
-⭐ Synth
+# ⭐ Synth
 
-Synth is an advanced AI-powered audio visualization and blockchain-enabled IP registration platform.
+**Synth** is an advanced AI-powered audio visualization and blockchain-enabled IP registration platform.  
 It transforms any audio file into:
 
-Dynamic 3D visualizations powered by Three.js
-
-Accurate AI-generated lyrics
-
-A full music-video-like experience
-
-Blockchain-registered IP assets on the Story Protocol
+- **Dynamic 3D visualizations** powered by Three.js  
+- **Accurate AI-generated lyrics**  
+- **A full music-video-like experience**  
+- **Blockchain-registered IP assets** on the Story Protocol  
 
 The platform includes a powerful web interface and scalable API backend.
 
-📝 Overview
+---
 
-Synth merges AI, WebGL, audio analysis, and blockchain IP ownership into one seamless experience.
+## 📝 Overview
 
-🔊 Audio Processing & Analysis
+Synth merges **AI**, **WebGL**, **audio analysis**, and **blockchain IP ownership** into one seamless experience.
 
-Users can upload audio files (mp3, wav, etc.). The backend extracts metadata, analyzes frequencies, and generates lyrics using OpenAI Whisper + GPT.
+---
 
-🎨 Real-time 3D Visualizers
+## 🔊 Audio Processing & Analysis  
+Users can upload audio files (mp3). The backend extracts metadata, analyzes frequencies, and generates lyrics using **OpenAI Whisper + GPT**.
 
-The frontend includes 40+ modular visualizers, each built with Three.js + custom GLSL effects.
-Visuals react to frequencies, waveform amplitude, user-selected patterns, and motion presets.
+🔗 Demo UI (Slideshow):  
+https://v0-slideshow-ui-design.vercel.app/
 
-See docs:
-📄 frontend/docs/audio-visualizer.md
+---
 
-🧬 Custom IP Ownership System
+## 🎨 Real-time 3D Visualizers
 
-Every final music visualization video becomes an IP asset registered on the Story Protocol.
-Users can mint licenses, set rules, and track ownership.
+The frontend includes **40+ modular visualizers**, each built with **Three.js + custom GLSL effects**.  
+Visuals react to:
 
-See docs:
-📄 frontend/docs/story-ip-system.md
+- Frequency bands  
+- Waveform amplitude  
+- User-selected patterns  
+- Motion presets  
 
-📘 Backend Documentation
+📄 See docs:  
+`frontend/docs/audio-visualizer.md`
 
-See full backend docs here:
-📄 backend/docs/backend-api.md
+---
 
-🎥 Video Rendering
+## 🧬 Custom IP Ownership System
 
-Synth can record the visualization canvas and generate a final exportable video, which is then:
+Every final music visualization video becomes an **IP asset** registered on the **Story Protocol**.  
+Users can:
 
-Stored via Pinata/IPFS
+- Mint licenses  
+- Set rules  
+- Track ownership  
 
-Linked in Story Protocol metadata
+📄 See docs:  
+`frontend/docs/story-ip-system.md`
 
-Displayed in user dashboards
+---
 
-🔗 Blockchain Integration
+## 📘 Backend Documentation
 
-Synth integrates Story Protocol (testnet) enabling:
+📄 Full backend documentation:  
+`backend/docs/backend-api.md`
 
-IP registration
+---
 
-License minting
+## 🎥 Video Rendering
 
-Ownership verification
+Synth can **record the visualization canvas** and generate a final exportable video. Each video is:
 
-Wallet-based access controls
+- Stored on **Pinata/IPFS**  
+- Linked inside **Story Protocol metadata**  
+- Displayed in user dashboards  
 
-✨ Features
-🌐 Frontend (Web App)
+---
 
-40+ customizable 3D visualizers
+## 🔗 Blockchain Integration
 
-Audio-reactive effects
+Synth integrates the **Story Protocol (testnet)** to support:
 
-Realtime video recording
+- IP registration  
+- License minting  
+- Ownership verification  
+- Wallet-based access controls (dynamics wallet) 
 
-IP licensing dashboard
+---
 
-Wallet integration
+# ✨ Features
 
-Video gallery & playback
+## 🌐 Frontend (Web App)
 
-Advanced canvas controls (camera, lighting, effects)
+- 40+ customizable 3D visualizers  
+- Audio-reactive effects  
+- Real-time video recording  
+- IP licensing dashboard  
+- Wallet integration  
+- Video gallery & playback  
+- Advanced canvas controls (camera, lighting, effects, e.t.c)
 
-🚀 Backend (API Server)
+---
 
-Audio upload + frequency analysis
+## 🚀 Backend (API Server)
 
-Whisper lyrics auto-generation
+- Audio upload + frequency analysis  
+- Whisper lyrics auto-generation  
+- Video metadata storage  
+- Pinata/IPFS integration  
+- Swagger API documentation  
+- User & video record management  
+- Story Protocol: IP registration + licensing  
 
-Video metadata storage
+---
 
-Pinata/IPFS integration
+# 📚 Full Documentation
 
-Swagger API documentation
+Frontend documentation:
 
-User & video record management
+- `frontend/docs/audio-visualizer.md`  
+- `frontend/docs/story-ip-system.md`
 
-Story Protocol: IP registration + licensing
+Backend documentation is included in:
 
-📚 Full Documentation
+- `backend/docs/backend-api.md`
 
-Frontend docs are included in:
+---
 
-frontend/docs/audio-visualizer.md  
-frontend/docs/story-ip-system.md
+# 🛠️ Tech Stack
 
-Backend docs have been generated and added below.
+## Frontend
+- React + TypeScript  
+- Three.js  
+- GSAP  
+- TanStack Query  
+- Vite  
+- Story Protocol SDK  
+- Pinata SDK  
 
-🛠️ Tech Stack
-Frontend
+## Backend
+- Express.js  
+- TypeScript  
+- Multer  
+- Mongoose  
+- OpenAI  
+- Swagger  
+- Pinata (IPFS)  
+- music-metadata  
 
-React + TypeScript
+---
 
-Three.js
+# 📦 Key Dependencies
 
-GSAP
 
-Zustand
-
-TanStack Query
-
-Vite
-
-Story Protocol SDK
-
-Pinata SDK
-
-Backend
-
-Express.js
-
-TypeScript
-
-Multer
-
-Mongoose
-
-OpenAI
-
-Swagger
-
-Pinata (IPFS)
-
-music-metadata
-
-📦 Key Dependencies
 axios: ^1.13.2
 cors: ^2.8.5
 dotenv: ^17.2.3
@@ -160,54 +164,40 @@ pako: ^2.1.0
 swagger-jsdoc: ^6.2.8
 swagger-ui-express: ^5.0.1
 
-🚀 Run Commands
 
-Backend
+---
 
+# 🚀 Run Commands
+
+## Backend
 npm run dev
-npm run build
-npm run start
-
-Frontend
-
+## Frontend
 npm run dev
-npm run build
-npm run preview
 
-📁 Project Structure
+---
 
-(You already provided this — I kept it intact.)
+# 📁 Project Structure
 
-📚 Frontend Documentation
+---
 
-The full frontend documentation is included in the repository:
+# 📚 Frontend Documentation Details
 
-📘 frontend/docs/audio-visualizer.md
+### 📘 `frontend/docs/audio-visualizer.md`
+Covers:
+- Three.js architecture  
+- Visualizer creation pipeline  
+- Animators vs creators  
+- Audio-reactive logic  
+- Shader-based visualizations  
+- SceneRecorder video export  
 
-Explains:
+### 📗 `frontend/docs/story-ip-system.md`
+Covers:
+- Story Protocol integration  
+- IP registration workflow  
+- License minting  
+- Metadata linking  
+- Wallet authentication  
 
-Three.js architecture
+---
 
-Visualizer creation pipeline
-
-Animators vs creators
-
-Audio-reactive logic
-
-Shader-based visualizations
-
-SceneRecorder video export
-
-📗 frontend/docs/story-ip-system.md
-
-Explains:
-
-Story Protocol integration
-
-How IP registration works
-
-License minting
-
-Metadata linking
-
-Wallet authentication

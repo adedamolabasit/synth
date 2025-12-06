@@ -1,16 +1,6 @@
 # Synth Documentation
-
-This document contains three independent markdown files you can copy into `/docs` in your repo:
-
+                                                                                                                                                     
 * `audio-visualizer.md` — Detailed technical documentation of the Three.js visualizer, audio analysis pipeline, animation system, and recording flow.
-* `story-ip-system.md` — How Story Protocol is integrated: registering IP, minting licenses, and wallet flows.
-* `overview.md` — High-level architecture, file references, and how different pieces connect.
-
----
-
----
-
-# `audio-visualizer.md`
 
 ```md
 # Audio Visualizer — Technical Reference

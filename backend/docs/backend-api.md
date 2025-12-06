@@ -1,120 +1,107 @@
-Synth Backend API Documentation
-📌 Overview
+# 🔧 Synth Backend API Documentation
 
-The Synth backend handles:
+## 📌 Overview
 
-File uploads (audio + video)
+The **Synth Backend** is responsible for all processing, storage, and blockchain interactions.  
+It handles:
 
-Metadata extraction
+- File uploads (audio + video)  
+- Metadata extraction  
+- Whisper-based lyric generation  
+- IPFS uploads  
+- Video & audio record management  
+- Story Protocol asset registration  
+- Public REST API with Swagger UI  
 
-Whisper-based lyric generation
+The backend is built with **Express + TypeScript** and follows a clean **controller + service architecture**.
 
-IPFS upload
+---
 
-Video and audio record management
+## 🧭 Architecture
 
-Story Protocol asset registration
-
-Public REST API with Swagger UI
-
-It is built in Express + TypeScript and organized into a clean service + controller architecture.
-
-🧭 Architecture
-/controllers
-
+### `/controllers`
 Handle request/response logic.
 
-audioController.ts
+- `audioController.ts`  
+- `videoController.ts`  
 
-videoController.ts
+### `/services`
+Encapsulated core logic:
 
-/services
+- Audio metadata extraction  
+- Whisper transcription  
+- IPFS upload operations  
+- Video record processing  
+- Story Protocol communication  
 
-Encapsulate logic for:
+### `/utils`
+Utility helpers:
 
-Audio metadata extraction
+- `compress.ts` – gzip compression  
+- `pinata.ts` – IPFS upload helpers  
+- `logger.ts` – API logging  
+- `envValidator.ts` – environment validation  
 
-Whisper transcription
+### `/middleware`
+- `upload.ts` – Multer handler for audio/video uploads  
 
-IPFS uploads
-
-Video record processing
-
-Story Protocol communications
-
-/utils
-
-compress.ts – gzip compression
-
-pinata.ts – IPFS upload helpers
-
-logger.ts – API logging
-
-envValidator.ts – environment validation
-
-/middleware
-
-upload.ts – Multer audio/video upload handler
-
-/model
-
+### `/model`
 Mongoose schemas:
 
-audioEntry
+- `audioEntry`  
+- `videoEntry`  
+- `userEntry`  
 
-videoEntry
+---
 
-userEntry
+# 🎵 Audio API
 
-🎵 Audio API
-POST /api/audio/upload
-
+### **POST** `/api/audio/upload`  
 Upload audio → extract metadata → transcribe → store in DB.
 
-GET /api/audio/:walletAddress
+### **GET** `/api/audio/:walletAddress`  
+Fetch all audio entries linked to a wallet.
 
-Get all audio entries for a wallet.
+### **GET** `/api/audio/details/:id`  
+Retrieve a single audio entry by ID.
 
-GET /api/audio/details/:id
+---
 
-Retrieve a single audio entry.
+# 🎥 Video API
 
-🎥 Video API
-POST /api/video/upload
+### **POST** `/api/video/upload`  
+Upload a finalized visualization video (recorded from canvas).
 
-Upload the recorded video file (from canvas).
+### **PUT** `/api/video/register-ip`  
+Attach Story Protocol IP asset data to the video entry.
 
-PUT /api/video/register-ip
+### **PUT** `/api/video/publish`  
+Upload video + metadata to IPFS (Pinata).
 
-Update video with Story Protocol IP asset info.
+### **DELETE** `/api/video/:id`  
+Remove a user's video entry.
 
-PUT /api/video/publish
+---
 
-Publish video + metadata via Pinata/IPFS.
+# 🧪 Swagger Documentation
 
-DELETE /api/video/:id
-
-Delete a user's video.
-
-🧪 Swagger Docs
-
-The backend generates swagger docs using:
-
-/swagger
+The backend automatically generates Swagger documentation under:
 
 
-Open your browser:
+Access it in your browser:
 
-http://localhost:3000/api/docs
+👉 **http://localhost:3000/api/docs**
 
-🔗 Dependencies
+---
 
-OpenAI Whisper (lyrics)
+# 🔗 Dependencies
 
-music-metadata (audio analysis)
+Key technologies powering the backend:
 
-Pinata (IPFS)
+- **OpenAI Whisper** — automatic lyrics generation  
+- **music-metadata** — audio metadata extraction  
+- **Pinata (IPFS)** — decentralized storage  
+- **Mongoose** — MongoDB ORM  
+- **Story Protocol SDK** — IP asset registration  
 
-Mongoose (MongoDB)
-
-Story Protocol (IP registration)
+---
