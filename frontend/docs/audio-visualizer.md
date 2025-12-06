@@ -169,21 +169,3 @@ The recorder may also capture audio by mixing the audio output into the captured
 * Ensure any GPU-heavy geometry disposes properly (`geometry.dispose()`, `material.dispose()`) to avoid memory leaks.
 * Visual artifacts often come from mismatched toneMapping or post-processing parameters — check `postprocessing.ts`.
 
----
-
-# `story-ip-system.md`
-
-````md
-
-If you want, I can also:
-
-* generate ready-to-drop `.md` files and give you the exact commit commands, or
-* produce a shorter `README.md` summary for the repo root, or
-* convert the docs into a PDF for hackathon submission.
-
-```
-
----
-
-
-```
