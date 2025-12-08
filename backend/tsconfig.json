@@ -15,7 +15,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
-      "types": ["node"],
+      "types": ["jest","node"],
     "moduleResolution": "node",
   },
   "include": ["src/**/*", "swagger.ts", "types/swagger-jsdoc.d.ts"],

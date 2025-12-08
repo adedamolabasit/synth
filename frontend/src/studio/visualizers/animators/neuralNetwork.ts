@@ -9,82 +9,86 @@ export const animateNeuralNetwork = (
   beatInfo?: BeatInfo,
   camera?: THREE.Camera
 ): void => {
-  const bass = frequencyData[5] / 255;
+  const t = time * 0.001;
+  
+  const bass = frequencyData[2] / 255;
+  const mid = frequencyData[50] / 255;
+  const treble = frequencyData[120] / 255;
 
+  // CAMERA
   if (camera) {
-    camera.position.x = Math.sin(time * 0.1) * 15;
-    camera.position.y = Math.sin(time * 0.05) * 3;
-    camera.position.z = Math.cos(time * 0.1) * 15;
+    camera.position.x = Math.sin(t * 0.2) * 10;
+    camera.position.z = Math.cos(t * 0.2) * 10;
     camera.lookAt(0, 0, 0);
   }
 
-  objects.forEach((obj) => {
+  objects.forEach(obj => {
     if (!obj.userData || obj.userData.type !== "neuralNetwork") return;
 
-    const connections = obj.userData.connections as THREE.Line[];
-    const signalPropagation = obj.userData.signalPropagation;
+    const { connections } = obj.userData;
+    
+    // CORE
+    const core = obj.children[0] as THREE.Mesh;
+    if (core) {
+      core.scale.setScalar(1 + bass * 0.5);
+      core.rotation.y += 0.01;
+      
+      const material = core.material as THREE.MeshBasicMaterial;
+      material.color.setHSL((t * 0.1) % 1, 0.8, 0.6);
+      material.opacity = 0.3 + treble * 0.2;
+    }
 
-    obj.userData.signalPropagation =
-      (signalPropagation + params.speed * 0.01) % 1;
-
-    obj.children.forEach((child, index) => {
-      if (child instanceof THREE.Mesh) {
-        const layer = Math.floor(index / obj.userData.nodesPerLayer);
-        const nodeIndex = index % obj.userData.nodesPerLayer;
-        const freqIndex = Math.floor(
-          (nodeIndex / obj.userData.nodesPerLayer) * frequencyData.length
-        );
-        const activation = frequencyData[freqIndex] / 255;
-
-        const pulse = Math.sin(time * 3 + layer * 0.5) * 0.2 + 0.8;
-        const scale = 0.3 + activation * 0.4 * pulse;
-        child.scale.setScalar(scale);
-
+    // NEURONS
+    obj.children.forEach((child, i) => {
+      if (i === 0) return; // Skip core
+      
+      if (child instanceof THREE.Mesh && child.userData.layer !== undefined) {
+        const data = child.userData;
+        const freqIndex = (data.i + data.layer * 3) * 5 % frequencyData.length;
+        const audioValue = frequencyData[freqIndex] / 255;
+        
+        const waveX = Math.sin(t * 2 + data.phase) * 0.3 * audioValue;
+        const waveY = Math.cos(t * 1.5 + data.phase) * 0.3 * audioValue;
+        
+        child.position.x = data.basePosition.x + waveX;
+        child.position.y = data.basePosition.y + waveY;
+        child.position.z = data.basePosition.z;
+        
+        child.scale.setScalar(0.2 + audioValue * 0.4);
+        
         const material = child.material as THREE.MeshBasicMaterial;
-        const hue = (layer / obj.userData.layers + activation * 0.3) % 1;
-        const saturation = 0.7 + activation * 0.3;
-        material.color.setHSL(hue, saturation, 0.6);
-        material.opacity = 0.6 + activation * 0.4;
-
-        if (Math.random() < activation * 0.1) {
-          child.scale.setScalar(scale * 1.5);
-          material.opacity = 1;
-        }
+        material.color.setHSL(
+          (data.i / 12 + t * 0.05) % 1,
+          0.8,
+          0.6 + audioValue * 0.3
+        );
+        material.opacity = 0.6 + audioValue * 0.4;
       }
     });
 
-    connections.forEach((connection, index) => {
-      const material = connection.material as THREE.LineBasicMaterial;
-      const pulse = Math.sin(time * 2 + index * 0.1) * 0.3 + 0.7;
-      material.opacity = 0.2 + bass * 0.3 * pulse;
-
-      if (beatInfo?.isBeat && Math.random() < 0.3) {
+    // CONNECTIONS
+    connections.forEach((line: THREE.Line) => {
+      const material = line.material as THREE.LineBasicMaterial;
+      material.opacity = 0.2 + mid * 0.3;
+      
+      if (beatInfo?.isBeat && Math.random() < 0.1) {
         material.opacity = 1;
         material.color.setHSL(Math.random(), 0.8, 0.7);
       }
     });
 
-    obj.rotation.y += params.rotationSpeed * 0.001;
-    obj.rotation.x += Math.sin(time * 0.2) * 0.01;
+    // ROTATION
+    obj.rotation.y += 0.002 * (1 + mid * 0.5);
 
+    // BEAT EFFECT
     if (beatInfo?.isBeat) {
-      for (let layer = 0; layer < obj.userData.layers; layer++) {
-        setTimeout(() => {
-          const layerStart = layer * obj.userData.nodesPerLayer;
-          const layerEnd = layerStart + obj.userData.nodesPerLayer;
-
-          for (let i = layerStart; i < layerEnd; i++) {
-            if (
-              i < obj.children.length &&
-              obj.children[i] instanceof THREE.Mesh
-            ) {
-              const neuron = obj.children[i] as THREE.Mesh;
-              neuron.scale.setScalar(1.2);
-              (neuron.material as THREE.MeshBasicMaterial).opacity = 1;
-            }
-          }
-        }, layer * 50);
-      }
+      obj.children.forEach((child, i) => {
+        if (i > 0 && child instanceof THREE.Mesh) {
+          child.scale.setScalar(0.6);
+          const material = child.material as THREE.MeshBasicMaterial;
+          material.color.setHSL(Math.random(), 1, 0.9);
+        }
+      });
     }
   });
 };
