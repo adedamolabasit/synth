@@ -6,10 +6,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Landing page */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>

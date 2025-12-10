@@ -13,7 +13,7 @@ import {
   ArrowRight,
   Star,
 } from "lucide-react";
-import Link from "next/link";
+import { useNavigate } from "react-router-dom";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -87,6 +87,11 @@ const TestimonialCard: React.FC<TestimonialProps> = ({
 const LandingPage: React.FC = () => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const navigate = useNavigate();
+
+  const goToDashboard = () => {
+    navigate("/dashboard");
+  };
 
   const features = [
     {
@@ -211,15 +216,16 @@ const LandingPage: React.FC = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Link href="/dashboard">
-                <button className="group relative px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl font-semibold text-white hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-300 hover:scale-105 backdrop-blur-sm">
-                  <div className="flex items-center gap-2">
-                    <span>Start Creating Free</span>
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
-                </button>
-              </Link>
+              <button
+                onClick={goToDashboard}
+                className="group relative px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl font-semibold text-white hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <span>Start Creating Free</span>
+                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </div>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+              </button>
             </div>
           </div>
         </div>
@@ -285,12 +291,13 @@ const LandingPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="flex gap-4">
-                  <Link href="/dashboard">
-                    <button className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center gap-2 backdrop-blur-sm">
-                      <Upload className="w-4 h-4" />
-                      Get Started
-                    </button>
-                  </Link>
+                  <button
+                    onClick={goToDashboard}
+                    className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center gap-2 backdrop-blur-sm"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Get Started
+                  </button>
                 </div>
               </div>
             </div>
@@ -372,14 +379,15 @@ const LandingPage: React.FC = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/dashboard">
-                  <button className="group px-8 py-4 bg-gradient-to-r from-white to-slate-100 rounded-xl font-semibold text-slate-900 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 hover:scale-105">
-                    <div className="flex items-center gap-2">
-                      <span>Start Free Trial</span>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </button>
-                </Link>
+                <button
+                  onClick={goToDashboard}
+                  className="group px-8 py-4 bg-gradient-to-r from-white to-slate-100 rounded-xl font-semibold text-slate-900 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 hover:scale-105"
+                >
+                  <div className="flex items-center gap-2">
+                    <span>Start Free Trial</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
               </div>
 
               <p className="text-slate-300 text-sm mt-6">
