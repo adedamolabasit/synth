@@ -125,10 +125,10 @@ export function VisualizerLibrary() {
       liquid: "Liquid",
       cyber: "Cyber",
       geometric: "Geometric",
-      dynamic: "Dynamic", // Added
-      grid: "Grid", // Added
-      wireframe: "Wireframe", // Added
-      tunnel: "Tunnel", // Added
+      dynamic: "Dynamic",
+      grid: "Grid",
+      wireframe: "Wireframe",
+      tunnel: "Tunnel",
     };
     return labels[type] || type;
   };
@@ -139,25 +139,30 @@ export function VisualizerLibrary() {
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4">
+    <div className="h-full flex flex-col gap-2 md:gap-4 p-2 md:p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Sparkles className="text-cyan-400" size={20} />
-          Template
+        <h2 className="text-base md:text-lg font-semibold text-white flex items-center gap-1 md:gap-2">
+          <Sparkles className="text-cyan-400" size={16} />
+          <span className="hidden sm:inline">Template</span>
+          <span className="sm:hidden">Viz</span>
         </h2>
-        {currentVisualizer && (
-          <Badge variant="success" size="sm">
-            Active: {currentVisualizer.replace(/([A-Z])/g, " $1").trim()}
-          </Badge>
-        )}
       </div>
-
-      <div className="flex gap-2">
+      {currentVisualizer && (
+        <Badge variant="success" size="sm" className="text-xs md:text-xs">
+          Active:{" "}
+          <span className="hidden sm:inline text-xs">
+            {currentVisualizer.replace(/([A-Z])/g, " $1").trim()}
+          </span>
+          <span className="sm:hidden">On</span>
+        </Badge>
+      )}
+      <div className="flex flex-col sm:flex-row gap-2">
         <div className="flex-1">
           <Input
             placeholder="Search visualizers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="text-sm md:text-base"
           />
         </div>
 
@@ -165,7 +170,7 @@ export function VisualizerLibrary() {
           <button
             onClick={() => setShowFilterDropdown(!showFilterDropdown)}
             className={`
-              h-10 px-3 rounded-lg border transition-all flex items-center justify-center
+              h-8 md:h-10 px-2 md:px-3 rounded-lg border transition-all flex items-center justify-center
               ${
                 selectedType !== "all"
                   ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
@@ -173,55 +178,61 @@ export function VisualizerLibrary() {
               }
             `}
           >
-            <Filter size={16} />
+            <Filter size={14} />
             {selectedType !== "all" && (
-              <span className="ml-2 text-xs font-medium">
+              <span className="ml-1 md:ml-2 text-xs font-medium hidden sm:inline">
                 {getTypeLabel(selectedType)}
               </span>
             )}
           </button>
 
           {showFilterDropdown && (
-            <div className="absolute top-12 right-0 z-10 bg-slate-800 border border-slate-600 rounded-lg shadow-lg py-2 min-w-[140px]">
-              {filterTypes.map((type) => {
-                const Icon = getTypeIcon(type);
-                return (
-                  <button
-                    key={type}
-                    onClick={() => {
-                      setSelectedType(type);
-                      setShowFilterDropdown(false);
-                    }}
-                    className={`
-                      w-full px-3 py-2 text-sm text-left transition-all flex items-center gap-2
-                      ${
-                        type === selectedType
-                          ? "bg-cyan-500/20 text-cyan-400"
-                          : "text-slate-300 hover:bg-slate-700/50"
-                      }
-                    `}
-                  >
-                    <Icon size={14} />
-                    {getTypeLabel(type)}
-                  </button>
-                );
-              })}
-            </div>
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowFilterDropdown(false)}
+              />
+              <div className="absolute top-10 md:top-12 right-0 z-20 bg-slate-800 border border-slate-600 rounded-lg shadow-lg py-2 min-w-[140px] max-h-64 overflow-y-auto">
+                {filterTypes.map((type) => {
+                  const Icon = getTypeIcon(type);
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        setSelectedType(type);
+                        setShowFilterDropdown(false);
+                      }}
+                      className={`
+                        w-full px-3 py-2 text-sm text-left transition-all flex items-center gap-2
+                        ${
+                          type === selectedType
+                            ? "bg-cyan-500/20 text-cyan-400"
+                            : "text-slate-300 hover:bg-slate-700/50"
+                        }
+                      `}
+                    >
+                      <Icon size={14} />
+                      {getTypeLabel(type)}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto mt-6 mx-2">
+      <div className="flex-1 overflow-y-auto mt-2 md:mt-4 mx-1 md:mx-2">
         {filteredVisualizers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-slate-400">
-            <Search size={32} className="mb-2" />
-            <p>No visualizers found</p>
-            <p className="text-sm">Try adjusting your search or filter</p>
+            <Search size={24} className="mb-1 md:mb-2" />
+            <p className="text-sm md:text-base">No visualizers found</p>
+            <p className="text-xs md:text-sm">Try adjusting search</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
             {filteredVisualizers.map((viz) => {
-              const Icon = typeIcons[viz.type] || Grid3x3; // Fallback icon
+              const Icon = typeIcons[viz.type] || Grid3x3;
               const isActive = currentVisualizer === viz.visualizerType;
 
               return (
@@ -229,25 +240,25 @@ export function VisualizerLibrary() {
                   key={viz.id}
                   hover
                   glow={isActive ? "cyan" : "magenta"}
-                  className={`p-3 cursor-pointer transition-all ${
+                  className={`p-2 md:p-3 cursor-pointer transition-all ${
                     isActive ? "ring-2 ring-cyan-500 bg-cyan-500/10" : ""
                   }`}
                   onClick={() => handleVisualizerClick(viz)}
                 >
-                  <div className="aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg mb-2 flex items-center justify-center text-3xl relative overflow-hidden group">
+                  <div className="aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg mb-1 md:mb-2 flex items-center justify-center text-lg md:text-3xl relative overflow-hidden group">
                     {viz.thumbnail}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     {isActive && (
-                      <div className="absolute top-2 left-2 bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                      <div className="absolute top-1 md:top-2 left-1 md:left-2 bg-cyan-500 text-white text-xs px-1.5 py-0.5 rounded-full">
                         Active
                       </div>
                     )}
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1 truncate">
+                  <h3 className="font-semibold text-white text-xs md:text-sm mb-0.5 md:mb-1 truncate">
                     {viz.name}
                   </h3>
                   <div className="flex items-center justify-between">
-                    <Badge variant="default" size="sm">
+                    <Badge variant="default" size="sm" className="text-xs truncate">
                       <Icon size={10} className="mr-1" />
                       {viz.type}
                     </Badge>
@@ -260,7 +271,7 @@ export function VisualizerLibrary() {
         )}
       </div>
 
-      <div className="text-xs text-slate-500 text-center pt-2 border-t border-slate-700/50">
+      <div className="text-xs text-slate-500 text-center pt-1 md:pt-2 border-t border-slate-700/50">
         {filteredVisualizers.length} of {visualizers.length} visualizers
       </div>
     </div>

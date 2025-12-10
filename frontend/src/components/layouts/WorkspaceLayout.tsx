@@ -45,42 +45,51 @@ export function WorkspaceLayout({ activeView }: WorkspaceLayoutProps) {
   }
 
 
-  return (
-    <div className="flex-1 flex overflow-hidden">
-      
-      {!isMobile && (
-        <div
-          className="
-            bg-slate-900/50 
-            border-r border-slate-800/50 
-            overflow-y-auto
-            hidden md:block
-          "
-          style={{ width: `320px` }}
-        >
-          <AudioUploadPanel />
-        </div>
-      )}
+return (
+  <div className="flex-1 flex overflow-hidden">
 
-      <div className="flex-1 flex flex-col bg-slate-950/40 overflow-hidden">
-        <LivePreviewCanvas />
+    {!isMobile && (
+      <div
+        className="
+          bg-slate-900/50 
+          border-r border-slate-800/50 
+          overflow-y-auto
+          hidden md:block
+          flex-shrink-0
+        "
+        style={{
+          flexBasis: '20%',
+          maxWidth: '300px', 
+          minWidth: '200px', 
+        }}
+      >
+        <AudioUploadPanel />
       </div>
+    )}
 
-      {!isMobile && (
-        <div
-          className="
-            bg-slate-900/50 
-            border-l border-slate-800/50 
-            overflow-y-auto
-            hidden md:block
-          "
-          style={{ width: `320px` }}
-        >
-          <VisualizerLibrary />
-        </div>
-      )}
-      
+    <div className="flex-1 flex flex-col bg-slate-950/40 overflow-hidden">
+      <LivePreviewCanvas />
     </div>
-    
-  );
+
+    {!isMobile && (
+      <div
+        className="
+          bg-slate-900/50 
+          border-l border-slate-800/50 
+          overflow-y-auto
+          hidden md:block
+          flex-shrink-0
+        "
+        style={{
+          flexBasis: '20%',
+          maxWidth: '300px',
+          minWidth: '200px',
+        }}
+      >
+        <VisualizerLibrary />
+      </div>
+    )}
+
+  </div>
+);
 }

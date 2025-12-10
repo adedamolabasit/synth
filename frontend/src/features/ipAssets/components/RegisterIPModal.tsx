@@ -199,7 +199,6 @@ export function RegisterIPModal({
 
       return response;
     } catch (error: any) {
-      console.error("IP registration failed:", error);
       setIsLoading(false);
 
       toast.error(

@@ -119,7 +119,6 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error("Error downloading video:", error);
       alert("Failed to download video. Please try again.");
     } finally {
       setIsDownloading(false);
@@ -133,7 +132,6 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
       setMintingLicenseId(licenseId);
 
       const amount = formatWeiToIp(mintFee.toString());
-      console.log(amount, "fs");
       const mintData = {
         ipId: video.ipRegistration?.ipId as `0x${string}`,
         licensstermId: licenseId,

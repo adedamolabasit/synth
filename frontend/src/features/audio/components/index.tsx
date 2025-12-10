@@ -275,13 +275,13 @@ export function AudioUploadPanel({
       <div className="h-full flex items-center justify-center p-2">
         <Button
           variant="ghost"
-          className="w-10 h-10 p-0 rounded-full bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 transition-all duration-300 hover:scale-105"
+          className="w-8 h-8 md:w-10 md:h-10 p-0 rounded-full bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 transition-all duration-300 hover:scale-105"
           onClick={onToggleCollapse}
         >
           {position === "left" ? (
-            <ChevronRight className="text-cyan-400" size={20} />
+            <ChevronRight className="text-cyan-400" size={16} />
           ) : (
-            <ChevronLeft className="text-cyan-400" size={20} />
+            <ChevronLeft className="text-cyan-400" size={16} />
           )}
         </Button>
       </div>
@@ -290,7 +290,7 @@ export function AudioUploadPanel({
 
   return (
     <div
-      className="h-full flex flex-col gap-4 p-4 transition-all duration-300 ease-in-out"
+      className="h-full flex flex-col gap-2 md:gap-4 p-2 md:p-4 transition-all duration-300 ease-in-out"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -306,45 +306,46 @@ export function AudioUploadPanel({
       />
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="w-8 h-8 p-0 hover:bg-slate-700/50 transition-all duration-200"
+            className="w-6 h-6 md:w-8 md:h-8 p-0 hover:bg-slate-700/50 transition-all duration-200"
             onClick={onToggleCollapse}
           >
             {position === "left" ? (
-              <ChevronLeft className="text-slate-400" size={16} />
+              <ChevronLeft className="text-slate-400" size={14} />
             ) : (
-              <ChevronRight className="text-slate-400" size={16} />
+              <ChevronRight className="text-slate-400" size={14} />
             )}
           </Button>
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Music className="text-cyan-400" size={20} />
-            Audio Player
+          <h2 className="text-sm md:text-lg font-semibold text-white flex items-center gap-1 md:gap-2">
+            <Music className="text-cyan-400" size={16} />
+            <span className="hidden sm:inline">Audio Player</span>
+            <span className="sm:hidden">Audio</span>
           </h2>
         </div>
         {isConnected && audioFiles.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
-            className="text-slate-400 hover:text-cyan-400"
+            className="text-slate-400 hover:text-cyan-400 p-1 md:p-2"
             onClick={handleManualRefresh}
             disabled={isUploading || isAnalyzing}
             title="Refresh library"
           >
             <Loader2
-              className={`h-4 w-4 ${isAnalyzing ? "animate-spin" : ""}`}
+              className={`h-3 w-3 md:h-4 md:w-4 ${isAnalyzing ? "animate-spin" : ""}`}
             />
           </Button>
         )}
       </div>
 
-      <div className="flex gap-2 border-b border-slate-700/50 pb-2">
+      <div className="flex gap-1 md:gap-2 border-b border-slate-700/50 pb-1 md:pb-2">
         <Button
           variant="ghost"
           size="sm"
-          className={`flex-1 ${
+          className={`flex-1 text-xs md:text-sm ${
             activeTab === "upload"
               ? "bg-slate-700/50 text-cyan-400"
               : "text-slate-400"
@@ -357,7 +358,7 @@ export function AudioUploadPanel({
         <Button
           variant="ghost"
           size="sm"
-          className={`flex-1 ${
+          className={`flex-1 text-xs md:text-sm ${
             activeTab === "library"
               ? "bg-slate-700/50 text-cyan-400"
               : "text-slate-400"
@@ -371,26 +372,26 @@ export function AudioUploadPanel({
           }}
           disabled={isUploading || !isConnected}
         >
-          Library ({audioFiles.length})
+          Library <span className="ml-1">({audioFiles.length})</span>
         </Button>
       </div>
 
       {!isConnected && (
-        <Card className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-800/50 border-slate-700/50">
-          <div className="w-20 h-20 rounded-full bg-slate-700/50 flex items-center justify-center mb-4">
-            <Lock className="text-slate-400" size={32} />
+        <Card className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 bg-slate-800/50 border-slate-700/50">
+          <div className="w-12 h-12 md:w-20 md:h-20 rounded-full bg-slate-700/50 flex items-center justify-center mb-3 md:mb-4">
+            <Lock className="text-slate-400" size={20} />
           </div>
-          <h3 className="text-xl font-semibold text-white mb-2 text-center">
+          <h3 className="text-base md:text-xl font-semibold text-white mb-2 text-center">
             Connect Your Wallet
           </h3>
-          <p className="text-slate-400 text-center mb-4">
+          <p className="text-slate-400 text-center mb-3 md:mb-4 text-sm md:text-base">
             Please connect your wallet to access audio upload and library
             features
           </p>
           <Button
             variant="primary"
             onClick={handleConnectWallet}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-sm md:text-base"
           >
             Connect Wallet
           </Button>
@@ -400,14 +401,14 @@ export function AudioUploadPanel({
       {isConnected && (
         <>
           {fetchError && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-              <p className="text-red-400 text-sm">{fetchError}</p>
-              <div className="flex gap-2 mt-2">
+            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-2 md:p-3">
+              <p className="text-red-400 text-xs md:text-sm">{fetchError}</p>
+              <div className="flex gap-1 md:gap-2 mt-1 md:mt-2">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleManualRefresh}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-red-400 hover:text-red-300 text-xs md:text-sm"
                   disabled={isUploading}
                 >
                   Try Again
@@ -416,7 +417,7 @@ export function AudioUploadPanel({
                   variant="ghost"
                   size="sm"
                   onClick={() => setFetchError("")}
-                  className="text-slate-400 hover:text-slate-300"
+                  className="text-slate-400 hover:text-slate-300 text-xs md:text-sm"
                 >
                   Dismiss
                 </Button>
@@ -426,7 +427,7 @@ export function AudioUploadPanel({
 
           {activeTab === "upload" ? (
             <Card
-              className={`flex-1 flex flex-col items-center justify-center p-8 transition-all duration-300 ${
+              className={`flex-1 flex flex-col items-center justify-center p-4 md:p-8 transition-all duration-300 ${
                 isDragging && !isUploading
                   ? "border-cyan-500 bg-cyan-500/10 scale-[0.98] shadow-lg shadow-cyan-500/20"
                   : isUploading
@@ -438,10 +439,10 @@ export function AudioUploadPanel({
               onClick={() => !isUploading && handleFileInputClick()}
             >
               {isUploading ? (
-                <div className="flex flex-col items-center gap-4 w-full max-w-xs">
-                  <div className="flex items-center gap-3 text-purple-400">
-                    <Sparkles className="animate-pulse" size={32} />
-                    <Loader2 className="animate-spin" size={32} />
+                <div className="flex flex-col items-center gap-3 md:gap-4 w-full max-w-xs">
+                  <div className="flex items-center gap-2 md:gap-3 text-purple-400">
+                    <Sparkles className="animate-pulse" size={24} />
+                    <Loader2 className="animate-spin" size={24} />
                   </div>
                   <div className="w-full bg-slate-700/50 rounded-full h-2">
                     <div
@@ -450,36 +451,37 @@ export function AudioUploadPanel({
                     />
                   </div>
                   <div className="text-center">
-                    <p className="text-purple-300 font-medium mb-2">
+                    <p className="text-purple-300 font-medium mb-1 md:mb-2 text-sm md:text-base">
                       AI Analysis in Progress
                     </p>
-                    <p className="text-slate-400 text-sm">
-                      Extracting music elements like lyrics, effects, and
-                      patterns...
+                    <p className="text-slate-400 text-xs md:text-sm">
+                      Extracting music elements...
                     </p>
-                    <p className="text-slate-500 text-xs mt-2">
-                      This may take a moment while our AI processes your audio
+                    <p className="text-slate-500 text-xs mt-1 md:mt-2">
+                      This may take a moment
                     </p>
                   </div>
                 </div>
               ) : isAnalyzing ? (
-                <div className="flex flex-col items-center gap-4">
-                  <Loader2 className="text-cyan-400 animate-spin" size={48} />
-                  <p className="text-slate-300">Processing audio...</p>
+                <div className="flex flex-col items-center gap-2 md:gap-4">
+                  <Loader2 className="text-cyan-400 animate-spin" size={32} />
+                  <p className="text-slate-300 text-sm md:text-base">
+                    Processing audio...
+                  </p>
                 </div>
               ) : (
                 <>
-                  <div className="w-20 h-20 rounded-full bg-slate-800/50 flex items-center justify-center mb-4 transition-all duration-300 hover:scale-110 hover:bg-slate-700/50">
-                    <Upload className="text-cyan-400" size={32} />
+                  <div className="w-12 h-12 md:w-20 md:h-20 rounded-full bg-slate-800/50 flex items-center justify-center mb-3 md:mb-4 transition-all duration-300 hover:scale-110 hover:bg-slate-700/50">
+                    <Upload className="text-cyan-400" size={20} />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2 text-center">
+                  <h3 className="text-base md:text-xl font-semibold text-white mb-1 md:mb-2 text-center">
                     Drop your audio file
                   </h3>
-                  <p className="text-slate-400 text-center mb-2">
-                    Support for MP3, WAV, FLAC, OGG
+                  <p className="text-slate-400 text-center mb-1 md:mb-2 text-xs md:text-sm">
+                    MP3, WAV, FLAC, OGG
                   </p>
-                  <p className="text-slate-500 text-center text-sm mb-4">
-                    Max file size: 30MB • AI-powered music analysis
+                  <p className="text-slate-500 text-center text-xs mb-3 md:mb-4">
+                    Max 30MB • AI-powered
                   </p>
                   <Button
                     variant="primary"
@@ -488,6 +490,7 @@ export function AudioUploadPanel({
                       handleFileInputClick();
                     }}
                     disabled={isUploading}
+                    className="text-sm md:text-base"
                   >
                     {isUploading ? "Uploading..." : "Browse Files"}
                   </Button>
@@ -495,33 +498,33 @@ export function AudioUploadPanel({
               )}
             </Card>
           ) : (
-            <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+            <div className="flex-1 flex flex-col gap-2 md:gap-4 overflow-hidden">
               {isAnalyzing && audioFiles.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2">
-                  <Loader2 className="animate-spin" size={32} />
-                  <p>Loading audio library...</p>
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-1 md:gap-2">
+                  <Loader2 className="animate-spin" size={24} />
+                  <p className="text-sm md:text-base">Loading audio library...</p>
                 </div>
               ) : audioFiles.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2">
-                  <Music size={48} />
-                  <p>No audio files found</p>
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-1 md:gap-2">
+                  <Music size={32} />
+                  <p className="text-sm md:text-base">No audio files found</p>
                   <Button
                     variant="primary"
                     size="sm"
                     onClick={() => setActiveTab("upload")}
                     disabled={isUploading}
+                    className="text-xs md:text-sm"
                   >
                     Upload your first file
                   </Button>
                 </div>
               ) : (
                 <>
-                  <div className="text-xs text-slate-500 flex justify-between items-center"></div>
-                  <div className="flex-1 overflow-y-auto space-y-3">
+                  <div className="flex-1 overflow-y-auto space-y-2 md:space-y-3">
                     {audioFiles.map((audioFile) => (
                       <Card
                         key={audioFile._id}
-                        className={`p-3 transition-all duration-300 cursor-pointer group relative ${
+                        className={`p-2 md:p-3 transition-all duration-300 cursor-pointer group relative ${
                           currentAudio?._id === audioFile._id
                             ? "border-2 border-cyan-500 bg-cyan-500/15 shadow-lg shadow-cyan-500/20 scale-[1.02]"
                             : "border border-slate-700/50 hover:border-slate-600/50 hover:shadow-lg hover:shadow-cyan-500/5"
@@ -536,11 +539,11 @@ export function AudioUploadPanel({
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 rounded-l-md" />
                         )}
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 md:gap-3">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={`w-8 h-8 p-0 rounded-full transition-all ${
+                            className={`w-6 h-6 md:w-8 md:h-8 p-0 rounded-full transition-all ${
                               currentAudio?._id === audioFile._id
                                 ? "bg-cyan-500/50"
                                 : "bg-slate-700/50 hover:bg-slate-600/50"
@@ -548,16 +551,16 @@ export function AudioUploadPanel({
                           >
                             {currentAudio?._id === audioFile._id &&
                             isPlaying ? (
-                              <Pause size={16} />
+                              <Pause size={12} />
                             ) : (
-                              <Play size={16} />
+                              <Play size={12} />
                             )}
                           </Button>
-                          <div className="flex-1 flex flex-col">
-                            <p className="text-white font-medium text-sm truncate">
+                          <div className="flex-1 flex flex-col min-w-0">
+                            <p className="text-white font-medium text-xs md:text-sm truncate">
                               {audioFile.name}
                             </p>
-                            <p className="text-slate-400 text-xs">
+                            <p className="text-slate-400 text-xs truncate">
                               {formatFileSize(audioFile.size)} •{" "}
                               {formatDate(audioFile.uploadedAt)}
                             </p>
@@ -565,13 +568,13 @@ export function AudioUploadPanel({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-slate-400 hover:text-cyan-400 p-1"
+                            className="text-slate-400 hover:text-cyan-400 p-0.5 md:p-1 flex-shrink-0"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDownload(audioFile);
                             }}
                           >
-                            <Download size={16} />
+                            <Download size={14} />
                           </Button>
                         </div>
                       </Card>

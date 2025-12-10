@@ -49,12 +49,9 @@ export function useStory(ipId: string | undefined) {
       );
 
       const assets = response.data.data ?? [];
-      console.log(assets, "assets>>");
       const firstAsset = assets[0];
-      console.log(firstAsset, "lll");
 
       if (firstAsset && Array.isArray(firstAsset.licenses)) {
-        console.log(firstAsset.licenses, "first");
         setLicenses(firstAsset.licenses);
       } else {
         setLicenses([]);
