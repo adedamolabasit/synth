@@ -29,7 +29,7 @@ export const RegisterIpAsset = async (
   const nftMetadata = {
     name: title,
     description: description,
-    image: video.thumbnailUrl,
+    image: imageUrl,
     attributes: [
       {
         key: "Name",
