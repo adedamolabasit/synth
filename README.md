@@ -24,6 +24,9 @@ Users can upload audio files (mp3). The backend extracts metadata, analyzes freq
 🔗 Demo UI (Slideshow):  
 https://v0-slideshow-ui-design.vercel.app/
 
+🔗 Swagger UI: 
+https://synth-production-c068.up.railway.app/api/docs/
+
 ---
 
 ## 🎨 Real-time 3D Visualizers

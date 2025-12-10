@@ -99,7 +99,7 @@ The backend automatically generates Swagger documentation under:
 
 Access it in your browser:
 
-👉 **http://localhost:3000/api/docs**
+👉 **https://synth-production-c068.up.railway.app/api/docs/**
 
 ---
 

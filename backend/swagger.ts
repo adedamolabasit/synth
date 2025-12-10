@@ -10,7 +10,7 @@ const options = {
       version: '1.0.0',
       description: 'API for extracting lyrics from audio files',
     },
-    servers: [{ url: 'http://localhost:8000/api/v1' }],
+    servers: [{ url: 'https://synth-production-c068.up.railway.app/api/docs' }],
   },
   apis: ['./src/routes/*.ts'],
 };
