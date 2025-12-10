@@ -12,13 +12,14 @@ export const RegisterIpAsset = async (
   const { title, description, creators, video, licenseTerms } =
     registrationData;
 
+  const imageUrl = "https://media.istockphoto.com/id/2213151840/photo/music-equalizer.jpg?s=2048x2048&w=is&k=20&c=wWcG7jKuEVb9GWdxUd3XdenV2OwOzBpe-DeIqfkYhUE=";
+
   const ipMetadata: IpMetadata = client.ipAsset.generateIpMetadata({
     title: title,
     description: description,
     createdAt: new Date().toISOString(),
     creators: creators,
-    image:
-      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070",
+    image: imageUrl,
     imageHash: video.videoHash as `0x${string}`,
     mediaUrl: video.videoUrl,
     mediaHash: video.videoHash as `0x${string}`,

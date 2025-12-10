@@ -25,6 +25,7 @@ import { useStory } from "../../ipAssets/hooks/useStory";
 import { useStoryClient } from "../../../story/client/storyClient";
 import { MintIpLicense } from "../../ipAssets/story/MintIpLicense";
 import { useToastContext } from "../../../components/common/Toast/ToastProvider";
+import Link from "next/link";
 
 interface VideoInfoProps {
   video: Video;
@@ -707,9 +708,14 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
                     </div>
 
                     <div className="flex gap-3 pt-4 border-t border-slate-700">
-                      <Button variant="secondary" className="flex-1">
-                        Download license
-                      </Button>
+                      <Link
+                        href={`https://aeneid.explorer.story.foundation/ipa/${video.ipRegistration?.ipId}`}
+                      >
+                        <Button variant="secondary" className="flex-1">
+                          View license onchain
+                        </Button>
+                      </Link>
+
                       <Button
                         variant="primary"
                         className="flex-1"
