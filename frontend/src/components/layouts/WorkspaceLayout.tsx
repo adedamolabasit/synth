@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { AudioUploadPanel } from "../../features/audio/components/AudioUploadPanel";
+import { AudioUploadPanel } from "../../features/audio/components";
 import { VisualizerLibrary } from "../../features/workspace/components/VisualizerLibrary";
-import { LivePreviewCanvas } from "../../features/workspace";
-import { IPManagementDashboard } from "../../features/ipAssets";
-import { VideoPlayer } from "../../features/video";
+import { LivePreviewCanvas } from "../../features/workspace/components";
+import { IPManagementDashboard } from "../../features/ipAssets/components";
+import { VideoPlayer } from "../../features/video/components";
 
 
 interface WorkspaceLayoutProps {

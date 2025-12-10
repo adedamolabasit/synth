@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Video } from "..";
+import { Video } from "../components";
 import { generateVideoThumbnail } from "../utils/videoUtils";
 
 export const useVideoThumbnails = (videos: Video[]) => {

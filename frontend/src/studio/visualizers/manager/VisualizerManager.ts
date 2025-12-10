@@ -14,14 +14,10 @@ export class VisualizerManager {
     switch (params.visualizerType) {
       case "spectrum":
         return creators.createSpectrumVisualizer(scene, params);
-      case "particleWave":
-        return creators.createParticleWaveVisualizer(scene, params);
       case "geometric":
         return creators.createGeometricVisualizer(scene, params);
       case "waveform3D":
         return creators.createWaveform3DVisualizer(scene);
-      case "audioReactive":
-        return creators.createAudioReactiveVisualizer(scene);
       case "morphing":
         return creators.createMorphingVisualizer(scene, params);
       case "liquid":
@@ -40,56 +36,18 @@ export class VisualizerManager {
         return creators.createFractalTreeVisualizer(scene, params);
       case "kaleidoscope":
         return creators.createKaleidoscopeVisualizer(scene, params);
-      case "neuralNetwork":
-        return creators.createNeuralNetworkVisualizer(scene);
       case "quantumField":
         return creators.createQuantumFieldVisualizer(scene, params);
       case "solarFlare":
         return creators.createSolarFlareVisualizer(scene, params);
       case "auroraWaves":
         return creators.createAuroraWavesVisualizer(scene, params);
-      case "sacredGeometry":
-        return creators.createSacredGeometryVisualizer(scene, params);
-      case "nebulaCloud":
-        return creators.createNebulaCloudVisualizer(scene, params);
-      case "mandala":
-        return creators.createMandalaVisualizer(scene, params);
-      case "spiralArms":
-        return creators.createSpiralArmsVisualizer(scene, params);
-      case "hexagonalGrid":
-        return creators.createHexagonalGridVisualizer(scene, params);
       case "voronoiCells":
         return creators.createVoronoiCellsVisualizer(scene, params);
-      case "toroidalField":
-        return creators.createToroidalFieldVisualizer(scene, params);
-      case "cosmicWeb":
-        return creators.createCosmicWebVisualizer(scene, params);
       case "crystalCave":
         return creators.createCrystalCaveVisualizer(scene, params);
-      case "fireRings":
-        return creators.createFireRingsVisualizer(scene, params);
-      case "electromagneticField":
-        return creators.createElectromagneticFieldVisualizer(scene, params);
-      case "mobiusStrip":
-        return creators.createMobiusStripVisualizer(scene, params);
-      case "fibonacciSpiral":
-        return creators.createFibonacciSpiralVisualizer(scene, params);
-      case "tesseract":
-        return creators.createTesseractVisualizer(scene);
-      case "dnaOrigami":
-        return creators.createDNAOrigamiVisualizer(scene, params);
       case "supernova":
         return creators.createSupernovaVisualizer(scene, params);
-      case "warpTunnel":
-        return creators.createWarpTunnelVisualizer(scene, params);
-      case "moleculeBonds":
-        return creators.createMoleculeBondsVisualizer(scene, params);
-      case "lightningStorm":
-        return creators.createLightningStormVisualizer(scene, params);
-      case "quantumFoam":
-        return creators.createQuantumFoamVisualizer(scene, params);
-      case "celestialOrbit":
-        return creators.createCelestialOrbitVisualizer(scene, params);
       case "crystalMatrix":
         return creators.createCrystalMatrixVisualizer(scene);
       case "liquidMercury":
@@ -102,8 +60,6 @@ export class VisualizerManager {
         return creators.createHolographicGridVisualizer(scene);
       case "morphingCrystals":
         return creators.createMorphingCrystalsVisualizer(scene);
-      case "orbitalRings":
-        return creators.createOrbitalRingsVisualizer(scene);
       case "fractalExpansion":
         return creators.createFractalExpansionVisualizer(scene);
       case "celestialSymphony":
@@ -116,12 +72,29 @@ export class VisualizerManager {
         return creators.createCrystalResonanceVisualizer(scene);
       case "timeVortex":
         return creators.createTimeVortexVisualizer(scene);
-      case "dimensionalGateway":
-        return creators.createDimensionalGatewayVisualizer(scene);
-      case "neuralCosmos":
-        return creators.createNeuralCosmosVisualizer(scene);
+      // New visualizers
+      case "waveform3Dmini":
+        return creators.createWaveform3DVisualizermini(scene);
+      case "particleSphere":
+        return creators.createParticleSphereVisualizer(scene);
+      case "cubeGrid":
+        return creators.createCubeGridVisualizer(scene);
+      case "spiralHelix":
+        return creators.createSpiralHelixVisualizer(scene);
+      case "pulsingRings":
+        return creators.createPulsingRingsVisualizer(scene);
+      case "crystalFormation":
+        return creators.createCrystalFormationVisualizer(scene);
+      case "galaxyNebula":
+        return creators.createGalaxyNebulaVisualizer(scene);
+      case "audioTunnel":
+        return creators.createAudioTunnelVisualizer(scene);
+      case "audioMesh":
+        return creators.createAudioMeshVisualizer(scene);
+      case "kaleidoscope2":
+        return creators.createKaleidoscopeVisualizer2(scene);
       default:
-        return creators.createDNAHelixVisualizer(scene, params);
+        return creators.createAudioTunnelVisualizer(scene);
     }
   }
 
@@ -136,29 +109,11 @@ export class VisualizerManager {
       case "spectrum":
         animators.animateSpectrum(objects, frequencyData, time, params);
         break;
-      case "particleWave":
-        animators.animateParticleWave(
-          objects,
-          frequencyData,
-          time,
-          params,
-          beatInfo
-        );
-        break;
       case "geometric":
         animators.animateGeometric(objects, frequencyData, time);
         break;
       case "waveform3D":
         animators.animateWaveform3D(
-          objects,
-          frequencyData,
-          time,
-          params,
-          beatInfo
-        );
-        break;
-      case "audioReactive":
-        animators.animateAudioReactive(
           objects,
           frequencyData,
           time,
@@ -205,15 +160,6 @@ export class VisualizerManager {
       case "kaleidoscope":
         animators.animateKaleidoscope(objects, frequencyData, time);
         break;
-      case "neuralNetwork":
-        animators.animateNeuralNetwork(
-          objects,
-          frequencyData,
-          time,
-          params,
-          beatInfo
-        );
-        break;
       case "quantumField":
         animators.animateQuantumField(
           objects,
@@ -229,69 +175,17 @@ export class VisualizerManager {
       case "auroraWaves":
         animators.animateAuroraWaves(objects, frequencyData, time);
         break;
-      case "sacredGeometry":
-        animators.animateSacredGeometry(objects, frequencyData, time);
-        break;
-      case "nebulaCloud":
-        animators.animateNebulaCloud(objects, frequencyData, time);
-        break;
-      case "mandala":
-        animators.animateMandala(objects, frequencyData, time);
-        break;
-      case "spiralArms":
-        animators.animateSpiralArms(objects, frequencyData, time);
-        break;
-      case "hexagonalGrid":
-        animators.animateHexagonalGrid(objects, frequencyData, time);
-        break;
       case "voronoiCells":
         animators.animateVoronoiCells(objects, frequencyData, time);
-        break;
-      case "toroidalField":
-        animators.animateToroidalField(objects, frequencyData, time);
-        break;
-      case "cosmicWeb":
-        animators.animateCosmicWeb(objects, frequencyData, time);
         break;
       case "crystalCave":
         animators.animateCrystalCave(objects, frequencyData);
         break;
-      case "fireRings":
-        animators.animateFireRings(objects, frequencyData);
-        break;
-      case "electromagneticField":
-        animators.animateElectromagneticField(objects, frequencyData);
-        break;
-      case "mobiusStrip":
-        animators.animateMobiusStrip(objects, frequencyData, time);
-        break;
-      case "fibonacciSpiral":
-        animators.animateFibonacciSpiral(objects, frequencyData, time);
-        break;
-      case "tesseract":
-        animators.animateTesseract(objects, frequencyData, time);
-        break;
-      case "dnaOrigami":
-        animators.animateDNAOrigami(objects, frequencyData, time);
-        break;
+
       case "supernova":
         animators.animateSupernova(objects, frequencyData);
         break;
-      case "warpTunnel":
-        animators.animateWarpTunnel(objects, frequencyData, time);
-        break;
-      case "moleculeBonds":
-        animators.animateMoleculeBonds(objects, frequencyData, time);
-        break;
-      case "lightningStorm":
-        animators.animateLightningStorm(objects, frequencyData);
-        break;
-      case "quantumFoam":
-        animators.animateQuantumFoam(objects, frequencyData, time);
-        break;
-      case "celestialOrbit":
-        animators.animateCelestialOrbit(objects, frequencyData, time);
-        break;
+
       case "crystalMatrix":
         animators.animateCrystalMatrix(
           objects,
@@ -346,15 +240,7 @@ export class VisualizerManager {
           beatInfo
         );
         break;
-      case "orbitalRings":
-        animators.animateOrbitalRings(
-          objects,
-          frequencyData,
-          time,
-          params,
-          beatInfo
-        );
-        break;
+
       case "fractalExpansion":
         animators.animateFractalExpansion(
           objects,
@@ -409,8 +295,8 @@ export class VisualizerManager {
           beatInfo
         );
         break;
-      case "dimensionalGateway":
-        animators.animateDimensionalGateway(
+      case "waveform3Dmini":
+        animators.animateWaveform3DMini(
           objects,
           frequencyData,
           time,
@@ -418,8 +304,74 @@ export class VisualizerManager {
           beatInfo
         );
         break;
-      case "neuralCosmos":
-        animators.animateNeuralCosmos(
+      case "particleSphere":
+        animators.animateParticleSphere(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "cubeGrid":
+        animators.animateCubeGrid(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "spiralHelix":
+        animators.animateSpiralHelix(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "pulsingRings":
+        animators.animatePulsingRings(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "crystalFormation":
+        animators.animatecrys(objects, frequencyData, time, params, beatInfo);
+        break;
+      case "galaxyNebula":
+        animators.animateGalaxyNebula(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "audioTunnel":
+        animators.animateAudioTunnel(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "audioMesh":
+        animators.animateAudioMesh(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
+        break;
+      case "kaleidoscope2":
+        animators.animateKaleidoscope2(
           objects,
           frequencyData,
           time,
@@ -428,7 +380,13 @@ export class VisualizerManager {
         );
         break;
       default:
-        animators.animateDNAHelix(objects, frequencyData, time);
+        animators.animateAudioTunnel(
+          objects,
+          frequencyData,
+          time,
+          params,
+          beatInfo
+        );
     }
   }
 
@@ -488,6 +446,17 @@ export class VisualizerManager {
       "timeVortex",
       "dimensionalGateway",
       "neuralCosmos",
+      // New visualizers
+      "waveform3Dmini",
+      "particleSphere",
+      "cubeGrid",
+      "spiralHelix",
+      "pulsingRings",
+      "crystalFormation",
+      "galaxyNebula",
+      "audioTunnel",
+      "audioMesh",
+      "kaleidoscope2",
     ];
   }
 }

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import type { Video as VideoParams, RegisteredIpAssetParams } from "../types";
 import { useToastContext } from "../../../components/common/Toast/ToastProvider";
-import { useGetVideoByWallet } from "../../../hooks/useGetVideosByWallet";
-import { useUpdatePublication } from "../../../hooks/useUpdatePublication";
-import { useUpdateIp } from "../../../hooks/useUpdateIp";
-import { useDeleteVideo } from "../../../hooks/useDeleteVideo";
+import { useGetVideoByWallet } from "../../../shared/hooks/useGetVideosByWallet";
+import { useUpdatePublication } from "../../../shared/hooks/useUpdatePublication";
+import { useUpdateIp } from "../../../shared/hooks/useUpdateIp";
+import { useDeleteVideo } from "../../../shared/hooks/useDeleteVideo";
 
 export function useVideos(walletAddress: string, isConnected: boolean) {
   const [videos, setVideos] = useState<VideoParams[]>([]);

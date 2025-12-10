@@ -9,8 +9,11 @@ import helmet from "helmet";
 import morgan from "morgan";
 import lyricsRoutes from "./routes/audioRoutes";
 import videoRoutes from "./routes/videoRoutes";
+import { rateLimiter } from "./middleware/rateLimiter";
 
 const app = express();
+
+app.use(rateLimiter);
 
 app.use(helmet());
 app.use(express.json());

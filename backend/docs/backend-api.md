@@ -83,6 +83,15 @@ Remove a user's video entry.
 
 ---
 
+# Security
+✅ Rate Limiting
+
+A custom Express rate-limiter protects all upload routes
+to prevent spam, DDoS attempts, and excessive requests.
+
+# Testing 
+Unit Tests for File Uploads path
+
 # 🧪 Swagger Documentation
 
 The backend automatically generates Swagger documentation under:
@@ -103,5 +112,7 @@ Key technologies powering the backend:
 - **Pinata (IPFS)** — decentralized storage  
 - **Mongoose** — MongoDB ORM  
 - **Story Protocol SDK** — IP asset registration  
+- **Unit test**
+
 
 ---

@@ -3,7 +3,7 @@ import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useVisualizer } from "../../../provider/VisualizerContext";
 import { useAudio } from "../../../provider/AudioContext";
 import { useThreeSetup } from "./useThreeSetup";
-import { useUploadVideo } from "../../../hooks/useUploadVideo";
+import { useUploadVideo } from "../../../shared/hooks/useUploadVideo";
 
 export const useLivePreview = () => {
   const { user, primaryWallet } = useDynamicContext();

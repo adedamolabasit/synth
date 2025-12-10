@@ -15,6 +15,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
     <>
       <canvas 
         ref={canvasRef} 
+        
         className="w-full h-full" 
         style={{ background: '#0a0a0a' }}
       />

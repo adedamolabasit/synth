@@ -8,16 +8,12 @@ import {
   Sparkles,
   Globe,
   Music,
-  Video,
   ChevronRight,
   Palette,
-  Download,
   ArrowRight,
-  MessageCircle,
   Star,
-  ExternalLink,
 } from "lucide-react";
-import musicBg from "../../assets/background/music.gif";
+import Link from "next/link";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -43,7 +39,6 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     <div
       className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}
     />
-    {/* Dark overlay */}
     <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/60 backdrop-blur-sm" />
 
     <div className="relative z-10">
@@ -63,17 +58,8 @@ const TestimonialCard: React.FC<TestimonialProps> = ({
   avatarColor,
 }) => (
   <div className="relative overflow-hidden rounded-2xl border border-slate-700/50 p-6 backdrop-blur-sm">
-    {/* Animated GIF Background */}
-    <div
-      className="absolute inset-0 z-0 opacity-5"
-      style={{
-        backgroundImage: `url(${musicBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    />
-    {/* Dark overlay */}
+    <div className="absolute inset-0 z-0 opacity-5" />
+
     <div className="absolute inset-0 bg-gradient-to-br from-slate-900/70 to-slate-800/50" />
 
     <div className="relative z-10">
@@ -195,24 +181,12 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      {/* Global Animated GIF Background Layer */}
-
-      {/* Hero Section */}
       <div className="relative overflow-hidden z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-transparent to-purple-500/20" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/30 via-transparent to-transparent" />
 
- <div className="relative max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
-  {/* GIF Background */}
-  <div className="absolute inset-0 z-0 overflow-hidden">
-    <img
-      src={musicBg}
-      alt="Background GIF"
-      className="w-full h-full object-cover opacity-50"
-      style={{ imageRendering: "auto", transition: "opacity 0.5s ease-in-out" }}
-    />
-  </div>
-
+        <div className="relative max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
+          <div className="absolute inset-0 z-0 overflow-hidden"></div>
 
           <div className="relative z-10 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500/30 to-purple-500/30 border border-indigo-500/50 mb-6 backdrop-blur-sm">
@@ -237,27 +211,21 @@ const LandingPage: React.FC = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <button className="group relative px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl font-semibold text-white hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-300 hover:scale-105 backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                  <span>Start Creating Free</span>
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
-              </button>
-
-              <button className="px-8 py-4 bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl font-semibold text-white border border-slate-700/50 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                  <Video className="w-5 h-5" />
-                  <span>Watch Demo</span>
-                </div>
-              </button>
+              <Link href="/dashboard">
+                <button className="group relative px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl font-semibold text-white hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-300 hover:scale-105 backdrop-blur-sm">
+                  <div className="flex items-center gap-2">
+                    <span>Start Creating Free</span>
+                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                </button>
+              </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Demo Video Section */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32 z-10">
+      <div className="relative  mt-3 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32 z-10">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-4">
             See{" "}
@@ -267,40 +235,27 @@ const LandingPage: React.FC = () => {
             in Action
           </h2>
           <p className="text-xl text-slate-200 max-w-2xl mx-auto">
-            Watch how musicians and creators transform audio into visual
-            masterpieces
+            Watch a complete rundown of every video visualizer — and discover
+            how each one lets you create magical visuals.
           </p>
         </div>
 
         <div className="relative max-w-4xl mx-auto">
-          {/* Demo video upload/embed area */}
           <div className="aspect-video rounded-2xl overflow-hidden border-2 border-slate-700/50 group hover:border-indigo-500/50 transition-all duration-300 relative">
-            {/* Video background with GIF */}
-            {/* <div 
-              className="absolute inset-0 z-0 opacity-5"
-              style={{
-                backgroundImage: `url(${musicBg})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            /> */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-sm" />
 
-            {/* Demo video player */}
             <div className="relative h-full z-10">
               <video
                 ref={videoRef}
+                src="https://crimson-obliged-zebra-367.mypinata.cloud/ipfs/QmPN6jMcV4LyNix1AdKEyiCA4LtL5aZtKyfvapT7PNexaX?pinataGatewayToken=BmZjUB5nCCxIeDdY6v_uM2RJhyqwnTKtGFnahd_IsPXD9He4pVRxPOcSvDfCpYwM"
                 className="w-full h-full object-cover"
                 poster="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070"
                 onEnded={handleVideoEnded}
+                controls
               >
-                {/* Add your demo video source here */}
-                <source src="/demo-video.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
 
-              {/* Custom video controls */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-center justify-center">
                 <button
                   onClick={handleVideoPlay}
@@ -313,43 +268,10 @@ const LandingPage: React.FC = () => {
                   )}
                 </button>
               </div>
-
-              {/* Video info overlay */}
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-white font-semibold text-lg">
-                      Synth Demo: From Audio to Visual IP
-                    </h3>
-                    <p className="text-slate-300 text-sm">
-                      2:45 • Upload → Visualize → Register
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-gradient-to-r from-slate-800/80 to-slate-900/80 rounded-lg text-white text-sm font-medium hover:bg-slate-700/80 transition-colors backdrop-blur-sm">
-                      Full Case Study
-                    </button>
-                    <button className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg text-white text-sm font-medium hover:shadow-lg hover:shadow-indigo-500/25 transition-all backdrop-blur-sm">
-                      Try This Track
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* Upload your own demo section */}
           <div className="mt-8 p-6 rounded-2xl border border-slate-700/50 relative backdrop-blur-sm">
-            {/* Background with GIF */}
-            {/* <div 
-              className="absolute inset-0 z-0 opacity-5 rounded-2xl"
-              style={{
-                backgroundImage: `url(${musicBg})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            /> */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 to-slate-800/40 rounded-2xl" />
 
             <div className="relative z-10">
@@ -363,14 +285,12 @@ const LandingPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="flex gap-4">
-                  <button className="px-6 py-3 bg-gradient-to-r from-slate-800/80 to-slate-900/80 rounded-xl text-white font-medium border border-slate-700/50 hover:border-indigo-500/50 transition-colors flex items-center gap-2 backdrop-blur-sm">
-                    <Upload className="w-4 h-4" />
-                    Upload Demo Audio
-                  </button>
-                  <button className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center gap-2 backdrop-blur-sm">
-                    <MessageCircle className="w-4 h-4" />
-                    Book Demo
-                  </button>
+                  <Link href="/dashboard">
+                    <button className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center gap-2 backdrop-blur-sm">
+                      <Upload className="w-4 h-4" />
+                      Get Started
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -378,7 +298,6 @@ const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Features Grid */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32 z-10">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-4">
@@ -399,7 +318,6 @@ const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Section */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32 z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
@@ -407,16 +325,6 @@ const LandingPage: React.FC = () => {
               key={index}
               className="relative p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm"
             >
-              {/* Background with GIF */}
-              {/* <div 
-                className="absolute inset-0 z-0 opacity-5 rounded-2xl"
-                style={{
-                  backgroundImage: `url(${musicBg})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}
-              /> */}
               <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 to-slate-800/40 rounded-2xl" />
 
               <div className="relative z-10">
@@ -430,7 +338,6 @@ const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Testimonials */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32 z-10">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-4">
@@ -449,19 +356,8 @@ const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* CTA Section */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32 z-10">
         <div className="relative overflow-hidden rounded-3xl border border-indigo-500/50 p-8 md:p-12">
-          {/* Background with GIF */}
-          {/* <div 
-            className="absolute inset-0 z-0 opacity-5"
-            style={{
-              backgroundImage: `url(${musicBg})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
-            }}
-          /> */}
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-slate-900/60 to-purple-900/40" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent" />
 
@@ -476,19 +372,14 @@ const LandingPage: React.FC = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="group px-8 py-4 bg-gradient-to-r from-white to-slate-100 rounded-xl font-semibold text-slate-900 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 hover:scale-105">
-                  <div className="flex items-center gap-2">
-                    <span>Start Free Trial</span>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </button>
-
-                <button className="px-8 py-4 bg-gradient-to-r from-transparent to-transparent rounded-xl font-semibold text-white border-2 border-white/30 hover:border-white/50 transition-colors backdrop-blur-sm">
-                  <div className="flex items-center gap-2">
-                    <Video className="w-5 h-5" />
-                    <span>Schedule Demo</span>
-                  </div>
-                </button>
+                <Link href="/dashboard">
+                  <button className="group px-8 py-4 bg-gradient-to-r from-white to-slate-100 rounded-xl font-semibold text-slate-900 hover:shadow-2xl hover:shadow-white/20 transition-all duration-300 hover:scale-105">
+                    <div className="flex items-center gap-2">
+                      <span>Start Free Trial</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </button>
+                </Link>
               </div>
 
               <p className="text-slate-300 text-sm mt-6">
@@ -499,37 +390,9 @@ const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer */}
       <div className="relative border-t border-slate-800/50 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">
-                SYNTH
-              </div>
-              <p className="text-slate-300">
-                AI-powered audio visualization and IP ownership platform
-              </p>
-            </div>
-
-            {["Product", "Resources", "Company", "Legal"].map((section) => (
-              <div key={section}>
-                <h4 className="text-white font-semibold mb-4">{section}</h4>
-                <ul className="space-y-2">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <li key={i}>
-                      <a
-                        href="#"
-                        className="text-slate-300 hover:text-white transition-colors"
-                      >
-                        {section} Link {i + 1}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          <div className="grid md:grid-cols-4 gap-8"></div>
 
           <div className="border-t border-slate-800/50 mt-8 pt-8 text-center text-slate-400">
             <p>© {new Date().getFullYear()} Synth. All rights reserved.</p>

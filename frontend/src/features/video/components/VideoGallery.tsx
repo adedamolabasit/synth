@@ -1,4 +1,4 @@
-import { Video } from "..";
+import { Video } from ".";
 import { VideoCard } from "./VideoCard";
 import { EmptyState } from "./EmptyState";
 import { Lock } from "lucide-react";

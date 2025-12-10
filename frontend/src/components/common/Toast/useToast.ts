@@ -1,7 +1,6 @@
-// components/ui/Toast/useToast.ts
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Toast, ToastVariant, ToastPosition } from './index';
+import { Toast } from './index';
 
 export const useToast = () => {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -11,7 +10,6 @@ export const useToast = () => {
     const newToast = { ...toast, id };
     
     setToasts((prev) => {
-      // Limit to 5 toasts maximum
       const updatedToasts = [...prev, newToast];
       return updatedToasts.slice(-5);
     });

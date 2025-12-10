@@ -1,7 +1,26 @@
-import React from "react";
-import { Music, Play, Pause, Video, Music2, Zap } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Music,
+  Play,
+  Pause,
+  Video,
+  Music2,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  Eye,
+  Target,
+} from "lucide-react";
 import { Slider } from "../../../components/ui/Slider";
 import { formatTime } from "../utils";
+import {
+  categories,
+  defaultCameraParams,
+  sliderConfigs,
+  presets,
+  defaultParams,
+} from "../config/indes";
 
 interface CanvasControlsProps {
   isConnected: boolean;
@@ -41,6 +60,13 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
 }) => {
   if (!isConnected) return null;
 
+  const [showSettings, setShowSettings] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>("basic");
+
+  if (!params.cameraDistance) {
+    setParams((prev: any) => ({ ...prev, ...defaultCameraParams }));
+  }
+
   const handleToggleLyrics = () => {
     setParams((prev: any) => ({
       ...prev,
@@ -48,18 +74,113 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
     }));
   };
 
-  const handleSpeedChange = (speed: number) => {
+  const resetToDefault = (key: string) => {
+    const defaultValue = defaultParams[key as keyof typeof defaultParams];
+    if (typeof defaultValue === "number") {
+      setParams((prev: any) => ({ ...prev, [key]: defaultValue }));
+    } else if (typeof defaultValue === "boolean") {
+      setParams((prev: any) => ({ ...prev, [key]: defaultValue }));
+    }
+  };
+
+  const applyCameraPreset = (preset: string) => {
     setParams((prev: any) => ({
       ...prev,
-      speed: speed,
+      ...presets[preset as keyof typeof presets],
     }));
   };
+
+  const renderControl = (key: string, config: any) => {
+    const value = params[key];
+
+    if (config.isToggle) {
+      return (
+        <div key={key} className="flex items-center justify-between py-2 px-1">
+          <div className="flex items-center gap-3">
+            <span className="text-lg">{config.icon}</span>
+            <div>
+              <label className="text-sm font-medium text-slate-300 block">
+                {config.label}
+              </label>
+              <button
+                onClick={() => resetToDefault(key)}
+                className="text-xs text-slate-500 hover:text-slate-400 transition-colors mt-1"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div
+              onClick={() =>
+                setParams((prev: any) => ({ ...prev, [key]: !value }))
+              }
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                value ? "bg-cyan-600" : "bg-slate-700"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  value ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={key} className="space-y-2 py-2 px-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-lg">{config.icon}</span>
+            <div>
+              <label className="text-sm font-medium text-slate-300 block">
+                {config.label}
+              </label>
+              <button
+                onClick={() => resetToDefault(key)}
+                className="text-xs text-slate-500 hover:text-slate-400 transition-colors mt-1"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+          <span className="text-sm font-semibold bg-slate-800/50 px-2 py-1 rounded text-slate-300">
+            {typeof value === "number"
+              ? value.toFixed(config.step < 1 ? 1 : 0)
+              : value}
+          </span>
+        </div>
+        <Slider
+          value={value}
+          min={config.min}
+          max={config.max}
+          step={config.step}
+          onChange={(v: number) =>
+            setParams((prev: any) => ({ ...prev, [key]: v }))
+          }
+          showValue={false}
+        />
+        <div className="flex justify-between text-xs text-slate-500">
+          <span>{config.min}</span>
+          <span className="text-slate-400">{config.label}</span>
+          <span>{config.max}</span>
+        </div>
+      </div>
+    );
+  };
+
+  const categoryControls = Object.entries(sliderConfigs)
+    .filter(([_, config]) => config.category === activeCategory)
+    .map(([key, config]) => renderControl(key, config));
 
   return (
     <>
       <div className="absolute xl:bottom-20 bottom-10 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl opacity-0 group-hover:opacity-100 transition-all duration-300">
         <div className="bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl p-4 shadow-2xl">
-          <div className="flex items-center justify-between gap-6">
+          <div className="flex items-center justify-between gap-6 mb-4">
             <div className="flex items-center gap-4 min-w-0 flex-1">
               {audioName && (
                 <div className="flex items-center gap-3 min-w-0">
@@ -162,36 +283,171 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 min-w-[200px]">
-                <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 min-w-[150px]">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/50 transition-all duration-200"
+                >
                   <div className="flex items-center gap-2">
-                    <Zap size={16} className="text-yellow-400" />
+                    <Settings size={16} className="text-slate-300" />
                     <span className="text-sm font-medium text-slate-300">
-                      Speed
+                      Settings
                     </span>
                   </div>
-                  <span className="text-sm font-semibold text-yellow-400 bg-yellow-500/10 px-3 py-1 rounded-full">
-                    {params.speed.toFixed(1)}x
-                  </span>
-                </div>
-                <Slider
-                  min={0.1}
-                  max={3}
-                  step={0.1}
-                  value={params.speed}
-                  onChange={handleSpeedChange}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-slate-500">
-                  <span>Slow</span>
-                  <span className="text-slate-400">
-                    Adjust during recording
-                  </span>
-                  <span>Fast</span>
-                </div>
+                  {showSettings ? (
+                    <ChevronUp size={16} className="text-slate-400" />
+                  ) : (
+                    <ChevronDown size={16} className="text-slate-400" />
+                  )}
+                </button>
               </div>
             </div>
           </div>
+
+          {showSettings && (
+            <div className="mt-4 pt-4 border-t border-slate-700/50 animate-in fade-in duration-200">
+              <div className="flex items-center gap-2 mb-4">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveCategory(category.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 flex-1 justify-center ${
+                      activeCategory === category.id
+                        ? "bg-slate-800/80 text-white border border-slate-600/50"
+                        : "bg-slate-800/30 text-slate-400 hover:bg-slate-800/50 border border-slate-700/30"
+                    }`}
+                  >
+                    <category.icon size={14} className={category.color} />
+                    <span className="text-sm font-medium">
+                      {category.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/30 max-h-64 overflow-y-auto">
+                <div className="space-y-4">
+                  {activeCategory === "camera" && (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target size={14} className="text-blue-400" />
+                        <span className="text-sm font-medium text-slate-300">
+                          Camera Presets
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: "default", label: "Default", icon: "🎯" },
+                          { id: "close-up", label: "Close-up", icon: "🔍" },
+                          { id: "wide-angle", label: "Wide", icon: "🌐" },
+                          { id: "top-down", label: "Top Down", icon: "⬇️" },
+                          { id: "low-angle", label: "Low Angle", icon: "⬆️" },
+                          { id: "orbiting", label: "Orbiting", icon: "🔄" },
+                        ].map((preset) => (
+                          <button
+                            key={preset.id}
+                            onClick={() => applyCameraPreset(preset.id)}
+                            className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-800/40 hover:bg-blue-500/20 border border-slate-700/30 transition-all duration-200"
+                          >
+                            <span className="text-lg">{preset.icon}</span>
+                            <span className="text-xs text-slate-300">
+                              {preset.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {categoryControls}
+
+                  {activeCategory === "basic" && (
+                    <div className="pt-2 border-t border-slate-700/30">
+                      <div className="text-xs text-slate-500 italic">
+                        Basic parameters control the overall behavior and
+                        intensity of the visualizer
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCategory === "camera" && (
+                    <div className="pt-2 border-t border-slate-700/30">
+                      <div className="text-xs text-slate-500 italic">
+                        Adjust camera position, angle, and movement behavior
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCategory === "animation" && (
+                    <div className="pt-2 border-t border-slate-700/30">
+                      <div className="text-xs text-slate-500 italic">
+                        Animation settings control how elements move and respond
+                        over time
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCategory === "visual" && (
+                    <div className="pt-2 border-t border-slate-700/30">
+                      <div className="text-xs text-slate-500 italic">
+                        Visual settings control the appearance, size, and
+                        complexity of elements
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCategory === "audio" && (
+                    <div className="pt-2 border-t border-slate-700/30">
+                      <div className="text-xs text-slate-500 italic">
+                        Audio processing settings affect how sound is analyzed
+                        and visualized
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCategory === "effects" && (
+                    <div className="pt-2 border-t border-slate-700/30">
+                      <div className="text-xs text-slate-500 italic">
+                        Toggle various visual and audio effects on or off
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-xs text-slate-500 flex items-center gap-2">
+                  <Eye size={12} />
+                  Active:{" "}
+                  {categories.find((c) => c.id === activeCategory)?.label}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      Object.entries(sliderConfigs)
+                        .filter(
+                          ([_, config]) => config.category === activeCategory
+                        )
+                        .forEach(([key]) => resetToDefault(key));
+                    }}
+                    className="text-xs bg-slate-800/50 hover:bg-slate-800/70 text-slate-300 px-3 py-1 rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <RefreshCw size={12} />
+                    Reset Category
+                  </button>
+                  <button
+                    onClick={() => {
+                      Object.keys(sliderConfigs).forEach(resetToDefault);
+                    }}
+                    className="text-xs bg-slate-800/70 hover:bg-slate-800/90 text-slate-200 px-3 py-1 rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <RefreshCw size={12} />
+                    Reset All
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

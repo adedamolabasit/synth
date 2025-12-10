@@ -150,7 +150,7 @@ The recorder may also capture audio by mixing the audio output into the captured
 
 ### 7) Upload & Backend
 
-* Uploads are handled by `src/api/mutations/uploadVideo.ts` which sends the recorded blob to the backend (`backend/src/controllers/videoController.ts`).
+* Uploads are handled by `src/shared/api/mutations/uploadVideo.ts` which sends the recorded blob to the backend (`backend/src/controllers/videoController.ts`).
 * Backend stores the file (and pins to IPFS via `utils/pinata.ts`) and returns metadata (CID, url) that is later used for Story registration.
 
 ### 8) Tips for extending & debugging

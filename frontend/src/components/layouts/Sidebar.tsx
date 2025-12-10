@@ -1,5 +1,6 @@
 import { Home, Video, Box } from "lucide-react";
 import { ReactNode } from "react";
+import Link from "next/link";
 
 interface NavItem {
   icon: ReactNode;
@@ -22,9 +23,11 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
 
   return (
     <aside className="w-20 bg-slate-900/95 backdrop-blur-xl border-r border-slate-800/50 flex flex-col items-center py-6 gap-2">
-      <div className="mb-8 w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
-        <span className="text-white font-bold text-xl">S</span>
-      </div>
+      <Link href="/">
+        <div className="cursor-pointer mb-8 w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
+          <span className="text-white font-bold text-xl">S</span>
+        </div>
+      </Link>
 
       <nav className="flex-1 flex flex-col gap-2 w-full px-2">
         {navItems.map((item) => (

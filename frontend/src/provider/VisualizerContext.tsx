@@ -72,6 +72,10 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
+  const resetParamsToDefaults = () => {
+    setParams(defaultParams);
+  };
+
   const handleSetCurrentVisualizer = (visualizerType: string) => {
     setCurrentVisualizer(visualizerType);
     setParams((prev) => ({
@@ -83,6 +87,7 @@ export const VisualizerProvider: React.FC<{ children: ReactNode }> = ({
   const value: VisualizerContextType = {
     params,
     setParams: handleSetParams,
+    resetParamsToDefaults,
     visualElements,
     setVisualElements,
     updateElement,

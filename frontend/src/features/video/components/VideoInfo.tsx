@@ -1,6 +1,6 @@
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
-import { Video } from "..";
+import { Video } from ".";
 import {
   Download,
   Eye,
@@ -24,6 +24,7 @@ import { Badge } from "../../../components/ui/Badge";
 import { useStory } from "../../ipAssets/hooks/useStory";
 import { useStoryClient } from "../../../story/client/storyClient";
 import { MintIpLicense } from "../../ipAssets/story/MintIpLicense";
+import { useToastContext } from "../../../components/common/Toast/ToastProvider";
 
 interface VideoInfoProps {
   video: Video;
@@ -33,10 +34,14 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
   const [activeTab, setActiveTab] = useState<"info" | "licenses">("info");
   const [tipAmount, setTipAmount] = useState("0.1");
   const [showTipInput, setShowTipInput] = useState(false);
+  const [mintingLicenseId, setMintingLicenseId] = useState<number | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { licenses, loading, error } = useStory(video.ipRegistration?.ipId);
   const isIpRegistered = video.ipRegistration?.status === "registered";
   const hasLicenses = licenses && licenses.length > 0;
   const client = useStoryClient();
+
+  const toast = useToastContext();
 
   const getLicenseName = (license: any) => {
     if (license.templateName === "pil") {
@@ -86,16 +91,62 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
     }
   };
 
-  const handleMintLicense = async (mintFee: number, licenseId: number) => {
+  const handleDownloadVideo = async () => {
     try {
+      setIsDownloading(true);
+
+      const response = await fetch(video.videoUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download video: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+
+      const filename = video.metadata.name
+        ? `${video.metadata.name.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.${
+            video.metadata.type?.split("/")[1] || "mp4"
+          }`
+        : `video_${video.id}.${video.metadata.type?.split("/")[1] || "mp4"}`;
+
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error downloading video:", error);
+      alert("Failed to download video. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleMintLicense = async (mintFee: number, licenseId: number) => {
+    if (mintingLicenseId === licenseId) return;
+
+    try {
+      setMintingLicenseId(licenseId);
+
       const amount = formatWeiToIp(mintFee.toString());
       console.log(amount, "fs");
       const mintData = {
         ipId: video.ipRegistration?.ipId as `0x${string}`,
         licensstermId: licenseId,
       };
+
       await MintIpLicense(client!, mintData);
-    } catch (error) {}
+
+      toast.success("License minted successfully");
+    } catch (error) {
+      console.error("Error minting license:", error);
+    } finally {
+      setMintingLicenseId(null);
+    }
   };
 
   if (activeTab === "licenses" && loading) {
@@ -393,10 +444,17 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
               <Button
                 variant="secondary"
                 className="flex-1"
-                icon={<Download size={16} />}
-                onClick={() => window.open(video.videoUrl, "_blank")}
+                icon={
+                  isDownloading ? (
+                    <Loader2 className="animate-spin" size={16} />
+                  ) : (
+                    <Download size={16} />
+                  )
+                }
+                onClick={handleDownloadVideo}
+                disabled={isDownloading}
               >
-                Download
+                {isDownloading ? "Downloading..." : "Download Video"}
               </Button>
               <Button
                 variant="primary"
@@ -433,240 +491,253 @@ export const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
                 </div>
               </div>
             ) : (
-              licenses.map((license, index) => (
-                <div
-                  key={license.licenseTermsId || index}
-                  className="space-y-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <FileText className="text-blue-400" size={20} />
-                      <div>
-                        <h4 className="font-semibold text-white text-base">
-                          {getLicenseName(license)}
-                        </h4>
-                        <p className="text-sm text-slate-400">
-                          License Terms ID: {license.licenseTermsId}
-                        </p>
+              licenses.map((license, index) => {
+                const isMinting = mintingLicenseId === license.licenseTermsId;
+
+                return (
+                  <div
+                    key={license.licenseTermsId || index}
+                    className="space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="text-blue-400" size={20} />
+                        <div>
+                          <h4 className="font-semibold text-white text-base">
+                            {getLicenseName(license)}
+                          </h4>
+                          <p className="text-sm text-slate-400">
+                            License Terms ID: {license.licenseTermsId}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={
+                            license.terms.commercialUse ? "success" : "info"
+                          }
+                          size="sm"
+                        >
+                          {license.terms.commercialUse
+                            ? "Commercial"
+                            : "Non-Commercial"}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewLicenseTerms(license)}
+                          className="flex items-center gap-1"
+                        >
+                          <ExternalLink size={14} />
+                          View
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          license.terms.commercialUse ? "success" : "info"
-                        }
-                        size="sm"
-                      >
-                        {license.terms.commercialUse
-                          ? "Commercial"
-                          : "Non-Commercial"}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewLicenseTerms(license)}
-                        className="flex items-center gap-1"
-                      >
-                        <ExternalLink size={14} />
-                        View
-                      </Button>
-                    </div>
-                  </div>
 
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <h5 className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                        <DollarSign size={14} />
-                        Financial Terms
-                      </h5>
-                      <div className="space-y-2 ml-6">
-                        {license.terms.defaultMintingFee && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-400 text-sm">
-                              Minting Fee:
-                            </span>
-                            <span className="text-white text-sm">
-                              {formatWeiToIp(license.terms.defaultMintingFee)}{" "}
-                              IP
-                            </span>
-                          </div>
-                        )}
-                        {license.terms.commercialRevShare > 0 && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-400 text-sm">
-                              Revenue Share:
-                            </span>
-                            <span className="text-white text-sm">
-                              {formatBasisPoints(
-                                license.terms.commercialRevShare
-                              )}
-                              %
-                            </span>
-                          </div>
-                        )}
-                        {license.terms.commercialRevCeiling &&
-                          parseInt(license.terms.commercialRevCeiling) > 0 && (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <h5 className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                          <DollarSign size={14} />
+                          Financial Terms
+                        </h5>
+                        <div className="space-y-2 ml-6">
+                          {license.terms.defaultMintingFee && (
                             <div className="flex justify-between items-center">
                               <span className="text-slate-400 text-sm">
-                                Revenue Ceiling:
+                                Minting Fee:
                               </span>
                               <span className="text-white text-sm">
-                                {formatWeiToIp(
-                                  license.terms.commercialRevCeiling
-                                )}{" "}
+                                {formatWeiToIp(license.terms.defaultMintingFee)}{" "}
                                 IP
                               </span>
                             </div>
                           )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h5 className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                        <Share2 size={14} />
-                        Usage Rights
-                      </h5>
-                      <div className="space-y-2 ml-6">
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400 text-sm">
-                            Derivatives Allowed:
-                          </span>
-                          <span
-                            className={`text-sm font-medium ${
-                              license.terms.derivativesAllowed
-                                ? "text-green-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {license.terms.derivativesAllowed ? "Yes" : "No"}
-                          </span>
-                        </div>
-                        {license.terms.derivativesAllowed && (
-                          <>
+                          {license.terms.commercialRevShare > 0 && (
                             <div className="flex justify-between items-center">
                               <span className="text-slate-400 text-sm">
-                                Derivatives Approval:
+                                Revenue Share:
                               </span>
-                              <span
-                                className={`text-sm font-medium ${
-                                  license.terms.derivativesApproval
-                                    ? "text-amber-400"
-                                    : "text-green-400"
-                                }`}
-                              >
-                                {license.terms.derivativesApproval
-                                  ? "Required"
-                                  : "Not Required"}
+                              <span className="text-white text-sm">
+                                {formatBasisPoints(
+                                  license.terms.commercialRevShare
+                                )}
+                                %
                               </span>
                             </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-slate-400 text-sm">
-                                Reciprocal Terms:
-                              </span>
-                              <span
-                                className={`text-sm font-medium ${
-                                  license.terms.derivativesReciprocal
-                                    ? "text-green-400"
-                                    : "text-red-400"
-                                }`}
-                              >
-                                {license.terms.derivativesReciprocal
-                                  ? "Yes"
-                                  : "No"}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400 text-sm">
-                            Transferable:
-                          </span>
-                          <span
-                            className={`text-sm font-medium ${
-                              license.terms.transferable
-                                ? "text-green-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {license.terms.transferable ? "Yes" : "No"}
-                          </span>
+                          )}
+                          {license.terms.commercialRevCeiling &&
+                            parseInt(license.terms.commercialRevCeiling) >
+                              0 && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400 text-sm">
+                                  Revenue Ceiling:
+                                </span>
+                                <span className="text-white text-sm">
+                                  {formatWeiToIp(
+                                    license.terms.commercialRevCeiling
+                                  )}{" "}
+                                  IP
+                                </span>
+                              </div>
+                            )}
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <h5 className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                        <Users size={14} />
-                        Additional Terms
-                      </h5>
-                      <div className="space-y-2 ml-6">
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400 text-sm">
-                            Attribution Required:
-                          </span>
-                          <span
-                            className={`text-sm font-medium ${
-                              license.terms.commercialAttribution
-                                ? "text-green-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {license.terms.commercialAttribution ? "Yes" : "No"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400 text-sm">
-                            Expiration:
-                          </span>
-                          <span className="text-white text-sm">
-                            {formatExpiration(license.terms.expiration)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400 text-sm">
-                            Currency:
-                          </span>
-                          <span className="text-white text-sm">
-                            {formatCurrency(license.terms.currency)}
-                          </span>
-                        </div>
-                        {license.createdAt && (
+                      <div className="space-y-2">
+                        <h5 className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                          <Share2 size={14} />
+                          Usage Rights
+                        </h5>
+                        <div className="space-y-2 ml-6">
                           <div className="flex justify-between items-center">
                             <span className="text-slate-400 text-sm">
-                              Created:
+                              Derivatives Allowed:
                             </span>
-                            <span className="text-white text-sm">
-                              {formatDate(license.createdAt)}
+                            <span
+                              className={`text-sm font-medium ${
+                                license.terms.derivativesAllowed
+                                  ? "text-green-400"
+                                  : "text-red-400"
+                              }`}
+                            >
+                              {license.terms.derivativesAllowed ? "Yes" : "No"}
                             </span>
                           </div>
-                        )}
+                          {license.terms.derivativesAllowed && (
+                            <>
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400 text-sm">
+                                  Derivatives Approval:
+                                </span>
+                                <span
+                                  className={`text-sm font-medium ${
+                                    license.terms.derivativesApproval
+                                      ? "text-amber-400"
+                                      : "text-green-400"
+                                  }`}
+                                >
+                                  {license.terms.derivativesApproval
+                                    ? "Required"
+                                    : "Not Required"}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400 text-sm">
+                                  Reciprocal Terms:
+                                </span>
+                                <span
+                                  className={`text-sm font-medium ${
+                                    license.terms.derivativesReciprocal
+                                      ? "text-green-400"
+                                      : "text-red-400"
+                                  }`}
+                                >
+                                  {license.terms.derivativesReciprocal
+                                    ? "Yes"
+                                    : "No"}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400 text-sm">
+                              Transferable:
+                            </span>
+                            <span
+                              className={`text-sm font-medium ${
+                                license.terms.transferable
+                                  ? "text-green-400"
+                                  : "text-red-400"
+                              }`}
+                            >
+                              {license.terms.transferable ? "Yes" : "No"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h5 className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                          <Users size={14} />
+                          Additional Terms
+                        </h5>
+                        <div className="space-y-2 ml-6">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400 text-sm">
+                              Attribution Required:
+                            </span>
+                            <span
+                              className={`text-sm font-medium ${
+                                license.terms.commercialAttribution
+                                  ? "text-green-400"
+                                  : "text-red-400"
+                              }`}
+                            >
+                              {license.terms.commercialAttribution
+                                ? "Yes"
+                                : "No"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400 text-sm">
+                              Expiration:
+                            </span>
+                            <span className="text-white text-sm">
+                              {formatExpiration(license.terms.expiration)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400 text-sm">
+                              Currency:
+                            </span>
+                            <span className="text-white text-sm">
+                              {formatCurrency(license.terms.currency)}
+                            </span>
+                          </div>
+                          {license.createdAt && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400 text-sm">
+                                Created:
+                              </span>
+                              <span className="text-white text-sm">
+                                {formatDate(license.createdAt)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex gap-3 pt-4 border-t border-slate-700">
-                    <Button
-                      variant="primary"
-                      className="flex-1"
-                      onClick={() =>
-                        handleMintLicense(
-                          license.terms.defaultMintingFee,
-                          license.licenseTermsId
-                        )
-                      }
-                    >
-                      Mint License
-                    </Button>
-                    <Button variant="secondary" className="flex-1">
-                      Download license
-                    </Button>
-                  </div>
+                    <div className="flex gap-3 pt-4 border-t border-slate-700">
+                      <Button variant="secondary" className="flex-1">
+                        Download license
+                      </Button>
+                      <Button
+                        variant="primary"
+                        className="flex-1"
+                        onClick={() =>
+                          handleMintLicense(
+                            license.terms.defaultMintingFee,
+                            license.licenseTermsId
+                          )
+                        }
+                        disabled={isMinting}
+                        icon={
+                          isMinting ? (
+                            <Loader2 className="animate-spin" size={16} />
+                          ) : undefined
+                        }
+                      >
+                        {isMinting ? "Minting..." : "Mint License"}
+                      </Button>
+                    </div>
 
-                  {index < licenses.length - 1 && (
-                    <div className="border-t border-slate-700 pt-4"></div>
-                  )}
-                </div>
-              ))
+                    {index < licenses.length - 1 && (
+                      <div className="border-t border-slate-700 pt-4"></div>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         )}

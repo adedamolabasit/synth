@@ -1,3 +1,5 @@
+import { Video } from "../components";
+
 export const formatFileSize = (bytes: number) => {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
@@ -21,6 +23,16 @@ export const formatDuration = (seconds?: number) => {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
+export const getFilteredVideos = (
+  videos: Video[],
+  activeTab: "all" | "your"
+) => {
+  if (activeTab === "all") {
+    return videos.filter((video) => video.publication === "published");
+  } else {
+    return videos;
+  }
+};
 export const generateVideoThumbnail = (videoUrl: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement("video");
@@ -46,7 +58,9 @@ export const generateVideoThumbnail = (videoUrl: string): Promise<string> => {
       }
     });
 
-    video.addEventListener("error", () => reject(new Error("Video loading error")));
+    video.addEventListener("error", () =>
+      reject(new Error("Video loading error"))
+    );
     video.load();
   });
 };

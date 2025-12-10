@@ -6,20 +6,6 @@ import {
 } from "../shared/types/visualizer.types";
 
 export const defaultCustomizations = {
-  ambient: {
-    elementType: "bouncing-ball" as const,
-    color: "#ffffff",
-    size: 1,
-    speed: 1,
-    amplitude: 2,
-    frequency: 1,
-    bounceHeight: 3,
-    movementType: "bounce" as const,
-    responsive: true,
-    responseTo: "overall" as const,
-    intensity: 1,
-    opacity: 0.8,
-  },
   background: {
     backgroundType: "color",
     color: "#0a0a0a",
@@ -40,13 +26,6 @@ export const defaultCustomizations = {
     intensity: 1,
     count: 3000,
     responseTo: "bass" as const,
-  },
-  light: {
-    color: "#ffffff",
-    opacity: 1,
-    intensity: 1.0,
-    position: [5, 5, 5] as [number, number, number],
-    responseTo: "beat" as const,
   },
   grid: {
     color: "#00ff88",
@@ -83,7 +62,7 @@ export const defaultVisualElements: VisualElement[] = [
     type: "background",
     name: "Background",
     visible: true,
-    position: [0, 0, 0],
+    position: [0, 2, 0],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     customization: defaultCustomizations.background,
@@ -108,39 +87,9 @@ export const defaultVisualElements: VisualElement[] = [
     scale: [1, 1, 1],
     customization: defaultCustomizations.grid,
   },
-  {
-    id: "ambient-light",
-    type: "light",
-    name: "Ambient Light",
-    visible: true,
-    position: [0, 0, 0],
-    rotation: [0, 0, 0],
-    scale: [1, 1, 1],
-    customization: defaultCustomizations.light,
-  },
-  {
-    id: "directional-light",
-    type: "light",
-    name: "Directional Light",
-    visible: true,
-    position: [5, 5, 5],
-    rotation: [0, 0, 0],
-    scale: [1, 1, 1],
-    customization: {
-      ...defaultCustomizations.light,
-      position: [5, 5, 5],
-    },
-  },
 ];
 
 export const defaultVisualizers: Visualizer[] = [
-  {
-    id: "2",
-    name: "Particle Flow",
-    type: "particles",
-    thumbnail: "✨",
-    visualizerType: "particleWave",
-  },
   {
     id: "3",
     name: "Wave Ripple",
@@ -154,6 +103,34 @@ export const defaultVisualizers: Visualizer[] = [
     type: "3d",
     thumbnail: "🌌",
     visualizerType: "morphing",
+  },
+  {
+    id: "61",
+    name: "Galaxy Nebula",
+    type: "cosmic",
+    thumbnail: "🌠",
+    visualizerType: "galaxyNebula",
+  },
+  {
+    id: "62",
+    name: "Audio Tunnel",
+    type: "3d",
+    thumbnail: "🎧",
+    visualizerType: "audioTunnel",
+  },
+  {
+    id: "63",
+    name: "Audio Mesh",
+    type: "wireframe",
+    thumbnail: "🔲",
+    visualizerType: "audioMesh",
+  },
+  {
+    id: "64",
+    name: "Kaleidoscope 2.0",
+    type: "geometric",
+    thumbnail: "🎨",
+    visualizerType: "kaleidoscope2",
   },
   {
     id: "5",
@@ -226,13 +203,6 @@ export const defaultVisualizers: Visualizer[] = [
     visualizerType: "kaleidoscope",
   },
   {
-    id: "15",
-    name: "Neural Network",
-    type: "network",
-    thumbnail: "🧠",
-    visualizerType: "neuralNetwork",
-  },
-  {
     id: "16",
     name: "Quantum Field",
     type: "quantum",
@@ -254,33 +224,13 @@ export const defaultVisualizers: Visualizer[] = [
     visualizerType: "auroraWaves",
   },
   {
-    id: "19",
-    name: "Sacred Geometry",
-    type: "geometric",
-    thumbnail: "🕉️",
-    visualizerType: "sacredGeometry",
-  },
-  {
     id: "24",
     name: "Voronoi Cells",
     type: "geometric",
     thumbnail: "🔶",
     visualizerType: "voronoiCells",
   },
-  {
-    id: "25",
-    name: "Toroidal Field",
-    type: "field",
-    thumbnail: "🍩",
-    visualizerType: "toroidalField",
-  },
-  {
-    id: "26",
-    name: "Cosmic Web",
-    type: "network",
-    thumbnail: "🕸️",
-    visualizerType: "cosmicWeb",
-  },
+
   {
     id: "27",
     name: "Crystal Cave",
@@ -288,20 +238,7 @@ export const defaultVisualizers: Visualizer[] = [
     thumbnail: "💠",
     visualizerType: "crystalCave",
   },
-  {
-    id: "28",
-    name: "Fire Rings",
-    type: "energy",
-    thumbnail: "🔥",
-    visualizerType: "fireRings",
-  },
-  {
-    id: "29",
-    name: "EM Field",
-    type: "field",
-    thumbnail: "🧲",
-    visualizerType: "electromagneticField",
-  },
+
   {
     id: "34",
     name: "Supernova",
@@ -309,27 +246,7 @@ export const defaultVisualizers: Visualizer[] = [
     thumbnail: "💥",
     visualizerType: "supernova",
   },
-  {
-    id: "35",
-    name: "Warp Tunnel",
-    type: "warp",
-    thumbnail: "🚀",
-    visualizerType: "warpTunnel",
-  },
-  {
-    id: "37",
-    name: "Lightning Storm",
-    type: "energy",
-    thumbnail: "⚡",
-    visualizerType: "lightningStorm",
-  },
-  {
-    id: "38",
-    name: "Quantum Foam",
-    type: "quantum",
-    thumbnail: "🫧",
-    visualizerType: "quantumFoam",
-  },
+
   {
     id: "40",
     name: "Crystal Matrix",
@@ -372,13 +289,7 @@ export const defaultVisualizers: Visualizer[] = [
     thumbnail: "🔮",
     visualizerType: "morphingCrystals",
   },
-  {
-    id: "46",
-    name: "Orbital Rings",
-    type: "cosmic",
-    thumbnail: "🪐",
-    visualizerType: "orbitalRings",
-  },
+
   {
     id: "47",
     name: "Fractal Expansion",
@@ -404,36 +315,58 @@ export const defaultVisualizers: Visualizer[] = [
     id: "50",
     name: "Quantum Flux",
     type: "quantum",
-    thumbnail: "⚛️",
+    thumbnail: "⚡",
     visualizerType: "quantumFlux",
   },
   {
     id: "51",
     name: "Crystal Resonance",
     type: "geometric",
-    thumbnail: "🎵",
+    thumbnail: "💎",
     visualizerType: "crystalResonance",
   },
   {
     id: "52",
     name: "Time Vortex",
-    type: "warp",
+    type: "cosmic",
     thumbnail: "⏳",
     visualizerType: "timeVortex",
   },
+
   {
-    id: "53",
-    name: "Dimensional Gateway",
-    type: "4d",
-    thumbnail: "🚪",
-    visualizerType: "dimensionalGateway",
+    id: "56",
+    name: "Particle Sphere",
+    type: "particles",
+    thumbnail: "🌐",
+    visualizerType: "particleSphere",
   },
   {
-    id: "54",
-    name: "Neural Cosmos",
-    type: "network",
-    thumbnail: "🌌",
-    visualizerType: "neuralCosmos",
+    id: "57",
+    name: "Cube Grid",
+    type: "grid",
+    thumbnail: "🧊",
+    visualizerType: "cubeGrid",
+  },
+  {
+    id: "58",
+    name: "Spiral Helix",
+    type: "3d",
+    thumbnail: "🌀",
+    visualizerType: "spiralHelix",
+  },
+  {
+    id: "59",
+    name: "Pulsing Rings",
+    type: "wave",
+    thumbnail: "💫",
+    visualizerType: "pulsingRings",
+  },
+  {
+    id: "60",
+    name: "Crystal Formation",
+    type: "geometric",
+    thumbnail: "❄️",
+    visualizerType: "crystalFormation",
   },
 ];
 
@@ -451,8 +384,8 @@ export const defaultAudioData: AudioData = {
 export const defaultParams: VisualizerParams = {
   visualizerType: "audioReactive",
   colorScheme: "cyberpunk",
-  intensity: 90,
-  speed: 130,
+  intensity: 4,
+  speed: 20,
   rotationSpeed: 0,
   particleCount: 6000,
   bloom: true,

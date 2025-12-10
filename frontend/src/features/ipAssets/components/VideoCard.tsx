@@ -69,7 +69,7 @@ export function VideoCard({
     hoverTimeoutRef.current = setTimeout(() => {
       if (previewRef.current && canPlay) {
         previewRef.current.currentTime = 0;
-        previewRef.current.play().catch((error) => {
+        previewRef.current.play().catch(() => {
           setHovered(false);
         });
       }

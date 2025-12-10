@@ -11,8 +11,6 @@ interface StatsGridProps {
 export function StatsGrid({ 
   totalVideos, 
   registeredVideos, 
-  totalRevenue, 
-  totalCollaborators 
 }: StatsGridProps) {
   const stats = [
     {
@@ -29,13 +27,13 @@ export function StatsGrid({
     },
     {
       label: "Total Revenue",
-      value: `$${totalRevenue}`,
+      value: `---`,
       icon: DollarSign,
       color: "text-amber-400"
     },
     {
       label: "Collaborators",
-      value: totalCollaborators,
+      value: '---',
       icon: Users,
       color: "text-purple-400"
     }

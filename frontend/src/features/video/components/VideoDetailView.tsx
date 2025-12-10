@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { Video } from "..";
+import { Video } from ".";
 import { Button } from "../../../components/ui/Button";
 import { ArrowLeft, X, EyeOff } from "lucide-react";
 import { VideoInfo } from "./VideoInfo";

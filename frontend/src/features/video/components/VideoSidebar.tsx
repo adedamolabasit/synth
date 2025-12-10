@@ -1,5 +1,5 @@
 import { VideoCard } from "./VideoCard";
-import { Video } from "..";
+import { Video } from ".";
 
 interface VideoSidebarProps {
   videos: Video[];

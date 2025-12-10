@@ -17,7 +17,8 @@ export const RegisterIpAsset = async (
     description: description,
     createdAt: new Date().toISOString(),
     creators: creators,
-    image: video.thumbnailUrl,
+    image:
+      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070",
     imageHash: video.videoHash as `0x${string}`,
     mediaUrl: video.videoUrl,
     mediaHash: video.videoHash as `0x${string}`,

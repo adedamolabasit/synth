@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { 
   X, 
   CheckCircle, 
-  AlertCircle, 
   Info, 
   AlertTriangle,
   XCircle 

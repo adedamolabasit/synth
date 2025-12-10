@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Video } from "..";
-import { useGetVideoByWallet } from "../../../hooks/useGetVideosByWallet";
-import { useGetVideos } from "../../../hooks/useGetVideos";
+import { Video } from "../components";
+import { useGetVideos } from "../../../shared/hooks/useGetVideos";
 
 export const useVideos = () => {
   const [videos, setVideos] = useState<Video[]>([]);

@@ -13,7 +13,12 @@ import {
   Flame,
   Shapes,
   Filter,
+  Activity,
+  Cpu,
+  Grid,
 } from "lucide-react";
+
+import { Zap } from "lucide-react";
 
 import { Input } from "../../../components/ui/Input";
 import { Card } from "../../../components/ui/Card";
@@ -42,6 +47,10 @@ const typeIcons = {
   warp: Waves,
   molecular: Atom,
   energy: Flame,
+  dynamic: Activity,
+  grid: Cpu,
+  wireframe: Grid,
+  tunnel: Zap,
 };
 
 type FilterType =
@@ -53,7 +62,11 @@ type FilterType =
   | "morphing"
   | "liquid"
   | "cyber"
-  | "geometric";
+  | "geometric"
+  | "dynamic"
+  | "grid"
+  | "wireframe"
+  | "tunnel";
 
 export function VisualizerLibrary() {
   const {
@@ -95,6 +108,10 @@ export function VisualizerLibrary() {
     "liquid",
     "cyber",
     "geometric",
+    "dynamic",
+    "grid",
+    "wireframe",
+    "tunnel",
   ];
 
   const getTypeLabel = (type: FilterType) => {
@@ -108,8 +125,12 @@ export function VisualizerLibrary() {
       liquid: "Liquid",
       cyber: "Cyber",
       geometric: "Geometric",
+      dynamic: "Dynamic", // Added
+      grid: "Grid", // Added
+      wireframe: "Wireframe", // Added
+      tunnel: "Tunnel", // Added
     };
-    return labels[type];
+    return labels[type] || type;
   };
 
   const getTypeIcon = (type: FilterType) => {
@@ -200,7 +221,7 @@ export function VisualizerLibrary() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {filteredVisualizers.map((viz) => {
-              const Icon = typeIcons[viz.type];
+              const Icon = typeIcons[viz.type] || Grid3x3; // Fallback icon
               const isActive = currentVisualizer === viz.visualizerType;
 
               return (

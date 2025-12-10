@@ -25,6 +25,7 @@ export interface VisualizerContextType {
   sceneBackground: any;
   setSceneBackground: (background: any) => void;
   updateElementCustomization: (elementId: string, updates: any) => void;
+  resetParamsToDefaults: () => void;
 }
 
 export interface VisualizerParams {
@@ -80,6 +81,11 @@ export interface VisualizerParams {
   glowIntensity: number;
   reactionSpeed: number;
   showLyrics?: boolean;
+  cameraType: "perspective" | "orthographic";
+  cameraAngle: number;
+  cameraElevation: number;
+  cameraDistance: number;
+  cameraPosition: [number, number, number];
 }
 
 export interface Visualizer {
@@ -104,7 +110,11 @@ export interface Visualizer {
     | "4d"
     | "warp"
     | "molecular"
-    | "energy";
+    | "energy"
+    | "dynamic"
+    | "grid"
+    | "wireframe"
+    | "tunnel";
   thumbnail: string;
   visualizerType: string;
 }
